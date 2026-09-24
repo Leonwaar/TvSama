@@ -29,7 +29,7 @@
         android:appComponentFactory="androidx.core.app.CoreComponentFactory"
         android:debuggable="true"
         android:extractNativeLibs="false"
-        android:label="NekoTV"
+        android:label="TvSama"
         android:theme="@android:style/Theme.Material.NoActionBar"
         android:usesCleartextTraffic="false" >
         <activity

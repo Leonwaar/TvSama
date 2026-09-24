@@ -48,7 +48,7 @@
 29-->[androidx.core:core:1.18.0] /home/leon/.gradle/caches/8.13/transforms/fdb384a5fa88936166d2a04866630e5e/transformed/core-1.18.0/AndroidManifest.xml:28:18-86
 30        android:debuggable="true"
 31        android:extractNativeLibs="false"
-32        android:label="NekoTV"
+32        android:label="TvSama"
 32-->/home/leon/TvSama/app/src/main/AndroidManifest.xml:7:9-31
 33        android:theme="@android:style/Theme.Material.NoActionBar"
 33-->/home/leon/TvSama/app/src/main/AndroidManifest.xml:6:9-66
