@@ -1,166 +1,596 @@
 1<?xml version="1.0" encoding="utf-8"?>
 2<manifest xmlns:android="http://schemas.android.com/apk/res/android"
 3    package="fr.nekotv"
-4    android:versionCode="1"
-5    android:versionName="0.1.0" >
+4    android:versionCode="3"
+5    android:versionName="1.0.0" >
 6
 7    <uses-sdk
 8        android:minSdkVersion="23"
 9        android:targetSdkVersion="36" />
 10
 11    <uses-feature
-11-->/home/leon/TvSama/app/src/main/AndroidManifest.xml:2:5-87
+11-->/home/leon/TvSama_fixed_v2/TvSama_fixed/app/src/main/AndroidManifest.xml:2:5-87
 12        android:name="android.software.leanback"
-12-->/home/leon/TvSama/app/src/main/AndroidManifest.xml:2:19-59
+12-->/home/leon/TvSama_fixed_v2/TvSama_fixed/app/src/main/AndroidManifest.xml:2:19-59
 13        android:required="false" />
-13-->/home/leon/TvSama/app/src/main/AndroidManifest.xml:2:60-84
+13-->/home/leon/TvSama_fixed_v2/TvSama_fixed/app/src/main/AndroidManifest.xml:2:60-84
 14    <uses-feature
-14-->/home/leon/TvSama/app/src/main/AndroidManifest.xml:3:5-90
+14-->/home/leon/TvSama_fixed_v2/TvSama_fixed/app/src/main/AndroidManifest.xml:3:5-90
 15        android:name="android.hardware.touchscreen"
-15-->/home/leon/TvSama/app/src/main/AndroidManifest.xml:3:19-62
+15-->/home/leon/TvSama_fixed_v2/TvSama_fixed/app/src/main/AndroidManifest.xml:3:19-62
 16        android:required="false" />
-16-->/home/leon/TvSama/app/src/main/AndroidManifest.xml:3:63-87
+16-->/home/leon/TvSama_fixed_v2/TvSama_fixed/app/src/main/AndroidManifest.xml:3:63-87
 17
 18    <uses-permission android:name="android.permission.INTERNET" />
-18-->/home/leon/TvSama/app/src/main/AndroidManifest.xml:4:5-67
-18-->/home/leon/TvSama/app/src/main/AndroidManifest.xml:4:22-64
+18-->/home/leon/TvSama_fixed_v2/TvSama_fixed/app/src/main/AndroidManifest.xml:4:5-67
+18-->/home/leon/TvSama_fixed_v2/TvSama_fixed/app/src/main/AndroidManifest.xml:4:22-64
 19    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
-19-->[androidx.media3:media3-exoplayer:1.11.1] /home/leon/.gradle/caches/8.13/transforms/31fda06a00d1cc3eaf87c8ace8b318c3/transformed/media3-exoplayer-1.11.1/AndroidManifest.xml:22:5-79
-19-->[androidx.media3:media3-exoplayer:1.11.1] /home/leon/.gradle/caches/8.13/transforms/31fda06a00d1cc3eaf87c8ace8b318c3/transformed/media3-exoplayer-1.11.1/AndroidManifest.xml:22:22-76
-20    <uses-permission android:name="android.permission.WAKE_LOCK" />
-20-->[androidx.media3:media3-exoplayer:1.11.1] /home/leon/.gradle/caches/8.13/transforms/31fda06a00d1cc3eaf87c8ace8b318c3/transformed/media3-exoplayer-1.11.1/AndroidManifest.xml:23:5-68
-20-->[androidx.media3:media3-exoplayer:1.11.1] /home/leon/.gradle/caches/8.13/transforms/31fda06a00d1cc3eaf87c8ace8b318c3/transformed/media3-exoplayer-1.11.1/AndroidManifest.xml:23:22-65
+19-->/home/leon/TvSama_fixed_v2/TvSama_fixed/app/src/main/AndroidManifest.xml:5:5-79
+19-->/home/leon/TvSama_fixed_v2/TvSama_fixed/app/src/main/AndroidManifest.xml:5:22-76
+20    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
+20-->/home/leon/TvSama_fixed_v2/TvSama_fixed/app/src/main/AndroidManifest.xml:6:5-76
+20-->/home/leon/TvSama_fixed_v2/TvSama_fixed/app/src/main/AndroidManifest.xml:6:22-73
 21
-22    <permission
-22-->[androidx.core:core:1.18.0] /home/leon/.gradle/caches/8.13/transforms/fdb384a5fa88936166d2a04866630e5e/transformed/core-1.18.0/AndroidManifest.xml:22:5-24:47
-23        android:name="fr.nekotv.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION"
-23-->[androidx.core:core:1.18.0] /home/leon/.gradle/caches/8.13/transforms/fdb384a5fa88936166d2a04866630e5e/transformed/core-1.18.0/AndroidManifest.xml:23:9-81
-24        android:protectionLevel="signature" />
-24-->[androidx.core:core:1.18.0] /home/leon/.gradle/caches/8.13/transforms/fdb384a5fa88936166d2a04866630e5e/transformed/core-1.18.0/AndroidManifest.xml:24:9-44
-25
-26    <uses-permission android:name="fr.nekotv.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION" />
-26-->[androidx.core:core:1.18.0] /home/leon/.gradle/caches/8.13/transforms/fdb384a5fa88936166d2a04866630e5e/transformed/core-1.18.0/AndroidManifest.xml:26:5-97
-26-->[androidx.core:core:1.18.0] /home/leon/.gradle/caches/8.13/transforms/fdb384a5fa88936166d2a04866630e5e/transformed/core-1.18.0/AndroidManifest.xml:26:22-94
-27
-28    <application
-28-->/home/leon/TvSama/app/src/main/AndroidManifest.xml:5:5-19:19
-29        android:appComponentFactory="androidx.core.app.CoreComponentFactory"
-29-->[androidx.core:core:1.18.0] /home/leon/.gradle/caches/8.13/transforms/fdb384a5fa88936166d2a04866630e5e/transformed/core-1.18.0/AndroidManifest.xml:28:18-86
-30        android:debuggable="true"
-31        android:extractNativeLibs="false"
-32        android:label="TvSama"
-32-->/home/leon/TvSama/app/src/main/AndroidManifest.xml:7:9-31
-33        android:theme="@android:style/Theme.Material.NoActionBar"
-33-->/home/leon/TvSama/app/src/main/AndroidManifest.xml:6:9-66
-34        android:usesCleartextTraffic="false" >
-34-->/home/leon/TvSama/app/src/main/AndroidManifest.xml:8:9-45
-35        <activity
-35-->/home/leon/TvSama/app/src/main/AndroidManifest.xml:9:9-18:20
-36            android:name="fr.nekotv.MainActivity"
-36-->/home/leon/TvSama/app/src/main/AndroidManifest.xml:10:13-41
-37            android:configChanges="orientation|screenSize|keyboard|keyboardHidden"
-37-->/home/leon/TvSama/app/src/main/AndroidManifest.xml:11:13-83
-38            android:exported="true" >
-38-->/home/leon/TvSama/app/src/main/AndroidManifest.xml:12:13-36
-39            <intent-filter>
-39-->/home/leon/TvSama/app/src/main/AndroidManifest.xml:13:13-17:29
-40                <action android:name="android.intent.action.MAIN" />
-40-->/home/leon/TvSama/app/src/main/AndroidManifest.xml:14:17-69
-40-->/home/leon/TvSama/app/src/main/AndroidManifest.xml:14:25-66
-41
-42                <category android:name="android.intent.category.LEANBACK_LAUNCHER" />
-42-->/home/leon/TvSama/app/src/main/AndroidManifest.xml:15:17-86
-42-->/home/leon/TvSama/app/src/main/AndroidManifest.xml:15:27-83
-43                <category android:name="android.intent.category.LAUNCHER" />
-43-->/home/leon/TvSama/app/src/main/AndroidManifest.xml:16:17-77
-43-->/home/leon/TvSama/app/src/main/AndroidManifest.xml:16:27-74
-44            </intent-filter>
-45        </activity>
-46        <activity
-46-->[androidx.compose.ui:ui-tooling-android:1.10.3] /home/leon/.gradle/caches/8.13/transforms/a73ce7fdb89f9ea82fed4f129200bdf3/transformed/ui-tooling/AndroidManifest.xml:23:9-25:39
-47            android:name="androidx.compose.ui.tooling.PreviewActivity"
-47-->[androidx.compose.ui:ui-tooling-android:1.10.3] /home/leon/.gradle/caches/8.13/transforms/a73ce7fdb89f9ea82fed4f129200bdf3/transformed/ui-tooling/AndroidManifest.xml:24:13-71
-48            android:exported="true" />
-48-->[androidx.compose.ui:ui-tooling-android:1.10.3] /home/leon/.gradle/caches/8.13/transforms/a73ce7fdb89f9ea82fed4f129200bdf3/transformed/ui-tooling/AndroidManifest.xml:25:13-36
-49
-50        <uses-library
-50-->[androidx.window:window:1.5.0] /home/leon/.gradle/caches/8.13/transforms/8202db42e18a741774bc4e626b4a6156/transformed/window-1.5.0/AndroidManifest.xml:23:9-25:40
-51            android:name="androidx.window.extensions"
-51-->[androidx.window:window:1.5.0] /home/leon/.gradle/caches/8.13/transforms/8202db42e18a741774bc4e626b4a6156/transformed/window-1.5.0/AndroidManifest.xml:24:13-54
-52            android:required="false" />
-52-->[androidx.window:window:1.5.0] /home/leon/.gradle/caches/8.13/transforms/8202db42e18a741774bc4e626b4a6156/transformed/window-1.5.0/AndroidManifest.xml:25:13-37
-53        <uses-library
-53-->[androidx.window:window:1.5.0] /home/leon/.gradle/caches/8.13/transforms/8202db42e18a741774bc4e626b4a6156/transformed/window-1.5.0/AndroidManifest.xml:26:9-28:40
-54            android:name="androidx.window.sidecar"
-54-->[androidx.window:window:1.5.0] /home/leon/.gradle/caches/8.13/transforms/8202db42e18a741774bc4e626b4a6156/transformed/window-1.5.0/AndroidManifest.xml:27:13-51
-55            android:required="false" />
-55-->[androidx.window:window:1.5.0] /home/leon/.gradle/caches/8.13/transforms/8202db42e18a741774bc4e626b4a6156/transformed/window-1.5.0/AndroidManifest.xml:28:13-37
-56
-57        <provider
-57-->[androidx.emoji2:emoji2:1.4.0] /home/leon/.gradle/caches/8.13/transforms/76f41c54a84dd581997108140f9b0273/transformed/emoji2-1.4.0/AndroidManifest.xml:24:9-32:20
-58            android:name="androidx.startup.InitializationProvider"
-58-->[androidx.emoji2:emoji2:1.4.0] /home/leon/.gradle/caches/8.13/transforms/76f41c54a84dd581997108140f9b0273/transformed/emoji2-1.4.0/AndroidManifest.xml:25:13-67
-59            android:authorities="fr.nekotv.androidx-startup"
-59-->[androidx.emoji2:emoji2:1.4.0] /home/leon/.gradle/caches/8.13/transforms/76f41c54a84dd581997108140f9b0273/transformed/emoji2-1.4.0/AndroidManifest.xml:26:13-68
-60            android:exported="false" >
-60-->[androidx.emoji2:emoji2:1.4.0] /home/leon/.gradle/caches/8.13/transforms/76f41c54a84dd581997108140f9b0273/transformed/emoji2-1.4.0/AndroidManifest.xml:27:13-37
-61            <meta-data
-61-->[androidx.emoji2:emoji2:1.4.0] /home/leon/.gradle/caches/8.13/transforms/76f41c54a84dd581997108140f9b0273/transformed/emoji2-1.4.0/AndroidManifest.xml:29:13-31:52
-62                android:name="androidx.emoji2.text.EmojiCompatInitializer"
-62-->[androidx.emoji2:emoji2:1.4.0] /home/leon/.gradle/caches/8.13/transforms/76f41c54a84dd581997108140f9b0273/transformed/emoji2-1.4.0/AndroidManifest.xml:30:17-75
-63                android:value="androidx.startup" />
-63-->[androidx.emoji2:emoji2:1.4.0] /home/leon/.gradle/caches/8.13/transforms/76f41c54a84dd581997108140f9b0273/transformed/emoji2-1.4.0/AndroidManifest.xml:31:17-49
-64            <meta-data
-64-->[androidx.lifecycle:lifecycle-process:2.10.0] /home/leon/.gradle/caches/8.13/transforms/716758a457ce02d9d40bf8695a47e1af/transformed/lifecycle-process-2.10.0/AndroidManifest.xml:29:13-31:52
-65                android:name="androidx.lifecycle.ProcessLifecycleInitializer"
-65-->[androidx.lifecycle:lifecycle-process:2.10.0] /home/leon/.gradle/caches/8.13/transforms/716758a457ce02d9d40bf8695a47e1af/transformed/lifecycle-process-2.10.0/AndroidManifest.xml:30:17-78
-66                android:value="androidx.startup" />
-66-->[androidx.lifecycle:lifecycle-process:2.10.0] /home/leon/.gradle/caches/8.13/transforms/716758a457ce02d9d40bf8695a47e1af/transformed/lifecycle-process-2.10.0/AndroidManifest.xml:31:17-49
-67            <meta-data
-67-->[androidx.profileinstaller:profileinstaller:1.4.1] /home/leon/.gradle/caches/8.13/transforms/58dcb96896711521933fc702e37c6855/transformed/profileinstaller-1.4.1/AndroidManifest.xml:29:13-31:52
-68                android:name="androidx.profileinstaller.ProfileInstallerInitializer"
-68-->[androidx.profileinstaller:profileinstaller:1.4.1] /home/leon/.gradle/caches/8.13/transforms/58dcb96896711521933fc702e37c6855/transformed/profileinstaller-1.4.1/AndroidManifest.xml:30:17-85
-69                android:value="androidx.startup" />
-69-->[androidx.profileinstaller:profileinstaller:1.4.1] /home/leon/.gradle/caches/8.13/transforms/58dcb96896711521933fc702e37c6855/transformed/profileinstaller-1.4.1/AndroidManifest.xml:31:17-49
-70        </provider>
+22    <uses-feature
+22-->/home/leon/TvSama_fixed_v2/TvSama_fixed/app/src/main/AndroidManifest.xml:7:5-118
+23        android:name="android.hardware.camera"
+23-->/home/leon/TvSama_fixed_v2/TvSama_fixed/app/src/main/AndroidManifest.xml:7:19-57
+24        android:required="false" />
+24-->/home/leon/TvSama_fixed_v2/TvSama_fixed/app/src/main/AndroidManifest.xml:7:58-82
+25    <uses-feature
+25-->/home/leon/TvSama_fixed_v2/TvSama_fixed/app/src/main/AndroidManifest.xml:8:5-122
+26        android:name="android.hardware.microphone"
+26-->/home/leon/TvSama_fixed_v2/TvSama_fixed/app/src/main/AndroidManifest.xml:8:19-61
+27        android:required="false" />
+27-->/home/leon/TvSama_fixed_v2/TvSama_fixed/app/src/main/AndroidManifest.xml:8:62-86
+28    <uses-feature
+28-->[:streamflix] /home/leon/TvSama_fixed_v2/TvSama_fixed/streamflix/app/build/intermediates/merged_manifest/debug/processDebugManifest/AndroidManifest.xml:16:5-18:36
+29        android:name="android.hardware.camera.any"
+29-->[:streamflix] /home/leon/TvSama_fixed_v2/TvSama_fixed/streamflix/app/build/intermediates/merged_manifest/debug/processDebugManifest/AndroidManifest.xml:17:9-51
+30        android:required="false" />
+30-->[:streamflix] /home/leon/TvSama_fixed_v2/TvSama_fixed/streamflix/app/build/intermediates/merged_manifest/debug/processDebugManifest/AndroidManifest.xml:18:9-33
+31
+32    <uses-permission android:name="android.permission.RECORD_AUDIO" />
+32-->[:streamflix] /home/leon/TvSama_fixed_v2/TvSama_fixed/streamflix/app/build/intermediates/merged_manifest/debug/processDebugManifest/AndroidManifest.xml:24:5-71
+32-->[:streamflix] /home/leon/TvSama_fixed_v2/TvSama_fixed/streamflix/app/build/intermediates/merged_manifest/debug/processDebugManifest/AndroidManifest.xml:24:22-68
+33
+34    <queries>
+34-->[:streamflix] /home/leon/TvSama_fixed_v2/TvSama_fixed/streamflix/app/build/intermediates/merged_manifest/debug/processDebugManifest/AndroidManifest.xml:26:5-68:15
+35        <intent>
+35-->[:streamflix] /home/leon/TvSama_fixed_v2/TvSama_fixed/streamflix/app/build/intermediates/merged_manifest/debug/processDebugManifest/AndroidManifest.xml:27:9-29:18
+36            <action android:name="android.speech.RecognitionService" />
+36-->[:streamflix] /home/leon/TvSama_fixed_v2/TvSama_fixed/streamflix/app/build/intermediates/merged_manifest/debug/processDebugManifest/AndroidManifest.xml:28:13-72
+36-->[:streamflix] /home/leon/TvSama_fixed_v2/TvSama_fixed/streamflix/app/build/intermediates/merged_manifest/debug/processDebugManifest/AndroidManifest.xml:28:21-69
+37        </intent>
+38        <!-- Package visibility for SmartTube (Stable & Beta) and YouTube -->
+39        <package android:name="org.smarttube.stable" />
+39-->[:streamflix] /home/leon/TvSama_fixed_v2/TvSama_fixed/streamflix/app/build/intermediates/merged_manifest/debug/processDebugManifest/AndroidManifest.xml:31:9-56
+39-->[:streamflix] /home/leon/TvSama_fixed_v2/TvSama_fixed/streamflix/app/build/intermediates/merged_manifest/debug/processDebugManifest/AndroidManifest.xml:31:18-53
+40        <package android:name="org.smarttube.beta" />
+40-->[:streamflix] /home/leon/TvSama_fixed_v2/TvSama_fixed/streamflix/app/build/intermediates/merged_manifest/debug/processDebugManifest/AndroidManifest.xml:32:9-54
+40-->[:streamflix] /home/leon/TvSama_fixed_v2/TvSama_fixed/streamflix/app/build/intermediates/merged_manifest/debug/processDebugManifest/AndroidManifest.xml:32:18-51
+41        <package android:name="com.google.android.youtube" />
+41-->[:streamflix] /home/leon/TvSama_fixed_v2/TvSama_fixed/streamflix/app/build/intermediates/merged_manifest/debug/processDebugManifest/AndroidManifest.xml:33:9-62
+41-->[:streamflix] /home/leon/TvSama_fixed_v2/TvSama_fixed/streamflix/app/build/intermediates/merged_manifest/debug/processDebugManifest/AndroidManifest.xml:33:18-59
+42        <package android:name="com.google.android.tv.youtube" />
+42-->[:streamflix] /home/leon/TvSama_fixed_v2/TvSama_fixed/streamflix/app/build/intermediates/merged_manifest/debug/processDebugManifest/AndroidManifest.xml:34:9-65
+42-->[:streamflix] /home/leon/TvSama_fixed_v2/TvSama_fixed/streamflix/app/build/intermediates/merged_manifest/debug/processDebugManifest/AndroidManifest.xml:34:18-62
+43
+44        <!-- Generic Video Players Visibility -->
+45        <intent>
+45-->[:streamflix] /home/leon/TvSama_fixed_v2/TvSama_fixed/streamflix/app/build/intermediates/merged_manifest/debug/processDebugManifest/AndroidManifest.xml:37:9-41:18
+46            <action android:name="android.intent.action.VIEW" />
+46-->/home/leon/TvSama_fixed_v2/TvSama_fixed/app/src/main/AndroidManifest.xml:31:17-69
+46-->/home/leon/TvSama_fixed_v2/TvSama_fixed/app/src/main/AndroidManifest.xml:31:25-66
+47
+48            <data android:mimeType="video/*" />
+48-->/home/leon/TvSama_fixed_v2/TvSama_fixed/app/src/main/AndroidManifest.xml:34:17-69
+49        </intent>
+50        <intent>
+50-->[:streamflix] /home/leon/TvSama_fixed_v2/TvSama_fixed/streamflix/app/build/intermediates/merged_manifest/debug/processDebugManifest/AndroidManifest.xml:42:9-46:18
+51            <action android:name="android.intent.action.VIEW" />
+51-->/home/leon/TvSama_fixed_v2/TvSama_fixed/app/src/main/AndroidManifest.xml:31:17-69
+51-->/home/leon/TvSama_fixed_v2/TvSama_fixed/app/src/main/AndroidManifest.xml:31:25-66
+52
+53            <data android:mimeType="application/x-mpegURL" />
+53-->/home/leon/TvSama_fixed_v2/TvSama_fixed/app/src/main/AndroidManifest.xml:34:17-69
+54        </intent>
+55        <intent>
+55-->[:streamflix] /home/leon/TvSama_fixed_v2/TvSama_fixed/streamflix/app/build/intermediates/merged_manifest/debug/processDebugManifest/AndroidManifest.xml:47:9-51:18
+56            <action android:name="android.intent.action.VIEW" />
+56-->/home/leon/TvSama_fixed_v2/TvSama_fixed/app/src/main/AndroidManifest.xml:31:17-69
+56-->/home/leon/TvSama_fixed_v2/TvSama_fixed/app/src/main/AndroidManifest.xml:31:25-66
+57
+58            <data android:mimeType="application/vnd.apple.mpegurl" />
+58-->/home/leon/TvSama_fixed_v2/TvSama_fixed/app/src/main/AndroidManifest.xml:34:17-69
+59        </intent>
+60
+61        <!-- Intent queries for YouTube links -->
+62        <intent>
+62-->[:streamflix] /home/leon/TvSama_fixed_v2/TvSama_fixed/streamflix/app/build/intermediates/merged_manifest/debug/processDebugManifest/AndroidManifest.xml:54:9-60:18
+63            <action android:name="android.intent.action.VIEW" />
+63-->/home/leon/TvSama_fixed_v2/TvSama_fixed/app/src/main/AndroidManifest.xml:31:17-69
+63-->/home/leon/TvSama_fixed_v2/TvSama_fixed/app/src/main/AndroidManifest.xml:31:25-66
+64
+65            <data
+65-->/home/leon/TvSama_fixed_v2/TvSama_fixed/app/src/main/AndroidManifest.xml:34:17-69
+66                android:host="www.youtube.com"
+66-->/home/leon/TvSama_fixed_v2/TvSama_fixed/app/src/main/AndroidManifest.xml:34:47-66
+67                android:scheme="https" />
+67-->/home/leon/TvSama_fixed_v2/TvSama_fixed/app/src/main/AndroidManifest.xml:34:23-46
+68        </intent>
+69        <intent>
+69-->[:streamflix] /home/leon/TvSama_fixed_v2/TvSama_fixed/streamflix/app/build/intermediates/merged_manifest/debug/processDebugManifest/AndroidManifest.xml:61:9-67:18
+70            <action android:name="android.intent.action.VIEW" />
+70-->/home/leon/TvSama_fixed_v2/TvSama_fixed/app/src/main/AndroidManifest.xml:31:17-69
+70-->/home/leon/TvSama_fixed_v2/TvSama_fixed/app/src/main/AndroidManifest.xml:31:25-66
 71
-72        <receiver
-72-->[androidx.profileinstaller:profileinstaller:1.4.1] /home/leon/.gradle/caches/8.13/transforms/58dcb96896711521933fc702e37c6855/transformed/profileinstaller-1.4.1/AndroidManifest.xml:34:9-52:20
-73            android:name="androidx.profileinstaller.ProfileInstallReceiver"
-73-->[androidx.profileinstaller:profileinstaller:1.4.1] /home/leon/.gradle/caches/8.13/transforms/58dcb96896711521933fc702e37c6855/transformed/profileinstaller-1.4.1/AndroidManifest.xml:35:13-76
-74            android:directBootAware="false"
-74-->[androidx.profileinstaller:profileinstaller:1.4.1] /home/leon/.gradle/caches/8.13/transforms/58dcb96896711521933fc702e37c6855/transformed/profileinstaller-1.4.1/AndroidManifest.xml:36:13-44
-75            android:enabled="true"
-75-->[androidx.profileinstaller:profileinstaller:1.4.1] /home/leon/.gradle/caches/8.13/transforms/58dcb96896711521933fc702e37c6855/transformed/profileinstaller-1.4.1/AndroidManifest.xml:37:13-35
-76            android:exported="true"
-76-->[androidx.profileinstaller:profileinstaller:1.4.1] /home/leon/.gradle/caches/8.13/transforms/58dcb96896711521933fc702e37c6855/transformed/profileinstaller-1.4.1/AndroidManifest.xml:38:13-36
-77            android:permission="android.permission.DUMP" >
-77-->[androidx.profileinstaller:profileinstaller:1.4.1] /home/leon/.gradle/caches/8.13/transforms/58dcb96896711521933fc702e37c6855/transformed/profileinstaller-1.4.1/AndroidManifest.xml:39:13-57
-78            <intent-filter>
-78-->[androidx.profileinstaller:profileinstaller:1.4.1] /home/leon/.gradle/caches/8.13/transforms/58dcb96896711521933fc702e37c6855/transformed/profileinstaller-1.4.1/AndroidManifest.xml:40:13-42:29
-79                <action android:name="androidx.profileinstaller.action.INSTALL_PROFILE" />
-79-->[androidx.profileinstaller:profileinstaller:1.4.1] /home/leon/.gradle/caches/8.13/transforms/58dcb96896711521933fc702e37c6855/transformed/profileinstaller-1.4.1/AndroidManifest.xml:41:17-91
-79-->[androidx.profileinstaller:profileinstaller:1.4.1] /home/leon/.gradle/caches/8.13/transforms/58dcb96896711521933fc702e37c6855/transformed/profileinstaller-1.4.1/AndroidManifest.xml:41:25-88
-80            </intent-filter>
-81            <intent-filter>
-81-->[androidx.profileinstaller:profileinstaller:1.4.1] /home/leon/.gradle/caches/8.13/transforms/58dcb96896711521933fc702e37c6855/transformed/profileinstaller-1.4.1/AndroidManifest.xml:43:13-45:29
-82                <action android:name="androidx.profileinstaller.action.SKIP_FILE" />
-82-->[androidx.profileinstaller:profileinstaller:1.4.1] /home/leon/.gradle/caches/8.13/transforms/58dcb96896711521933fc702e37c6855/transformed/profileinstaller-1.4.1/AndroidManifest.xml:44:17-85
-82-->[androidx.profileinstaller:profileinstaller:1.4.1] /home/leon/.gradle/caches/8.13/transforms/58dcb96896711521933fc702e37c6855/transformed/profileinstaller-1.4.1/AndroidManifest.xml:44:25-82
-83            </intent-filter>
-84            <intent-filter>
-84-->[androidx.profileinstaller:profileinstaller:1.4.1] /home/leon/.gradle/caches/8.13/transforms/58dcb96896711521933fc702e37c6855/transformed/profileinstaller-1.4.1/AndroidManifest.xml:46:13-48:29
-85                <action android:name="androidx.profileinstaller.action.SAVE_PROFILE" />
-85-->[androidx.profileinstaller:profileinstaller:1.4.1] /home/leon/.gradle/caches/8.13/transforms/58dcb96896711521933fc702e37c6855/transformed/profileinstaller-1.4.1/AndroidManifest.xml:47:17-88
-85-->[androidx.profileinstaller:profileinstaller:1.4.1] /home/leon/.gradle/caches/8.13/transforms/58dcb96896711521933fc702e37c6855/transformed/profileinstaller-1.4.1/AndroidManifest.xml:47:25-85
-86            </intent-filter>
-87            <intent-filter>
-87-->[androidx.profileinstaller:profileinstaller:1.4.1] /home/leon/.gradle/caches/8.13/transforms/58dcb96896711521933fc702e37c6855/transformed/profileinstaller-1.4.1/AndroidManifest.xml:49:13-51:29
-88                <action android:name="androidx.profileinstaller.action.BENCHMARK_OPERATION" />
-88-->[androidx.profileinstaller:profileinstaller:1.4.1] /home/leon/.gradle/caches/8.13/transforms/58dcb96896711521933fc702e37c6855/transformed/profileinstaller-1.4.1/AndroidManifest.xml:50:17-95
-88-->[androidx.profileinstaller:profileinstaller:1.4.1] /home/leon/.gradle/caches/8.13/transforms/58dcb96896711521933fc702e37c6855/transformed/profileinstaller-1.4.1/AndroidManifest.xml:50:25-92
-89            </intent-filter>
-90        </receiver>
-91    </application>
-92
-93</manifest>
+72            <data
+72-->/home/leon/TvSama_fixed_v2/TvSama_fixed/app/src/main/AndroidManifest.xml:34:17-69
+73                android:host="youtu.be"
+73-->/home/leon/TvSama_fixed_v2/TvSama_fixed/app/src/main/AndroidManifest.xml:34:47-66
+74                android:scheme="https" />
+74-->/home/leon/TvSama_fixed_v2/TvSama_fixed/app/src/main/AndroidManifest.xml:34:23-46
+75        </intent>
+76
+77        <package android:name="com.google.android.gms.policy_cast_dynamite" />
+77-->[com.google.android.gms:play-services-cast-framework:21.4.0] /home/leon/.gradle/caches/8.13/transforms/448864f6ad7dfc2c8a9bc8b0ded12149/transformed/play-services-cast-framework-21.4.0/AndroidManifest.xml:15:9-79
+77-->[com.google.android.gms:play-services-cast-framework:21.4.0] /home/leon/.gradle/caches/8.13/transforms/448864f6ad7dfc2c8a9bc8b0ded12149/transformed/play-services-cast-framework-21.4.0/AndroidManifest.xml:15:18-76
+78    </queries> <!-- This permission is required to start foreground services in Android P. -->
+79    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+79-->[com.google.android.gms:play-services-cast-framework:21.4.0] /home/leon/.gradle/caches/8.13/transforms/448864f6ad7dfc2c8a9bc8b0ded12149/transformed/play-services-cast-framework-21.4.0/AndroidManifest.xml:12:5-77
+79-->[com.google.android.gms:play-services-cast-framework:21.4.0] /home/leon/.gradle/caches/8.13/transforms/448864f6ad7dfc2c8a9bc8b0ded12149/transformed/play-services-cast-framework-21.4.0/AndroidManifest.xml:12:22-74
+80    <uses-permission android:name="android.permission.WAKE_LOCK" />
+80-->[androidx.work:work-runtime:2.10.0] /home/leon/.gradle/caches/8.13/transforms/d56f68dfb65012d214edb207dc9a9373/transformed/work-runtime-2.10.0/AndroidManifest.xml:23:5-68
+80-->[androidx.work:work-runtime:2.10.0] /home/leon/.gradle/caches/8.13/transforms/d56f68dfb65012d214edb207dc9a9373/transformed/work-runtime-2.10.0/AndroidManifest.xml:23:22-65
+81    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+81-->[androidx.work:work-runtime:2.10.0] /home/leon/.gradle/caches/8.13/transforms/d56f68dfb65012d214edb207dc9a9373/transformed/work-runtime-2.10.0/AndroidManifest.xml:25:5-81
+81-->[androidx.work:work-runtime:2.10.0] /home/leon/.gradle/caches/8.13/transforms/d56f68dfb65012d214edb207dc9a9373/transformed/work-runtime-2.10.0/AndroidManifest.xml:25:22-78
+82    <uses-permission android:name="com.android.providers.tv.permission.WRITE_EPG_DATA" />
+82-->[androidx.tvprovider:tvprovider:1.1.0] /home/leon/.gradle/caches/8.13/transforms/45c4e4ef3ff8538208fa2f7daa4f229e/transformed/tvprovider-1.1.0/AndroidManifest.xml:22:5-90
+82-->[androidx.tvprovider:tvprovider:1.1.0] /home/leon/.gradle/caches/8.13/transforms/45c4e4ef3ff8538208fa2f7daa4f229e/transformed/tvprovider-1.1.0/AndroidManifest.xml:22:22-87
+83    <uses-permission android:name="com.android.providers.tv.permission.READ_EPG_DATA" />
+83-->[androidx.tvprovider:tvprovider:1.1.0] /home/leon/.gradle/caches/8.13/transforms/45c4e4ef3ff8538208fa2f7daa4f229e/transformed/tvprovider-1.1.0/AndroidManifest.xml:23:5-89
+83-->[androidx.tvprovider:tvprovider:1.1.0] /home/leon/.gradle/caches/8.13/transforms/45c4e4ef3ff8538208fa2f7daa4f229e/transformed/tvprovider-1.1.0/AndroidManifest.xml:23:22-86
+84
+85    <permission
+85-->[androidx.core:core:1.18.0] /home/leon/.gradle/caches/8.13/transforms/ba5fb2e9b7f76531c0ccd0f1fb47709f/transformed/core-1.18.0/AndroidManifest.xml:22:5-24:47
+86        android:name="fr.nekotv.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION"
+86-->[androidx.core:core:1.18.0] /home/leon/.gradle/caches/8.13/transforms/ba5fb2e9b7f76531c0ccd0f1fb47709f/transformed/core-1.18.0/AndroidManifest.xml:23:9-81
+87        android:protectionLevel="signature" />
+87-->[androidx.core:core:1.18.0] /home/leon/.gradle/caches/8.13/transforms/ba5fb2e9b7f76531c0ccd0f1fb47709f/transformed/core-1.18.0/AndroidManifest.xml:24:9-44
+88
+89    <uses-permission android:name="fr.nekotv.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION" />
+89-->[androidx.core:core:1.18.0] /home/leon/.gradle/caches/8.13/transforms/ba5fb2e9b7f76531c0ccd0f1fb47709f/transformed/core-1.18.0/AndroidManifest.xml:26:5-97
+89-->[androidx.core:core:1.18.0] /home/leon/.gradle/caches/8.13/transforms/ba5fb2e9b7f76531c0ccd0f1fb47709f/transformed/core-1.18.0/AndroidManifest.xml:26:22-94
+90
+91    <application
+91-->/home/leon/TvSama_fixed_v2/TvSama_fixed/app/src/main/AndroidManifest.xml:12:5-37:19
+92        android:name="com.streamflixreborn.streamflix.StreamFlixApp"
+92-->/home/leon/TvSama_fixed_v2/TvSama_fixed/app/src/main/AndroidManifest.xml:15:9-69
+93        android:appComponentFactory="androidx.core.app.CoreComponentFactory"
+93-->[androidx.core:core:1.18.0] /home/leon/.gradle/caches/8.13/transforms/ba5fb2e9b7f76531c0ccd0f1fb47709f/transformed/core-1.18.0/AndroidManifest.xml:28:18-86
+94        android:banner="@drawable/tvsama_banner"
+94-->/home/leon/TvSama_fixed_v2/TvSama_fixed/app/src/main/AndroidManifest.xml:14:9-49
+95        android:debuggable="true"
+96        android:extractNativeLibs="false"
+97        android:icon="@drawable/tvsama_icon"
+97-->/home/leon/TvSama_fixed_v2/TvSama_fixed/app/src/main/AndroidManifest.xml:13:9-45
+98        android:label="TvSama"
+98-->/home/leon/TvSama_fixed_v2/TvSama_fixed/app/src/main/AndroidManifest.xml:17:9-31
+99        android:theme="@style/Theme.AppCompat.NoActionBar"
+99-->/home/leon/TvSama_fixed_v2/TvSama_fixed/app/src/main/AndroidManifest.xml:16:9-59
+100        android:usesCleartextTraffic="false" >
+100-->/home/leon/TvSama_fixed_v2/TvSama_fixed/app/src/main/AndroidManifest.xml:18:9-45
+101        <meta-data
+101-->/home/leon/TvSama_fixed_v2/TvSama_fixed/app/src/main/AndroidManifest.xml:19:9-20:59
+102            android:name="com.google.android.gms.cast.framework.OPTIONS_PROVIDER_CLASS_NAME"
+102-->/home/leon/TvSama_fixed_v2/TvSama_fixed/app/src/main/AndroidManifest.xml:19:20-100
+103            android:value="fr.nekotv.TvSamaCastOptions" />
+103-->/home/leon/TvSama_fixed_v2/TvSama_fixed/app/src/main/AndroidManifest.xml:20:13-56
+104
+105        <activity
+105-->/home/leon/TvSama_fixed_v2/TvSama_fixed/app/src/main/AndroidManifest.xml:21:9-36:20
+106            android:name="fr.nekotv.MainActivity"
+106-->/home/leon/TvSama_fixed_v2/TvSama_fixed/app/src/main/AndroidManifest.xml:22:13-41
+107            android:configChanges="orientation|screenSize|keyboard|keyboardHidden"
+107-->/home/leon/TvSama_fixed_v2/TvSama_fixed/app/src/main/AndroidManifest.xml:23:13-83
+108            android:exported="true" >
+108-->/home/leon/TvSama_fixed_v2/TvSama_fixed/app/src/main/AndroidManifest.xml:24:13-36
+109            <intent-filter>
+109-->/home/leon/TvSama_fixed_v2/TvSama_fixed/app/src/main/AndroidManifest.xml:25:13-29:29
+110                <action android:name="android.intent.action.MAIN" />
+110-->/home/leon/TvSama_fixed_v2/TvSama_fixed/app/src/main/AndroidManifest.xml:26:17-69
+110-->/home/leon/TvSama_fixed_v2/TvSama_fixed/app/src/main/AndroidManifest.xml:26:25-66
+111
+112                <category android:name="android.intent.category.LEANBACK_LAUNCHER" />
+112-->/home/leon/TvSama_fixed_v2/TvSama_fixed/app/src/main/AndroidManifest.xml:27:17-86
+112-->/home/leon/TvSama_fixed_v2/TvSama_fixed/app/src/main/AndroidManifest.xml:27:27-83
+113                <category android:name="android.intent.category.LAUNCHER" />
+113-->/home/leon/TvSama_fixed_v2/TvSama_fixed/app/src/main/AndroidManifest.xml:28:17-77
+113-->/home/leon/TvSama_fixed_v2/TvSama_fixed/app/src/main/AndroidManifest.xml:28:27-74
+114            </intent-filter>
+115            <intent-filter>
+115-->/home/leon/TvSama_fixed_v2/TvSama_fixed/app/src/main/AndroidManifest.xml:30:13-35:29
+116                <action android:name="android.intent.action.VIEW" />
+116-->/home/leon/TvSama_fixed_v2/TvSama_fixed/app/src/main/AndroidManifest.xml:31:17-69
+116-->/home/leon/TvSama_fixed_v2/TvSama_fixed/app/src/main/AndroidManifest.xml:31:25-66
+117
+118                <category android:name="android.intent.category.DEFAULT" />
+118-->/home/leon/TvSama_fixed_v2/TvSama_fixed/app/src/main/AndroidManifest.xml:32:17-76
+118-->/home/leon/TvSama_fixed_v2/TvSama_fixed/app/src/main/AndroidManifest.xml:32:27-73
+119                <category android:name="android.intent.category.BROWSABLE" />
+119-->/home/leon/TvSama_fixed_v2/TvSama_fixed/app/src/main/AndroidManifest.xml:33:17-78
+119-->/home/leon/TvSama_fixed_v2/TvSama_fixed/app/src/main/AndroidManifest.xml:33:27-75
+120
+121                <data
+121-->/home/leon/TvSama_fixed_v2/TvSama_fixed/app/src/main/AndroidManifest.xml:34:17-69
+122                    android:host="pair"
+122-->/home/leon/TvSama_fixed_v2/TvSama_fixed/app/src/main/AndroidManifest.xml:34:47-66
+123                    android:scheme="tvsama" />
+123-->/home/leon/TvSama_fixed_v2/TvSama_fixed/app/src/main/AndroidManifest.xml:34:23-46
+124            </intent-filter>
+125        </activity>
+126
+127        <meta-data
+127-->[com.github.bumptech.glide:okhttp3-integration:5.0.0-rc01] /home/leon/.gradle/caches/8.13/transforms/92a0c3a95085bebb9c20f994c9efdbc1/transformed/okhttp3-integration-5.0.0-rc01/AndroidManifest.xml:8:9-10:43
+128            android:name="com.bumptech.glide.integration.okhttp3.OkHttpGlideModule"
+128-->[com.github.bumptech.glide:okhttp3-integration:5.0.0-rc01] /home/leon/.gradle/caches/8.13/transforms/92a0c3a95085bebb9c20f994c9efdbc1/transformed/okhttp3-integration-5.0.0-rc01/AndroidManifest.xml:9:13-84
+129            android:value="GlideModule" />
+129-->[com.github.bumptech.glide:okhttp3-integration:5.0.0-rc01] /home/leon/.gradle/caches/8.13/transforms/92a0c3a95085bebb9c20f994c9efdbc1/transformed/okhttp3-integration-5.0.0-rc01/AndroidManifest.xml:10:13-40
+130
+131        <receiver
+131-->[com.google.android.gms:play-services-cast-framework:21.4.0] /home/leon/.gradle/caches/8.13/transforms/448864f6ad7dfc2c8a9bc8b0ded12149/transformed/play-services-cast-framework-21.4.0/AndroidManifest.xml:19:9-21:40
+132            android:name="com.google.android.gms.cast.framework.media.MediaIntentReceiver"
+132-->[com.google.android.gms:play-services-cast-framework:21.4.0] /home/leon/.gradle/caches/8.13/transforms/448864f6ad7dfc2c8a9bc8b0ded12149/transformed/play-services-cast-framework-21.4.0/AndroidManifest.xml:20:13-91
+133            android:exported="false" />
+133-->[com.google.android.gms:play-services-cast-framework:21.4.0] /home/leon/.gradle/caches/8.13/transforms/448864f6ad7dfc2c8a9bc8b0ded12149/transformed/play-services-cast-framework-21.4.0/AndroidManifest.xml:21:13-37
+134
+135        <service
+135-->[com.google.android.gms:play-services-cast-framework:21.4.0] /home/leon/.gradle/caches/8.13/transforms/448864f6ad7dfc2c8a9bc8b0ded12149/transformed/play-services-cast-framework-21.4.0/AndroidManifest.xml:23:9-25:40
+136            android:name="com.google.android.gms.cast.framework.ReconnectionService"
+136-->[com.google.android.gms:play-services-cast-framework:21.4.0] /home/leon/.gradle/caches/8.13/transforms/448864f6ad7dfc2c8a9bc8b0ded12149/transformed/play-services-cast-framework-21.4.0/AndroidManifest.xml:24:13-85
+137            android:exported="false" />
+137-->[com.google.android.gms:play-services-cast-framework:21.4.0] /home/leon/.gradle/caches/8.13/transforms/448864f6ad7dfc2c8a9bc8b0ded12149/transformed/play-services-cast-framework-21.4.0/AndroidManifest.xml:25:13-37
+138
+139        <activity
+139-->[com.google.android.gms:play-services-base:18.0.1] /home/leon/.gradle/caches/8.13/transforms/b645c75c51c4b35ee9a1487843c5cf6b/transformed/play-services-base-18.0.1/AndroidManifest.xml:20:9-22:45
+140            android:name="com.google.android.gms.common.api.GoogleApiActivity"
+140-->[com.google.android.gms:play-services-base:18.0.1] /home/leon/.gradle/caches/8.13/transforms/b645c75c51c4b35ee9a1487843c5cf6b/transformed/play-services-base-18.0.1/AndroidManifest.xml:20:19-85
+141            android:exported="false"
+141-->[com.google.android.gms:play-services-base:18.0.1] /home/leon/.gradle/caches/8.13/transforms/b645c75c51c4b35ee9a1487843c5cf6b/transformed/play-services-base-18.0.1/AndroidManifest.xml:22:19-43
+142            android:theme="@android:style/Theme.Translucent.NoTitleBar" />
+142-->[com.google.android.gms:play-services-base:18.0.1] /home/leon/.gradle/caches/8.13/transforms/b645c75c51c4b35ee9a1487843c5cf6b/transformed/play-services-base-18.0.1/AndroidManifest.xml:21:19-78
+143
+144        <meta-data
+144-->[com.google.android.gms:play-services-basement:18.0.0] /home/leon/.gradle/caches/8.13/transforms/fcb1d4ff976040c9ada767a0be192c35/transformed/play-services-basement-18.0.0/AndroidManifest.xml:21:9-23:69
+145            android:name="com.google.android.gms.version"
+145-->[com.google.android.gms:play-services-basement:18.0.0] /home/leon/.gradle/caches/8.13/transforms/fcb1d4ff976040c9ada767a0be192c35/transformed/play-services-basement-18.0.0/AndroidManifest.xml:22:13-58
+146            android:value="@integer/google_play_services_version" />
+146-->[com.google.android.gms:play-services-basement:18.0.0] /home/leon/.gradle/caches/8.13/transforms/fcb1d4ff976040c9ada767a0be192c35/transformed/play-services-basement-18.0.0/AndroidManifest.xml:23:13-66
+147
+148        <activity
+148-->[androidx.compose.ui:ui-tooling-android:1.10.3] /home/leon/.gradle/caches/8.13/transforms/9b10133f375bc72af594e99c87350073/transformed/ui-tooling/AndroidManifest.xml:23:9-25:39
+149            android:name="androidx.compose.ui.tooling.PreviewActivity"
+149-->[androidx.compose.ui:ui-tooling-android:1.10.3] /home/leon/.gradle/caches/8.13/transforms/9b10133f375bc72af594e99c87350073/transformed/ui-tooling/AndroidManifest.xml:24:13-71
+150            android:exported="true" />
+150-->[androidx.compose.ui:ui-tooling-android:1.10.3] /home/leon/.gradle/caches/8.13/transforms/9b10133f375bc72af594e99c87350073/transformed/ui-tooling/AndroidManifest.xml:25:13-36
+151
+152        <provider
+152-->[androidx.work:work-runtime:2.10.0] /home/leon/.gradle/caches/8.13/transforms/d56f68dfb65012d214edb207dc9a9373/transformed/work-runtime-2.10.0/AndroidManifest.xml:29:9-37:20
+153            android:name="androidx.startup.InitializationProvider"
+153-->[androidx.work:work-runtime:2.10.0] /home/leon/.gradle/caches/8.13/transforms/d56f68dfb65012d214edb207dc9a9373/transformed/work-runtime-2.10.0/AndroidManifest.xml:30:13-67
+154            android:authorities="fr.nekotv.androidx-startup"
+154-->[androidx.work:work-runtime:2.10.0] /home/leon/.gradle/caches/8.13/transforms/d56f68dfb65012d214edb207dc9a9373/transformed/work-runtime-2.10.0/AndroidManifest.xml:31:13-68
+155            android:exported="false" >
+155-->[androidx.work:work-runtime:2.10.0] /home/leon/.gradle/caches/8.13/transforms/d56f68dfb65012d214edb207dc9a9373/transformed/work-runtime-2.10.0/AndroidManifest.xml:32:13-37
+156            <meta-data
+156-->[androidx.work:work-runtime:2.10.0] /home/leon/.gradle/caches/8.13/transforms/d56f68dfb65012d214edb207dc9a9373/transformed/work-runtime-2.10.0/AndroidManifest.xml:34:13-36:52
+157                android:name="androidx.work.WorkManagerInitializer"
+157-->[androidx.work:work-runtime:2.10.0] /home/leon/.gradle/caches/8.13/transforms/d56f68dfb65012d214edb207dc9a9373/transformed/work-runtime-2.10.0/AndroidManifest.xml:35:17-68
+158                android:value="androidx.startup" />
+158-->[androidx.work:work-runtime:2.10.0] /home/leon/.gradle/caches/8.13/transforms/d56f68dfb65012d214edb207dc9a9373/transformed/work-runtime-2.10.0/AndroidManifest.xml:36:17-49
+159            <meta-data
+159-->[androidx.emoji2:emoji2:1.4.0] /home/leon/.gradle/caches/8.13/transforms/1e21c1b2312d6b5acd3794bd3b396769/transformed/emoji2-1.4.0/AndroidManifest.xml:29:13-31:52
+160                android:name="androidx.emoji2.text.EmojiCompatInitializer"
+160-->[androidx.emoji2:emoji2:1.4.0] /home/leon/.gradle/caches/8.13/transforms/1e21c1b2312d6b5acd3794bd3b396769/transformed/emoji2-1.4.0/AndroidManifest.xml:30:17-75
+161                android:value="androidx.startup" />
+161-->[androidx.emoji2:emoji2:1.4.0] /home/leon/.gradle/caches/8.13/transforms/1e21c1b2312d6b5acd3794bd3b396769/transformed/emoji2-1.4.0/AndroidManifest.xml:31:17-49
+162            <meta-data
+162-->[io.github.jan-tennert.supabase:auth-kt-android-debug:3.2.2] /home/leon/.gradle/caches/8.13/transforms/6c00417df139f63cc7bf9f2e8f6af602/transformed/auth-kt-debug/AndroidManifest.xml:14:13-16:52
+163                android:name="io.github.jan.supabase.auth.SupabaseInitializer"
+163-->[io.github.jan-tennert.supabase:auth-kt-android-debug:3.2.2] /home/leon/.gradle/caches/8.13/transforms/6c00417df139f63cc7bf9f2e8f6af602/transformed/auth-kt-debug/AndroidManifest.xml:15:17-79
+164                android:value="androidx.startup" />
+164-->[io.github.jan-tennert.supabase:auth-kt-android-debug:3.2.2] /home/leon/.gradle/caches/8.13/transforms/6c00417df139f63cc7bf9f2e8f6af602/transformed/auth-kt-debug/AndroidManifest.xml:16:17-49
+165            <meta-data
+165-->[androidx.lifecycle:lifecycle-process:2.10.0] /home/leon/.gradle/caches/8.13/transforms/20a1b6227c201d6cdf1bf3d21650acbd/transformed/lifecycle-process-2.10.0/AndroidManifest.xml:29:13-31:52
+166                android:name="androidx.lifecycle.ProcessLifecycleInitializer"
+166-->[androidx.lifecycle:lifecycle-process:2.10.0] /home/leon/.gradle/caches/8.13/transforms/20a1b6227c201d6cdf1bf3d21650acbd/transformed/lifecycle-process-2.10.0/AndroidManifest.xml:30:17-78
+167                android:value="androidx.startup" />
+167-->[androidx.lifecycle:lifecycle-process:2.10.0] /home/leon/.gradle/caches/8.13/transforms/20a1b6227c201d6cdf1bf3d21650acbd/transformed/lifecycle-process-2.10.0/AndroidManifest.xml:31:17-49
+168            <meta-data
+168-->[androidx.profileinstaller:profileinstaller:1.4.1] /home/leon/.gradle/caches/8.13/transforms/b6a9cfeb1c50e9d5a2e17cd608a97391/transformed/profileinstaller-1.4.1/AndroidManifest.xml:29:13-31:52
+169                android:name="androidx.profileinstaller.ProfileInstallerInitializer"
+169-->[androidx.profileinstaller:profileinstaller:1.4.1] /home/leon/.gradle/caches/8.13/transforms/b6a9cfeb1c50e9d5a2e17cd608a97391/transformed/profileinstaller-1.4.1/AndroidManifest.xml:30:17-85
+170                android:value="androidx.startup" />
+170-->[androidx.profileinstaller:profileinstaller:1.4.1] /home/leon/.gradle/caches/8.13/transforms/b6a9cfeb1c50e9d5a2e17cd608a97391/transformed/profileinstaller-1.4.1/AndroidManifest.xml:31:17-49
+171            <meta-data
+171-->[com.russhwolf:multiplatform-settings-no-arg-android-debug:1.3.0] /home/leon/.gradle/caches/8.13/transforms/733a768ebad79aae90345c6c48b5f358/transformed/multiplatform-settings-no-arg-debug/AndroidManifest.xml:29:13-31:52
+172                android:name="com.russhwolf.settings.SettingsInitializer"
+172-->[com.russhwolf:multiplatform-settings-no-arg-android-debug:1.3.0] /home/leon/.gradle/caches/8.13/transforms/733a768ebad79aae90345c6c48b5f358/transformed/multiplatform-settings-no-arg-debug/AndroidManifest.xml:30:17-74
+173                android:value="androidx.startup" />
+173-->[com.russhwolf:multiplatform-settings-no-arg-android-debug:1.3.0] /home/leon/.gradle/caches/8.13/transforms/733a768ebad79aae90345c6c48b5f358/transformed/multiplatform-settings-no-arg-debug/AndroidManifest.xml:31:17-49
+174        </provider>
+175
+176        <service
+176-->[androidx.work:work-runtime:2.10.0] /home/leon/.gradle/caches/8.13/transforms/d56f68dfb65012d214edb207dc9a9373/transformed/work-runtime-2.10.0/AndroidManifest.xml:39:9-45:35
+177            android:name="androidx.work.impl.background.systemalarm.SystemAlarmService"
+177-->[androidx.work:work-runtime:2.10.0] /home/leon/.gradle/caches/8.13/transforms/d56f68dfb65012d214edb207dc9a9373/transformed/work-runtime-2.10.0/AndroidManifest.xml:40:13-88
+178            android:directBootAware="false"
+178-->[androidx.work:work-runtime:2.10.0] /home/leon/.gradle/caches/8.13/transforms/d56f68dfb65012d214edb207dc9a9373/transformed/work-runtime-2.10.0/AndroidManifest.xml:41:13-44
+179            android:enabled="@bool/enable_system_alarm_service_default"
+179-->[androidx.work:work-runtime:2.10.0] /home/leon/.gradle/caches/8.13/transforms/d56f68dfb65012d214edb207dc9a9373/transformed/work-runtime-2.10.0/AndroidManifest.xml:42:13-72
+180            android:exported="false" />
+180-->[androidx.work:work-runtime:2.10.0] /home/leon/.gradle/caches/8.13/transforms/d56f68dfb65012d214edb207dc9a9373/transformed/work-runtime-2.10.0/AndroidManifest.xml:43:13-37
+181        <service
+181-->[androidx.work:work-runtime:2.10.0] /home/leon/.gradle/caches/8.13/transforms/d56f68dfb65012d214edb207dc9a9373/transformed/work-runtime-2.10.0/AndroidManifest.xml:46:9-52:35
+182            android:name="androidx.work.impl.background.systemjob.SystemJobService"
+182-->[androidx.work:work-runtime:2.10.0] /home/leon/.gradle/caches/8.13/transforms/d56f68dfb65012d214edb207dc9a9373/transformed/work-runtime-2.10.0/AndroidManifest.xml:47:13-84
+183            android:directBootAware="false"
+183-->[androidx.work:work-runtime:2.10.0] /home/leon/.gradle/caches/8.13/transforms/d56f68dfb65012d214edb207dc9a9373/transformed/work-runtime-2.10.0/AndroidManifest.xml:48:13-44
+184            android:enabled="@bool/enable_system_job_service_default"
+184-->[androidx.work:work-runtime:2.10.0] /home/leon/.gradle/caches/8.13/transforms/d56f68dfb65012d214edb207dc9a9373/transformed/work-runtime-2.10.0/AndroidManifest.xml:49:13-70
+185            android:exported="true"
+185-->[androidx.work:work-runtime:2.10.0] /home/leon/.gradle/caches/8.13/transforms/d56f68dfb65012d214edb207dc9a9373/transformed/work-runtime-2.10.0/AndroidManifest.xml:50:13-36
+186            android:permission="android.permission.BIND_JOB_SERVICE" />
+186-->[androidx.work:work-runtime:2.10.0] /home/leon/.gradle/caches/8.13/transforms/d56f68dfb65012d214edb207dc9a9373/transformed/work-runtime-2.10.0/AndroidManifest.xml:51:13-69
+187        <service
+187-->[androidx.work:work-runtime:2.10.0] /home/leon/.gradle/caches/8.13/transforms/d56f68dfb65012d214edb207dc9a9373/transformed/work-runtime-2.10.0/AndroidManifest.xml:53:9-59:35
+188            android:name="androidx.work.impl.foreground.SystemForegroundService"
+188-->[androidx.work:work-runtime:2.10.0] /home/leon/.gradle/caches/8.13/transforms/d56f68dfb65012d214edb207dc9a9373/transformed/work-runtime-2.10.0/AndroidManifest.xml:54:13-81
+189            android:directBootAware="false"
+189-->[androidx.work:work-runtime:2.10.0] /home/leon/.gradle/caches/8.13/transforms/d56f68dfb65012d214edb207dc9a9373/transformed/work-runtime-2.10.0/AndroidManifest.xml:55:13-44
+190            android:enabled="@bool/enable_system_foreground_service_default"
+190-->[androidx.work:work-runtime:2.10.0] /home/leon/.gradle/caches/8.13/transforms/d56f68dfb65012d214edb207dc9a9373/transformed/work-runtime-2.10.0/AndroidManifest.xml:56:13-77
+191            android:exported="false" />
+191-->[androidx.work:work-runtime:2.10.0] /home/leon/.gradle/caches/8.13/transforms/d56f68dfb65012d214edb207dc9a9373/transformed/work-runtime-2.10.0/AndroidManifest.xml:57:13-37
+192
+193        <receiver
+193-->[androidx.work:work-runtime:2.10.0] /home/leon/.gradle/caches/8.13/transforms/d56f68dfb65012d214edb207dc9a9373/transformed/work-runtime-2.10.0/AndroidManifest.xml:61:9-66:35
+194            android:name="androidx.work.impl.utils.ForceStopRunnable$BroadcastReceiver"
+194-->[androidx.work:work-runtime:2.10.0] /home/leon/.gradle/caches/8.13/transforms/d56f68dfb65012d214edb207dc9a9373/transformed/work-runtime-2.10.0/AndroidManifest.xml:62:13-88
+195            android:directBootAware="false"
+195-->[androidx.work:work-runtime:2.10.0] /home/leon/.gradle/caches/8.13/transforms/d56f68dfb65012d214edb207dc9a9373/transformed/work-runtime-2.10.0/AndroidManifest.xml:63:13-44
+196            android:enabled="true"
+196-->[androidx.work:work-runtime:2.10.0] /home/leon/.gradle/caches/8.13/transforms/d56f68dfb65012d214edb207dc9a9373/transformed/work-runtime-2.10.0/AndroidManifest.xml:64:13-35
+197            android:exported="false" />
+197-->[androidx.work:work-runtime:2.10.0] /home/leon/.gradle/caches/8.13/transforms/d56f68dfb65012d214edb207dc9a9373/transformed/work-runtime-2.10.0/AndroidManifest.xml:65:13-37
+198        <receiver
+198-->[androidx.work:work-runtime:2.10.0] /home/leon/.gradle/caches/8.13/transforms/d56f68dfb65012d214edb207dc9a9373/transformed/work-runtime-2.10.0/AndroidManifest.xml:67:9-77:20
+199            android:name="androidx.work.impl.background.systemalarm.ConstraintProxy$BatteryChargingProxy"
+199-->[androidx.work:work-runtime:2.10.0] /home/leon/.gradle/caches/8.13/transforms/d56f68dfb65012d214edb207dc9a9373/transformed/work-runtime-2.10.0/AndroidManifest.xml:68:13-106
+200            android:directBootAware="false"
+200-->[androidx.work:work-runtime:2.10.0] /home/leon/.gradle/caches/8.13/transforms/d56f68dfb65012d214edb207dc9a9373/transformed/work-runtime-2.10.0/AndroidManifest.xml:69:13-44
+201            android:enabled="false"
+201-->[androidx.work:work-runtime:2.10.0] /home/leon/.gradle/caches/8.13/transforms/d56f68dfb65012d214edb207dc9a9373/transformed/work-runtime-2.10.0/AndroidManifest.xml:70:13-36
+202            android:exported="false" >
+202-->[androidx.work:work-runtime:2.10.0] /home/leon/.gradle/caches/8.13/transforms/d56f68dfb65012d214edb207dc9a9373/transformed/work-runtime-2.10.0/AndroidManifest.xml:71:13-37
+203            <intent-filter>
+203-->[androidx.work:work-runtime:2.10.0] /home/leon/.gradle/caches/8.13/transforms/d56f68dfb65012d214edb207dc9a9373/transformed/work-runtime-2.10.0/AndroidManifest.xml:73:13-76:29
+204                <action android:name="android.intent.action.ACTION_POWER_CONNECTED" />
+204-->[androidx.work:work-runtime:2.10.0] /home/leon/.gradle/caches/8.13/transforms/d56f68dfb65012d214edb207dc9a9373/transformed/work-runtime-2.10.0/AndroidManifest.xml:74:17-87
+204-->[androidx.work:work-runtime:2.10.0] /home/leon/.gradle/caches/8.13/transforms/d56f68dfb65012d214edb207dc9a9373/transformed/work-runtime-2.10.0/AndroidManifest.xml:74:25-84
+205                <action android:name="android.intent.action.ACTION_POWER_DISCONNECTED" />
+205-->[androidx.work:work-runtime:2.10.0] /home/leon/.gradle/caches/8.13/transforms/d56f68dfb65012d214edb207dc9a9373/transformed/work-runtime-2.10.0/AndroidManifest.xml:75:17-90
+205-->[androidx.work:work-runtime:2.10.0] /home/leon/.gradle/caches/8.13/transforms/d56f68dfb65012d214edb207dc9a9373/transformed/work-runtime-2.10.0/AndroidManifest.xml:75:25-87
+206            </intent-filter>
+207        </receiver>
+208        <receiver
+208-->[androidx.work:work-runtime:2.10.0] /home/leon/.gradle/caches/8.13/transforms/d56f68dfb65012d214edb207dc9a9373/transformed/work-runtime-2.10.0/AndroidManifest.xml:78:9-88:20
+209            android:name="androidx.work.impl.background.systemalarm.ConstraintProxy$BatteryNotLowProxy"
+209-->[androidx.work:work-runtime:2.10.0] /home/leon/.gradle/caches/8.13/transforms/d56f68dfb65012d214edb207dc9a9373/transformed/work-runtime-2.10.0/AndroidManifest.xml:79:13-104
+210            android:directBootAware="false"
+210-->[androidx.work:work-runtime:2.10.0] /home/leon/.gradle/caches/8.13/transforms/d56f68dfb65012d214edb207dc9a9373/transformed/work-runtime-2.10.0/AndroidManifest.xml:80:13-44
+211            android:enabled="false"
+211-->[androidx.work:work-runtime:2.10.0] /home/leon/.gradle/caches/8.13/transforms/d56f68dfb65012d214edb207dc9a9373/transformed/work-runtime-2.10.0/AndroidManifest.xml:81:13-36
+212            android:exported="false" >
+212-->[androidx.work:work-runtime:2.10.0] /home/leon/.gradle/caches/8.13/transforms/d56f68dfb65012d214edb207dc9a9373/transformed/work-runtime-2.10.0/AndroidManifest.xml:82:13-37
+213            <intent-filter>
+213-->[androidx.work:work-runtime:2.10.0] /home/leon/.gradle/caches/8.13/transforms/d56f68dfb65012d214edb207dc9a9373/transformed/work-runtime-2.10.0/AndroidManifest.xml:84:13-87:29
+214                <action android:name="android.intent.action.BATTERY_OKAY" />
+214-->[androidx.work:work-runtime:2.10.0] /home/leon/.gradle/caches/8.13/transforms/d56f68dfb65012d214edb207dc9a9373/transformed/work-runtime-2.10.0/AndroidManifest.xml:85:17-77
+214-->[androidx.work:work-runtime:2.10.0] /home/leon/.gradle/caches/8.13/transforms/d56f68dfb65012d214edb207dc9a9373/transformed/work-runtime-2.10.0/AndroidManifest.xml:85:25-74
+215                <action android:name="android.intent.action.BATTERY_LOW" />
+215-->[androidx.work:work-runtime:2.10.0] /home/leon/.gradle/caches/8.13/transforms/d56f68dfb65012d214edb207dc9a9373/transformed/work-runtime-2.10.0/AndroidManifest.xml:86:17-76
+215-->[androidx.work:work-runtime:2.10.0] /home/leon/.gradle/caches/8.13/transforms/d56f68dfb65012d214edb207dc9a9373/transformed/work-runtime-2.10.0/AndroidManifest.xml:86:25-73
+216            </intent-filter>
+217        </receiver>
+218        <receiver
+218-->[androidx.work:work-runtime:2.10.0] /home/leon/.gradle/caches/8.13/transforms/d56f68dfb65012d214edb207dc9a9373/transformed/work-runtime-2.10.0/AndroidManifest.xml:89:9-99:20
+219            android:name="androidx.work.impl.background.systemalarm.ConstraintProxy$StorageNotLowProxy"
+219-->[androidx.work:work-runtime:2.10.0] /home/leon/.gradle/caches/8.13/transforms/d56f68dfb65012d214edb207dc9a9373/transformed/work-runtime-2.10.0/AndroidManifest.xml:90:13-104
+220            android:directBootAware="false"
+220-->[androidx.work:work-runtime:2.10.0] /home/leon/.gradle/caches/8.13/transforms/d56f68dfb65012d214edb207dc9a9373/transformed/work-runtime-2.10.0/AndroidManifest.xml:91:13-44
+221            android:enabled="false"
+221-->[androidx.work:work-runtime:2.10.0] /home/leon/.gradle/caches/8.13/transforms/d56f68dfb65012d214edb207dc9a9373/transformed/work-runtime-2.10.0/AndroidManifest.xml:92:13-36
+222            android:exported="false" >
+222-->[androidx.work:work-runtime:2.10.0] /home/leon/.gradle/caches/8.13/transforms/d56f68dfb65012d214edb207dc9a9373/transformed/work-runtime-2.10.0/AndroidManifest.xml:93:13-37
+223            <intent-filter>
+223-->[androidx.work:work-runtime:2.10.0] /home/leon/.gradle/caches/8.13/transforms/d56f68dfb65012d214edb207dc9a9373/transformed/work-runtime-2.10.0/AndroidManifest.xml:95:13-98:29
+224                <action android:name="android.intent.action.DEVICE_STORAGE_LOW" />
+224-->[androidx.work:work-runtime:2.10.0] /home/leon/.gradle/caches/8.13/transforms/d56f68dfb65012d214edb207dc9a9373/transformed/work-runtime-2.10.0/AndroidManifest.xml:96:17-83
+224-->[androidx.work:work-runtime:2.10.0] /home/leon/.gradle/caches/8.13/transforms/d56f68dfb65012d214edb207dc9a9373/transformed/work-runtime-2.10.0/AndroidManifest.xml:96:25-80
+225                <action android:name="android.intent.action.DEVICE_STORAGE_OK" />
+225-->[androidx.work:work-runtime:2.10.0] /home/leon/.gradle/caches/8.13/transforms/d56f68dfb65012d214edb207dc9a9373/transformed/work-runtime-2.10.0/AndroidManifest.xml:97:17-82
+225-->[androidx.work:work-runtime:2.10.0] /home/leon/.gradle/caches/8.13/transforms/d56f68dfb65012d214edb207dc9a9373/transformed/work-runtime-2.10.0/AndroidManifest.xml:97:25-79
+226            </intent-filter>
+227        </receiver>
+228        <receiver
+228-->[androidx.work:work-runtime:2.10.0] /home/leon/.gradle/caches/8.13/transforms/d56f68dfb65012d214edb207dc9a9373/transformed/work-runtime-2.10.0/AndroidManifest.xml:100:9-109:20
+229            android:name="androidx.work.impl.background.systemalarm.ConstraintProxy$NetworkStateProxy"
+229-->[androidx.work:work-runtime:2.10.0] /home/leon/.gradle/caches/8.13/transforms/d56f68dfb65012d214edb207dc9a9373/transformed/work-runtime-2.10.0/AndroidManifest.xml:101:13-103
+230            android:directBootAware="false"
+230-->[androidx.work:work-runtime:2.10.0] /home/leon/.gradle/caches/8.13/transforms/d56f68dfb65012d214edb207dc9a9373/transformed/work-runtime-2.10.0/AndroidManifest.xml:102:13-44
+231            android:enabled="false"
+231-->[androidx.work:work-runtime:2.10.0] /home/leon/.gradle/caches/8.13/transforms/d56f68dfb65012d214edb207dc9a9373/transformed/work-runtime-2.10.0/AndroidManifest.xml:103:13-36
+232            android:exported="false" >
+232-->[androidx.work:work-runtime:2.10.0] /home/leon/.gradle/caches/8.13/transforms/d56f68dfb65012d214edb207dc9a9373/transformed/work-runtime-2.10.0/AndroidManifest.xml:104:13-37
+233            <intent-filter>
+233-->[androidx.work:work-runtime:2.10.0] /home/leon/.gradle/caches/8.13/transforms/d56f68dfb65012d214edb207dc9a9373/transformed/work-runtime-2.10.0/AndroidManifest.xml:106:13-108:29
+234                <action android:name="android.net.conn.CONNECTIVITY_CHANGE" />
+234-->[androidx.work:work-runtime:2.10.0] /home/leon/.gradle/caches/8.13/transforms/d56f68dfb65012d214edb207dc9a9373/transformed/work-runtime-2.10.0/AndroidManifest.xml:107:17-79
+234-->[androidx.work:work-runtime:2.10.0] /home/leon/.gradle/caches/8.13/transforms/d56f68dfb65012d214edb207dc9a9373/transformed/work-runtime-2.10.0/AndroidManifest.xml:107:25-76
+235            </intent-filter>
+236        </receiver>
+237        <receiver
+237-->[androidx.work:work-runtime:2.10.0] /home/leon/.gradle/caches/8.13/transforms/d56f68dfb65012d214edb207dc9a9373/transformed/work-runtime-2.10.0/AndroidManifest.xml:110:9-121:20
+238            android:name="androidx.work.impl.background.systemalarm.RescheduleReceiver"
+238-->[androidx.work:work-runtime:2.10.0] /home/leon/.gradle/caches/8.13/transforms/d56f68dfb65012d214edb207dc9a9373/transformed/work-runtime-2.10.0/AndroidManifest.xml:111:13-88
+239            android:directBootAware="false"
+239-->[androidx.work:work-runtime:2.10.0] /home/leon/.gradle/caches/8.13/transforms/d56f68dfb65012d214edb207dc9a9373/transformed/work-runtime-2.10.0/AndroidManifest.xml:112:13-44
+240            android:enabled="false"
+240-->[androidx.work:work-runtime:2.10.0] /home/leon/.gradle/caches/8.13/transforms/d56f68dfb65012d214edb207dc9a9373/transformed/work-runtime-2.10.0/AndroidManifest.xml:113:13-36
+241            android:exported="false" >
+241-->[androidx.work:work-runtime:2.10.0] /home/leon/.gradle/caches/8.13/transforms/d56f68dfb65012d214edb207dc9a9373/transformed/work-runtime-2.10.0/AndroidManifest.xml:114:13-37
+242            <intent-filter>
+242-->[androidx.work:work-runtime:2.10.0] /home/leon/.gradle/caches/8.13/transforms/d56f68dfb65012d214edb207dc9a9373/transformed/work-runtime-2.10.0/AndroidManifest.xml:116:13-120:29
+243                <action android:name="android.intent.action.BOOT_COMPLETED" />
+243-->[androidx.work:work-runtime:2.10.0] /home/leon/.gradle/caches/8.13/transforms/d56f68dfb65012d214edb207dc9a9373/transformed/work-runtime-2.10.0/AndroidManifest.xml:117:17-79
+243-->[androidx.work:work-runtime:2.10.0] /home/leon/.gradle/caches/8.13/transforms/d56f68dfb65012d214edb207dc9a9373/transformed/work-runtime-2.10.0/AndroidManifest.xml:117:25-76
+244                <action android:name="android.intent.action.TIME_SET" />
+244-->[androidx.work:work-runtime:2.10.0] /home/leon/.gradle/caches/8.13/transforms/d56f68dfb65012d214edb207dc9a9373/transformed/work-runtime-2.10.0/AndroidManifest.xml:118:17-73
+244-->[androidx.work:work-runtime:2.10.0] /home/leon/.gradle/caches/8.13/transforms/d56f68dfb65012d214edb207dc9a9373/transformed/work-runtime-2.10.0/AndroidManifest.xml:118:25-70
+245                <action android:name="android.intent.action.TIMEZONE_CHANGED" />
+245-->[androidx.work:work-runtime:2.10.0] /home/leon/.gradle/caches/8.13/transforms/d56f68dfb65012d214edb207dc9a9373/transformed/work-runtime-2.10.0/AndroidManifest.xml:119:17-81
+245-->[androidx.work:work-runtime:2.10.0] /home/leon/.gradle/caches/8.13/transforms/d56f68dfb65012d214edb207dc9a9373/transformed/work-runtime-2.10.0/AndroidManifest.xml:119:25-78
+246            </intent-filter>
+247        </receiver>
+248        <receiver
+248-->[androidx.work:work-runtime:2.10.0] /home/leon/.gradle/caches/8.13/transforms/d56f68dfb65012d214edb207dc9a9373/transformed/work-runtime-2.10.0/AndroidManifest.xml:122:9-131:20
+249            android:name="androidx.work.impl.background.systemalarm.ConstraintProxyUpdateReceiver"
+249-->[androidx.work:work-runtime:2.10.0] /home/leon/.gradle/caches/8.13/transforms/d56f68dfb65012d214edb207dc9a9373/transformed/work-runtime-2.10.0/AndroidManifest.xml:123:13-99
+250            android:directBootAware="false"
+250-->[androidx.work:work-runtime:2.10.0] /home/leon/.gradle/caches/8.13/transforms/d56f68dfb65012d214edb207dc9a9373/transformed/work-runtime-2.10.0/AndroidManifest.xml:124:13-44
+251            android:enabled="@bool/enable_system_alarm_service_default"
+251-->[androidx.work:work-runtime:2.10.0] /home/leon/.gradle/caches/8.13/transforms/d56f68dfb65012d214edb207dc9a9373/transformed/work-runtime-2.10.0/AndroidManifest.xml:125:13-72
+252            android:exported="false" >
+252-->[androidx.work:work-runtime:2.10.0] /home/leon/.gradle/caches/8.13/transforms/d56f68dfb65012d214edb207dc9a9373/transformed/work-runtime-2.10.0/AndroidManifest.xml:126:13-37
+253            <intent-filter>
+253-->[androidx.work:work-runtime:2.10.0] /home/leon/.gradle/caches/8.13/transforms/d56f68dfb65012d214edb207dc9a9373/transformed/work-runtime-2.10.0/AndroidManifest.xml:128:13-130:29
+254                <action android:name="androidx.work.impl.background.systemalarm.UpdateProxies" />
+254-->[androidx.work:work-runtime:2.10.0] /home/leon/.gradle/caches/8.13/transforms/d56f68dfb65012d214edb207dc9a9373/transformed/work-runtime-2.10.0/AndroidManifest.xml:129:17-98
+254-->[androidx.work:work-runtime:2.10.0] /home/leon/.gradle/caches/8.13/transforms/d56f68dfb65012d214edb207dc9a9373/transformed/work-runtime-2.10.0/AndroidManifest.xml:129:25-95
+255            </intent-filter>
+256        </receiver>
+257        <receiver
+257-->[androidx.work:work-runtime:2.10.0] /home/leon/.gradle/caches/8.13/transforms/d56f68dfb65012d214edb207dc9a9373/transformed/work-runtime-2.10.0/AndroidManifest.xml:132:9-142:20
+258            android:name="androidx.work.impl.diagnostics.DiagnosticsReceiver"
+258-->[androidx.work:work-runtime:2.10.0] /home/leon/.gradle/caches/8.13/transforms/d56f68dfb65012d214edb207dc9a9373/transformed/work-runtime-2.10.0/AndroidManifest.xml:133:13-78
+259            android:directBootAware="false"
+259-->[androidx.work:work-runtime:2.10.0] /home/leon/.gradle/caches/8.13/transforms/d56f68dfb65012d214edb207dc9a9373/transformed/work-runtime-2.10.0/AndroidManifest.xml:134:13-44
+260            android:enabled="true"
+260-->[androidx.work:work-runtime:2.10.0] /home/leon/.gradle/caches/8.13/transforms/d56f68dfb65012d214edb207dc9a9373/transformed/work-runtime-2.10.0/AndroidManifest.xml:135:13-35
+261            android:exported="true"
+261-->[androidx.work:work-runtime:2.10.0] /home/leon/.gradle/caches/8.13/transforms/d56f68dfb65012d214edb207dc9a9373/transformed/work-runtime-2.10.0/AndroidManifest.xml:136:13-36
+262            android:permission="android.permission.DUMP" >
+262-->[androidx.work:work-runtime:2.10.0] /home/leon/.gradle/caches/8.13/transforms/d56f68dfb65012d214edb207dc9a9373/transformed/work-runtime-2.10.0/AndroidManifest.xml:137:13-57
+263            <intent-filter>
+263-->[androidx.work:work-runtime:2.10.0] /home/leon/.gradle/caches/8.13/transforms/d56f68dfb65012d214edb207dc9a9373/transformed/work-runtime-2.10.0/AndroidManifest.xml:139:13-141:29
+264                <action android:name="androidx.work.diagnostics.REQUEST_DIAGNOSTICS" />
+264-->[androidx.work:work-runtime:2.10.0] /home/leon/.gradle/caches/8.13/transforms/d56f68dfb65012d214edb207dc9a9373/transformed/work-runtime-2.10.0/AndroidManifest.xml:140:17-88
+264-->[androidx.work:work-runtime:2.10.0] /home/leon/.gradle/caches/8.13/transforms/d56f68dfb65012d214edb207dc9a9373/transformed/work-runtime-2.10.0/AndroidManifest.xml:140:25-85
+265            </intent-filter>
+266        </receiver>
+267
+268        <service
+268-->[androidx.room:room-runtime-android:2.7.0-rc01] /home/leon/.gradle/caches/8.13/transforms/476f4b390eb0cb1c0027d48ef62896d5/transformed/room-runtime-release/AndroidManifest.xml:24:9-28:63
+269            android:name="androidx.room.MultiInstanceInvalidationService"
+269-->[androidx.room:room-runtime-android:2.7.0-rc01] /home/leon/.gradle/caches/8.13/transforms/476f4b390eb0cb1c0027d48ef62896d5/transformed/room-runtime-release/AndroidManifest.xml:25:13-74
+270            android:directBootAware="true"
+270-->[androidx.room:room-runtime-android:2.7.0-rc01] /home/leon/.gradle/caches/8.13/transforms/476f4b390eb0cb1c0027d48ef62896d5/transformed/room-runtime-release/AndroidManifest.xml:26:13-43
+271            android:exported="false" />
+271-->[androidx.room:room-runtime-android:2.7.0-rc01] /home/leon/.gradle/caches/8.13/transforms/476f4b390eb0cb1c0027d48ef62896d5/transformed/room-runtime-release/AndroidManifest.xml:27:13-37
+272
+273        <uses-library
+273-->[androidx.window:window:1.5.0] /home/leon/.gradle/caches/8.13/transforms/4fd2911773ed959d9d7797aa2728fdbb/transformed/window-1.5.0/AndroidManifest.xml:23:9-25:40
+274            android:name="androidx.window.extensions"
+274-->[androidx.window:window:1.5.0] /home/leon/.gradle/caches/8.13/transforms/4fd2911773ed959d9d7797aa2728fdbb/transformed/window-1.5.0/AndroidManifest.xml:24:13-54
+275            android:required="false" />
+275-->[androidx.window:window:1.5.0] /home/leon/.gradle/caches/8.13/transforms/4fd2911773ed959d9d7797aa2728fdbb/transformed/window-1.5.0/AndroidManifest.xml:25:13-37
+276        <uses-library
+276-->[androidx.window:window:1.5.0] /home/leon/.gradle/caches/8.13/transforms/4fd2911773ed959d9d7797aa2728fdbb/transformed/window-1.5.0/AndroidManifest.xml:26:9-28:40
+277            android:name="androidx.window.sidecar"
+277-->[androidx.window:window:1.5.0] /home/leon/.gradle/caches/8.13/transforms/4fd2911773ed959d9d7797aa2728fdbb/transformed/window-1.5.0/AndroidManifest.xml:27:13-51
+278            android:required="false" />
+278-->[androidx.window:window:1.5.0] /home/leon/.gradle/caches/8.13/transforms/4fd2911773ed959d9d7797aa2728fdbb/transformed/window-1.5.0/AndroidManifest.xml:28:13-37
+279
+280        <receiver
+280-->[androidx.profileinstaller:profileinstaller:1.4.1] /home/leon/.gradle/caches/8.13/transforms/b6a9cfeb1c50e9d5a2e17cd608a97391/transformed/profileinstaller-1.4.1/AndroidManifest.xml:34:9-52:20
+281            android:name="androidx.profileinstaller.ProfileInstallReceiver"
+281-->[androidx.profileinstaller:profileinstaller:1.4.1] /home/leon/.gradle/caches/8.13/transforms/b6a9cfeb1c50e9d5a2e17cd608a97391/transformed/profileinstaller-1.4.1/AndroidManifest.xml:35:13-76
+282            android:directBootAware="false"
+282-->[androidx.profileinstaller:profileinstaller:1.4.1] /home/leon/.gradle/caches/8.13/transforms/b6a9cfeb1c50e9d5a2e17cd608a97391/transformed/profileinstaller-1.4.1/AndroidManifest.xml:36:13-44
+283            android:enabled="true"
+283-->[androidx.profileinstaller:profileinstaller:1.4.1] /home/leon/.gradle/caches/8.13/transforms/b6a9cfeb1c50e9d5a2e17cd608a97391/transformed/profileinstaller-1.4.1/AndroidManifest.xml:37:13-35
+284            android:exported="true"
+284-->[androidx.profileinstaller:profileinstaller:1.4.1] /home/leon/.gradle/caches/8.13/transforms/b6a9cfeb1c50e9d5a2e17cd608a97391/transformed/profileinstaller-1.4.1/AndroidManifest.xml:38:13-36
+285            android:permission="android.permission.DUMP" >
+285-->[androidx.profileinstaller:profileinstaller:1.4.1] /home/leon/.gradle/caches/8.13/transforms/b6a9cfeb1c50e9d5a2e17cd608a97391/transformed/profileinstaller-1.4.1/AndroidManifest.xml:39:13-57
+286            <intent-filter>
+286-->[androidx.profileinstaller:profileinstaller:1.4.1] /home/leon/.gradle/caches/8.13/transforms/b6a9cfeb1c50e9d5a2e17cd608a97391/transformed/profileinstaller-1.4.1/AndroidManifest.xml:40:13-42:29
+287                <action android:name="androidx.profileinstaller.action.INSTALL_PROFILE" />
+287-->[androidx.profileinstaller:profileinstaller:1.4.1] /home/leon/.gradle/caches/8.13/transforms/b6a9cfeb1c50e9d5a2e17cd608a97391/transformed/profileinstaller-1.4.1/AndroidManifest.xml:41:17-91
+287-->[androidx.profileinstaller:profileinstaller:1.4.1] /home/leon/.gradle/caches/8.13/transforms/b6a9cfeb1c50e9d5a2e17cd608a97391/transformed/profileinstaller-1.4.1/AndroidManifest.xml:41:25-88
+288            </intent-filter>
+289            <intent-filter>
+289-->[androidx.profileinstaller:profileinstaller:1.4.1] /home/leon/.gradle/caches/8.13/transforms/b6a9cfeb1c50e9d5a2e17cd608a97391/transformed/profileinstaller-1.4.1/AndroidManifest.xml:43:13-45:29
+290                <action android:name="androidx.profileinstaller.action.SKIP_FILE" />
+290-->[androidx.profileinstaller:profileinstaller:1.4.1] /home/leon/.gradle/caches/8.13/transforms/b6a9cfeb1c50e9d5a2e17cd608a97391/transformed/profileinstaller-1.4.1/AndroidManifest.xml:44:17-85
+290-->[androidx.profileinstaller:profileinstaller:1.4.1] /home/leon/.gradle/caches/8.13/transforms/b6a9cfeb1c50e9d5a2e17cd608a97391/transformed/profileinstaller-1.4.1/AndroidManifest.xml:44:25-82
+291            </intent-filter>
+292            <intent-filter>
+292-->[androidx.profileinstaller:profileinstaller:1.4.1] /home/leon/.gradle/caches/8.13/transforms/b6a9cfeb1c50e9d5a2e17cd608a97391/transformed/profileinstaller-1.4.1/AndroidManifest.xml:46:13-48:29
+293                <action android:name="androidx.profileinstaller.action.SAVE_PROFILE" />
+293-->[androidx.profileinstaller:profileinstaller:1.4.1] /home/leon/.gradle/caches/8.13/transforms/b6a9cfeb1c50e9d5a2e17cd608a97391/transformed/profileinstaller-1.4.1/AndroidManifest.xml:47:17-88
+293-->[androidx.profileinstaller:profileinstaller:1.4.1] /home/leon/.gradle/caches/8.13/transforms/b6a9cfeb1c50e9d5a2e17cd608a97391/transformed/profileinstaller-1.4.1/AndroidManifest.xml:47:25-85
+294            </intent-filter>
+295            <intent-filter>
+295-->[androidx.profileinstaller:profileinstaller:1.4.1] /home/leon/.gradle/caches/8.13/transforms/b6a9cfeb1c50e9d5a2e17cd608a97391/transformed/profileinstaller-1.4.1/AndroidManifest.xml:49:13-51:29
+296                <action android:name="androidx.profileinstaller.action.BENCHMARK_OPERATION" />
+296-->[androidx.profileinstaller:profileinstaller:1.4.1] /home/leon/.gradle/caches/8.13/transforms/b6a9cfeb1c50e9d5a2e17cd608a97391/transformed/profileinstaller-1.4.1/AndroidManifest.xml:50:17-95
+296-->[androidx.profileinstaller:profileinstaller:1.4.1] /home/leon/.gradle/caches/8.13/transforms/b6a9cfeb1c50e9d5a2e17cd608a97391/transformed/profileinstaller-1.4.1/AndroidManifest.xml:50:25-92
+297            </intent-filter>
+298        </receiver>
+299
+300        <service
+300-->[com.google.android.datatransport:transport-backend-cct:3.1.3] /home/leon/.gradle/caches/8.13/transforms/154b789d5e7094235f2f0582b773b741/transformed/transport-backend-cct-3.1.3/AndroidManifest.xml:29:9-35:19
+301            android:name="com.google.android.datatransport.runtime.backends.TransportBackendDiscovery"
+301-->[com.google.android.datatransport:transport-backend-cct:3.1.3] /home/leon/.gradle/caches/8.13/transforms/154b789d5e7094235f2f0582b773b741/transformed/transport-backend-cct-3.1.3/AndroidManifest.xml:30:13-103
+302            android:exported="false" >
+302-->[com.google.android.datatransport:transport-backend-cct:3.1.3] /home/leon/.gradle/caches/8.13/transforms/154b789d5e7094235f2f0582b773b741/transformed/transport-backend-cct-3.1.3/AndroidManifest.xml:31:13-37
+303            <meta-data
+303-->[com.google.android.datatransport:transport-backend-cct:3.1.3] /home/leon/.gradle/caches/8.13/transforms/154b789d5e7094235f2f0582b773b741/transformed/transport-backend-cct-3.1.3/AndroidManifest.xml:32:13-34:39
+304                android:name="backend:com.google.android.datatransport.cct.CctBackendFactory"
+304-->[com.google.android.datatransport:transport-backend-cct:3.1.3] /home/leon/.gradle/caches/8.13/transforms/154b789d5e7094235f2f0582b773b741/transformed/transport-backend-cct-3.1.3/AndroidManifest.xml:33:17-94
+305                android:value="cct" />
+305-->[com.google.android.datatransport:transport-backend-cct:3.1.3] /home/leon/.gradle/caches/8.13/transforms/154b789d5e7094235f2f0582b773b741/transformed/transport-backend-cct-3.1.3/AndroidManifest.xml:34:17-36
+306        </service>
+307        <service
+307-->[com.google.android.datatransport:transport-runtime:3.1.3] /home/leon/.gradle/caches/8.13/transforms/9f156924bec2c7c167fceb08fca20f26/transformed/transport-runtime-3.1.3/AndroidManifest.xml:26:9-30:19
+308            android:name="com.google.android.datatransport.runtime.scheduling.jobscheduling.JobInfoSchedulerService"
+308-->[com.google.android.datatransport:transport-runtime:3.1.3] /home/leon/.gradle/caches/8.13/transforms/9f156924bec2c7c167fceb08fca20f26/transformed/transport-runtime-3.1.3/AndroidManifest.xml:27:13-117
+309            android:exported="false"
+309-->[com.google.android.datatransport:transport-runtime:3.1.3] /home/leon/.gradle/caches/8.13/transforms/9f156924bec2c7c167fceb08fca20f26/transformed/transport-runtime-3.1.3/AndroidManifest.xml:28:13-37
+310            android:permission="android.permission.BIND_JOB_SERVICE" >
+310-->[com.google.android.datatransport:transport-runtime:3.1.3] /home/leon/.gradle/caches/8.13/transforms/9f156924bec2c7c167fceb08fca20f26/transformed/transport-runtime-3.1.3/AndroidManifest.xml:29:13-69
+311        </service>
+312
+313        <receiver
+313-->[com.google.android.datatransport:transport-runtime:3.1.3] /home/leon/.gradle/caches/8.13/transforms/9f156924bec2c7c167fceb08fca20f26/transformed/transport-runtime-3.1.3/AndroidManifest.xml:32:9-34:40
+314            android:name="com.google.android.datatransport.runtime.scheduling.jobscheduling.AlarmManagerSchedulerBroadcastReceiver"
+314-->[com.google.android.datatransport:transport-runtime:3.1.3] /home/leon/.gradle/caches/8.13/transforms/9f156924bec2c7c167fceb08fca20f26/transformed/transport-runtime-3.1.3/AndroidManifest.xml:33:13-132
+315            android:exported="false" />
+315-->[com.google.android.datatransport:transport-runtime:3.1.3] /home/leon/.gradle/caches/8.13/transforms/9f156924bec2c7c167fceb08fca20f26/transformed/transport-runtime-3.1.3/AndroidManifest.xml:34:13-37
+316    </application>
+317
+318</manifest>

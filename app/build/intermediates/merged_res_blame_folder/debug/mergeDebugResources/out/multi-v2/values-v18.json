@@ -1,0 +1,38 @@
+{
+    "logs": [
+        {
+            "outputFile": "fr.nekotv.app-mergeDebugResources-87:/values-v18/values-v18.xml",
+            "map": [
+                {
+                    "source": "/home/leon/.gradle/caches/8.13/transforms/a53f7ae41f59e2aa872e3cc579aa81ba/transformed/leanback-1.2.0/res/values-v18/values-v18.xml",
+                    "from": {
+                        "startLines": "2,12",
+                        "startColumns": "4,4",
+                        "startOffsets": "55,765",
+                        "endLines": "11,20",
+                        "endColumns": "12,12",
+                        "endOffsets": "760,1352"
+                    },
+                    "to": {
+                        "startLines": "3,13",
+                        "startColumns": "4,4",
+                        "startOffsets": "104,814",
+                        "endLines": "12,21",
+                        "endColumns": "12,12",
+                        "endOffsets": "809,1401"
+                    }
+                },
+                {
+                    "source": "/home/leon/.gradle/caches/8.13/transforms/2e8a556c931e860902fe8e832d3f4304/transformed/appcompat-1.7.1/res/values-v18/values-v18.xml",
+                    "from": {
+                        "startLines": "2",
+                        "startColumns": "4",
+                        "startOffsets": "55",
+                        "endColumns": "48",
+                        "endOffsets": "99"
+                    }
+                }
+            ]
+        }
+    ]
+}

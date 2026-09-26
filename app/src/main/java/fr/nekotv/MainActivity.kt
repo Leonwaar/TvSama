@@ -1,335 +1,472 @@
 package fr.nekotv
 
-import android.graphics.BitmapFactory
-import android.net.Uri
+import android.app.Activity
+import android.content.Intent
 import android.os.Bundle
-import androidx.activity.ComponentActivity
+import android.os.Build
+import android.view.View
+import android.view.WindowInsets
+import android.content.pm.ActivityInfo
+import android.speech.RecognizerIntent
+import android.widget.Toast
+import androidx.activity.compose.BackHandler
+import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
-import androidx.compose.foundation.Image
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.fragment.app.FragmentActivity
 import androidx.compose.foundation.background
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.safeDrawingPadding
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import kotlinx.coroutines.delay
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.asImageBitmap
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.viewinterop.AndroidView
-import androidx.media3.common.MediaItem
-import androidx.media3.common.MimeTypes
-import androidx.media3.exoplayer.ExoPlayer
-import androidx.media3.ui.PlayerView
-import androidx.tv.material3.Button
-import androidx.tv.material3.MaterialTheme
-import androidx.tv.material3.Surface
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
-import org.json.JSONObject
-import java.net.HttpURLConnection
-import java.net.URL
-import java.net.URLEncoder
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
-data class VideoSource(val name: String, val url: String)
-data class Episode(val title: String, val description: String, val sources: List<VideoSource>)
-data class Anime(val title: String, val tag: String, val episodes: List<Episode>, val id: String = "", val poster: String = "", val description: String = "")
-
-/** Connect only catalogues whose API and media licences permit this use. */
-interface CatalogProvider {
-    val id: String
-    suspend fun search(query: String, category: String): List<Anime>
-    suspend fun streams(anime: Anime): List<VideoSource>
-}
-
-/** Uses Internet Archive's public metadata API and returns only records with an explicit CC/PD licence. */
-class InternetArchiveProvider : CatalogProvider {
-    override val id = "internet-archive"
-
-    override suspend fun search(query: String, category: String): List<Anime> = withContext(Dispatchers.IO) {
-        val terms = mutableListOf("mediatype:movies", "(licenseurl:*publicdomain* OR licenseurl:*creativecommons.org*)")
-        val topic = when (category) {
-            "Animation" -> "subject:animation"
-            "Aventure" -> "subject:adventure"
-            "Science-fiction" -> "subject:science_fiction"
-            "Fantaisie" -> "subject:fantasy"
-            else -> "(subject:anime OR subject:animation)"
+class MainActivity : FragmentActivity() {
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        intent?.data?.takeIf { it.scheme == "tvsama" && it.host == "pair" }?.let { pairing ->
+            getSharedPreferences("tvsama_settings", MODE_PRIVATE).edit()
+                .putString("paired_tv_token", pairing.getQueryParameter("token").orEmpty())
+                .putString("paired_tv_device", pairing.getQueryParameter("device").orEmpty())
+                .apply()
         }
-        terms += topic
-        if (query.isNotBlank()) terms += "(${query.trim().split(Regex("\\s+")).joinToString(" AND ") { "title:\"$it\"" }})"
-        val q = URLEncoder.encode(terms.joinToString(" AND "), "UTF-8")
-        val json = getJson("https://archive.org/advancedsearch.php?q=$q&fl[]=identifier,title,description,year,licenseurl&rows=60&page=1&output=json")
-        val docs = json.getJSONObject("response").getJSONArray("docs")
-        buildList {
-            for (i in 0 until docs.length()) {
-                val d = docs.getJSONObject(i)
-                val license = d.optString("licenseurl")
-                if (!(license.contains("publicdomain", true) || license.contains("creativecommons.org/licenses/", true))) continue
-                val id = d.optString("identifier")
-                val title = d.optString("title", id).takeIf { it.isNotBlank() } ?: id
-                add(Anime(title, "Internet Archive · licence libre${d.optString("year").takeIf { it.isNotBlank() }?.let { " · $it" }.orEmpty()}", emptyList(), id, "https://archive.org/services/img/$id", d.optString("description").take(500)))
-            }
-        }
-    }
-
-    override suspend fun streams(anime: Anime): List<VideoSource> = withContext(Dispatchers.IO) {
-        if (anime.id.isBlank()) return@withContext anime.episodes.firstOrNull()?.sources.orEmpty()
-        val metadata = getJson("https://archive.org/metadata/${URLEncoder.encode(anime.id, "UTF-8")}")
-        val files = metadata.optJSONArray("files") ?: return@withContext emptyList()
-        buildList {
-            for (i in 0 until files.length()) {
-                val f = files.optJSONObject(i) ?: continue
-                val name = f.optString("name")
-                val lower = name.lowercase()
-                if (lower.endsWith(".mp4") || lower.endsWith(".m4v") || lower.endsWith(".ogv")) {
-                    add(VideoSource(name.substringAfterLast('/'), "https://archive.org/download/${anime.id}/${name.split('/').joinToString("/") { Uri.encode(it) }}"))
-                }
-            }
-        }
+        setContent { SamaTheme { TvSamaApp() } }
     }
 }
 
-private fun getJson(address: String): JSONObject {
-    val connection = URL(address).openConnection() as HttpURLConnection
-    connection.connectTimeout = 12000
-    connection.readTimeout = 18000
-    connection.setRequestProperty("User-Agent", "TvSama/1.0 (Android TV)")
-    return try { connection.inputStream.bufferedReader().use { JSONObject(it.readText()) } } finally { connection.disconnect() }
+private fun setPlayerFullscreen(activity: Activity?, fullscreen: Boolean) {
+    if (activity == null) return
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+        activity.window.insetsController?.let { controller ->
+            if (fullscreen) controller.hide(WindowInsets.Type.systemBars()) else controller.show(WindowInsets.Type.systemBars())
+        }
+    } else {
+        @Suppress("DEPRECATION")
+        activity.window.decorView.systemUiVisibility = if (fullscreen) {
+            View.SYSTEM_UI_FLAG_FULLSCREEN or View.SYSTEM_UI_FLAG_HIDE_NAVIGATION or View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY or View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN or View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
+        } else 0
+    }
+    if (!activity.isTelevision()) activity.requestedOrientation = if (fullscreen) ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE else ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
 }
 
-private val demoAnime = listOf(
-    Anime("Les Chroniques de Kumo", "VF · Aventure", listOf(Episode("Épisode 1 · Le premier nuage", "Épisode de démonstration.", listOf(VideoSource("Flux HLS de démonstration", "https://storage.googleapis.com/shaka-demo-assets/angel-one-hls/hls.m3u8"), VideoSource("MP4 de démonstration", "https://storage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4")))), description = "Une aventure de démonstration pour découvrir TvSama."),
-    Anime("Neon Ronin", "VF · Science-fiction", listOf(Episode("Épisode 1 · Signal perdu", "Média de démonstration.", listOf(VideoSource("MP4 de démonstration", "https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4")))), description = "Fiche fictive. Le flux associé est fourni à des fins de démonstration."),
-    Anime("Le Jardin des étoiles", "VF · Fantaisie", listOf(Episode("Épisode 1 · La graine", "Média de démonstration.", listOf(VideoSource("MP4 de démonstration", "https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerJoyrides.mp4")))), description = "Fiche fictive. Le flux associé est fourni à des fins de démonstration.")
-)
-
-class MainActivity : ComponentActivity() {
-    override fun onCreate(savedInstanceState: Bundle?) { super.onCreate(savedInstanceState); setContent { MaterialTheme { TvSamaApp() } } }
-}
-
-private enum class Screen { HOME, DETAILS, SOURCES, PLAYER, CONTINUE }
-private val categories = listOf("Tous", "Animation", "Aventure", "Science-fiction", "Fantaisie")
-
-private data class WatchProgress(val title: String, val url: String, val position: Long, val duration: Long)
-
-private fun readProgress(preferences: android.content.SharedPreferences): List<WatchProgress> = runCatching {
-    val array = org.json.JSONArray(preferences.getString("watch_progress", "[]"))
-    buildList { for (i in 0 until array.length()) array.optJSONObject(i)?.let { add(WatchProgress(it.optString("title"), it.optString("url"), it.optLong("position"), it.optLong("duration"))) } }
-}.getOrDefault(emptyList())
-
-private fun saveProgress(preferences: android.content.SharedPreferences, entry: WatchProgress) {
-    val updated = (listOf(entry) + readProgress(preferences).filterNot { it.url == entry.url }).take(30)
-    val array = org.json.JSONArray()
-    updated.forEach { array.put(org.json.JSONObject().put("title", it.title).put("url", it.url).put("position", it.position).put("duration", it.duration)) }
-    preferences.edit().putString("watch_progress", array.toString()).apply()
-}
+private enum class Page(val label: String) { HOME("Accueil"), SEARCH("Recherche"), FAVORITES("Ma liste"), HISTORY("Reprendre"), SOURCES("Sources"), SETTINGS("Réglages"), DETAIL("Fiche"), PLAYER("Lecture") }
 
 @Composable
 private fun TvSamaApp() {
     val context = LocalContext.current
-    val provider = remember { InternetArchiveProvider() }
-    val preferences = remember { context.getSharedPreferences("sources", 0) }
-    var customSources by remember { mutableStateOf(preferences.getString("items", "").orEmpty().lines().filter { it.contains("|") }) }
-    var watchProgress by remember { mutableStateOf(readProgress(preferences)) }
-    var screen by remember { mutableStateOf(Screen.HOME) }
-    var query by remember { mutableStateOf("") }
-    var category by remember { mutableStateOf("Tous") }
-    var catalog by remember { mutableStateOf(demoAnime) }
-    var loading by remember { mutableStateOf(false) }
-    var catalogMessage by remember { mutableStateOf("Exemples de lecture · recherche Internet Archive disponible") }
-    var selected by remember { mutableStateOf(demoAnime.first()) }
-    var selectedSource by remember { mutableStateOf(demoAnime.first().episodes.first().sources.first()) }
-    var availableSources by remember { mutableStateOf<List<VideoSource>>(emptyList()) }
+    val manager = remember { StreamFlixProviderManager.getInstance() }
+    val library = remember { LibraryStore(context) }
+    val scope = rememberCoroutineScope()
+    var page by remember { mutableStateOf(Page.HOME) }
+    var returnPage by remember { mutableStateOf(Page.HOME) }
+    var query by rememberSaveable { mutableStateOf("") }
+    var category by rememberSaveable { mutableStateOf("Tous") }
+    var language by rememberSaveable { mutableStateOf(library.language()) }
+    var catalog by remember { mutableStateOf<List<Anime>>(emptyList()) }
+    var catalogLoading by remember { mutableStateOf(false) }
+    var catalogError by remember { mutableStateOf("") }
+    var generation by remember { mutableIntStateOf(0) }
+    var catalogPage by remember { mutableIntStateOf(1) }
+    var loadingMore by remember { mutableStateOf(false) }
+    var selected by remember { mutableStateOf<Anime?>(null) }
+    var episode by remember { mutableStateOf<Episode?>(null) }
+    var source by remember { mutableStateOf<VideoSource?>(null) }
+    var sources by remember { mutableStateOf<List<VideoSource>>(emptyList()) }
     var detailLoading by remember { mutableStateOf(false) }
-    var showAdd by remember { mutableStateOf(false) }
-    var editingIndex by remember { mutableStateOf<Int?>(null) }
+    var streamLoading by remember { mutableStateOf(false) }
+    var detailError by remember { mutableStateOf("") }
+    var playerError by remember { mutableStateOf("") }
+    var favorites by remember { mutableStateOf(library.favorites()) }
+    var history by remember { mutableStateOf(library.history()) }
+    var autoplay by remember { mutableStateOf(library.autoplay()) }
+    var subtitlesEnabled by remember { mutableStateOf(context.getSharedPreferences("tvsama_settings", 0).getBoolean("subtitles", true)) }
+    var currentQuality by remember { mutableStateOf("Détection…") }
+    var isFullscreen by remember { mutableStateOf(false) }
+    val hostActivity = context as? Activity
+    var providerNames by remember { mutableStateOf<List<String>>(emptyList()) }
+    var providerRevision by remember { mutableIntStateOf(0) }
+    var resolveJob by remember { mutableStateOf<kotlinx.coroutines.Job?>(null) }
+    var pageJob by remember { mutableStateOf<kotlinx.coroutines.Job?>(null) }
+    var detailJob by remember { mutableStateOf<kotlinx.coroutines.Job?>(null) }
 
-    LaunchedEffect(query, category) {
-        loading = true
-        try {
-            val result = provider.search(query, category)
-            catalog = if (query.isBlank() && category == "Tous") demoAnime + result else result
-            catalogMessage = "Internet Archive · médias avec licence Creative Commons ou domaine public"
-        } catch (_: Exception) {
-            catalog = if (query.isBlank() && category == "Tous") demoAnime else demoAnime.filter { it.title.contains(query, true) || it.tag.contains(category, true) }
-            catalogMessage = "Catalogue en ligne indisponible · exemples de lecture affichés"
-        } finally { loading = false }
+    fun navigate(destination: Page) {
+        detailJob?.cancel(); resolveJob?.cancel(); pageJob?.cancel()
+        detailLoading = false; streamLoading = false; loadingMore = false
+        if (destination == Page.HOME) query = ""
+        page = destination; favorites = library.favorites(); history = library.history()
     }
 
-    Surface(Modifier.fillMaxSize()) {
-        Column(Modifier.fillMaxSize().background(Color(0xFF10121A)).padding(horizontal = 40.dp, vertical = 24.dp)) {
-            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                Text("TvSama", color = Color(0xFFB59AFF), fontSize = 30.sp, fontWeight = FontWeight.Black)
-                Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                    Button(onClick = { screen = Screen.HOME }) { Text("Catalogue") }
-                    Button(onClick = { watchProgress = readProgress(preferences); screen = Screen.CONTINUE }) { Text("En cours (${watchProgress.size})") }
-                    Button(onClick = { screen = Screen.SOURCES }) { Text("Mes sources") }
+    fun openDetails(anime: Anime, requestedEpisode: String? = null) {
+        if (anime.tag == "Flux personnel") {
+            selected = anime; episode = null; source = VideoSource(anime.title, anime.id, "VF", "Auto", "Personnel"); sources = listOf(source!!); page = Page.PLAYER; return
+        }
+        detailJob?.cancel(); resolveJob?.cancel()
+        if (page != Page.DETAIL && page != Page.PLAYER) returnPage = page
+        selected = anime; episode = null; sources = emptyList(); source = null; detailError = ""; playerError = ""
+        page = Page.DETAIL; detailLoading = true; streamLoading = false
+        detailJob = scope.launch {
+            try {
+                val loaded = manager.loadDetails(anime)
+                selected = loaded
+                episode = loaded.episodes.firstOrNull { it.id == requestedEpisode } ?: loaded.episodes.firstOrNull()
+            } catch (e: CancellationException) { throw e
+            } catch (e: Exception) { detailError = "Impossible de charger cette fiche. ${e.message.orEmpty()}"
+            } finally { detailLoading = false }
+        }
+    }
+
+    fun resolve(play: Boolean, refresh: Boolean = false, target: Episode? = episode) {
+        val anime = selected ?: return
+        resolveJob?.cancel(); episode = target; streamLoading = true; sources = emptyList(); detailError = ""; playerError = ""
+        resolveJob = scope.launch {
+            try {
+                sources = manager.resolveSources(anime, target, language, refresh)
+                if (sources.isEmpty()) detailError = "Aucun serveur disponible en ${if (language == "Toutes") "VF ou VOSTFR" else language}. Actualisez les sources ou choisissez un autre épisode."
+                else if (play) { source = sources.first(); currentQuality = "Détection…"; page = Page.PLAYER }
+            } catch (e: CancellationException) { throw e
+            } catch (e: Exception) { detailError = "La source ne répond pas. ${e.message.orEmpty()}"
+            } finally { streamLoading = false }
+        }
+    }
+
+    val voice = rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+        if (result.resultCode == Activity.RESULT_OK) result.data?.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS)?.firstOrNull()?.let { query = it; page = Page.SEARCH }
+    }
+    LaunchedEffect(Unit) {
+        providerNames = manager.getProviderNames()
+        scope.launch {
+            manager.refreshSources()
+            Toast.makeText(context, "Adresse actualisée", Toast.LENGTH_SHORT).show()
+            providerRevision++
+            generation++
+        }
+    }
+    LaunchedEffect(query, category, generation) {
+        pageJob?.cancel(); loadingMore = false
+        catalogLoading = true; catalogError = ""; catalogPage = 1
+        try {
+            if (query.isNotBlank()) delay(450)
+            catalog = manager.searchAllProviders(query, category)
+            if (catalog.isEmpty()) catalogError = "Aucun résultat disponible. Vérifiez les fournisseurs activés ou essayez une autre recherche."
+        } catch (e: CancellationException) { throw e
+        } catch (e: Exception) { catalog = emptyList(); catalogError = "Catalogue indisponible. Vérifiez votre connexion puis réessayez."
+        } finally { catalogLoading = false }
+    }
+    BackHandler(page != Page.HOME || isFullscreen) {
+        if (isFullscreen) {
+            isFullscreen = false
+            setPlayerFullscreen(hostActivity, false)
+        } else when (page) {
+            Page.PLAYER -> { page = Page.DETAIL; history = library.history() }
+            Page.DETAIL -> { detailJob?.cancel(); resolveJob?.cancel(); page = returnPage }
+            else -> navigate(Page.HOME)
+        }
+    }
+
+    Surface(Modifier.fillMaxSize(), color = Ink) {
+        if (page == Page.PLAYER && source != null) {
+            Column(Modifier.fillMaxSize().safeDrawingPadding()) {
+                if (!isFullscreen) Row(Modifier.fillMaxWidth().padding(12.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                    Action("‹ Retour") { page = Page.DETAIL; history = library.history() }
+                    Column(Modifier.weight(1f)) {
+                        Text(selected?.title.orEmpty(), fontWeight = FontWeight.Bold, maxLines = 1)
+                        Text(listOfNotNull(episode?.title, source?.language, source?.quality, "actuel $currentQuality", source?.latencyMs?.takeIf { it > 0 }?.let { "${it} ms" }).joinToString(" · "), color = Muted, fontSize = 12.sp, maxLines = 1)
+                    }
+                    Action("CC ${if (subtitlesEnabled) "Activés" else "Désactivés"}") { subtitlesEnabled = !subtitlesEnabled; context.getSharedPreferences("tvsama_settings", 0).edit().putBoolean("subtitles", subtitlesEnabled).apply() }
+                    Action("☷ Serveurs") { page = Page.DETAIL }
+                    CastRouteButton(Modifier.size(48.dp))
                 }
+                if (!isFullscreen && sources.size > 1) LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp), contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp)) {
+                    items(sources) { candidate ->
+                        Action("${candidate.provider} · ${candidate.quality} · ${candidate.latencyMs.takeIf { it > 0 } ?: "?"} ms", selected = candidate.url == source?.url) {
+                            source = candidate; currentQuality = "Détection…"; playerError = ""
+                        }
+                    }
+                }
+                if (!isFullscreen && playerError.isNotBlank()) {
+                    Text(playerError, color = Color(0xFFFFB4AB), modifier = Modifier.padding(12.dp))
+                    Row(Modifier.horizontalScroll(rememberScrollState()).padding(horizontal = 12.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        sources.filter { it.url != source?.url }.forEach { alternative -> Action("${alternative.provider} · ${alternative.name}") { source = alternative; currentQuality = "Détection…"; playerError = "" } }
+                        Action("Actualiser") { page = Page.DETAIL; resolve(false, true) }
+                    }
+                }
+                val playingAnime = selected
+                val playingEpisode = episode
+                TvSamaPlayer(source = source!!, title = "${playingAnime?.title.orEmpty()}${playingEpisode?.title?.let { " · $it" }.orEmpty()}", poster = playingAnime?.poster.orEmpty(),
+                    resumeAt = playingAnime?.let { library.progress(it, playingEpisode) } ?: 0,
+                    subtitlesEnabled = subtitlesEnabled,
+                    onActualQuality = { currentQuality = it },
+                    isFullscreen = isFullscreen,
+                    onToggleFullscreen = {
+                        isFullscreen = !isFullscreen
+                        setPlayerFullscreen(hostActivity, isFullscreen)
+                    },
+                    onProgress = { position, duration -> playingAnime?.let { library.save(it, playingEpisode, position, duration) } },
+                    modifier = Modifier.weight(1f).fillMaxWidth(), onError = { message ->
+                        playerError = message
+                        val failed = source?.url
+                        playingAnime?.let { animeForRetry -> scope.launch {
+                            val refreshed = runCatching { manager.resolveSources(animeForRetry, playingEpisode, language, refresh = true) }.getOrDefault(emptyList())
+                            val alternatives = refreshed.filter { it.url != failed }
+                            if (alternatives.isNotEmpty()) { sources = refreshed; source = alternatives.first(); currentQuality = "Détection…"; playerError = "" }
+                        } }
+                    },
+                    onEnded = {
+                        val entries = selected?.episodes.orEmpty()
+                        val index = entries.indexOfFirst { it.id == episode?.id }
+                        if (autoplay && index >= 0 && index + 1 < entries.size) {
+                            isFullscreen = false
+                            setPlayerFullscreen(hostActivity, false)
+                            page = Page.DETAIL
+                            resolve(true, target = entries[index + 1])
+                        }
+                    })
             }
-            Spacer(Modifier.height(16.dp))
-            when (screen) {
-                Screen.HOME -> {
-                    Text("Trouve ton prochain animé", fontSize = 30.sp, fontWeight = FontWeight.Bold)
-                    OutlinedTextField(query, { query = it }, Modifier.fillMaxWidth(), label = { Text("Rechercher un animé") }, singleLine = true)
-                    Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) { categories.forEach { item -> Button(onClick = { category = item }) { Text(if (item == category) "• $item" else item) } } }
-                    Text(catalogMessage, color = Color.LightGray, fontSize = 13.sp)
-                    if (loading) LinearLoading()
-                    else if (catalog.isEmpty()) Text("Aucun titre trouvé. Essaie un autre mot ou une autre catégorie.", modifier = Modifier.padding(20.dp), color = Color.LightGray)
-                    else LazyVerticalGrid(columns = GridCells.Adaptive(150.dp), modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(12.dp), horizontalArrangement = Arrangement.spacedBy(12.dp), contentPadding = PaddingValues(vertical = 10.dp)) {
-                        items(catalog) { anime ->
-                            Button(onClick = {
-                                selected = anime
-                                availableSources = anime.episodes.flatMap { it.sources }
-                                if (anime.id.isNotBlank()) {
-                                    detailLoading = true
-                                    screen = Screen.DETAILS
-                                } else screen = Screen.DETAILS
-                            }, modifier = Modifier.fillMaxWidth()) {
-                                Column(Modifier.fillMaxWidth().padding(4.dp)) {
-                                    Poster(anime.poster, anime.title)
-                                    Text(anime.title, fontSize = 17.sp, fontWeight = FontWeight.Bold, maxLines = 2)
-                                    Text(anime.tag, fontSize = 12.sp, color = Color.LightGray, maxLines = 2)
+        } else BoxWithConstraints(Modifier.fillMaxSize()) {
+            val wide = maxWidth >= 840.dp
+            Row(Modifier.fillMaxSize()) {
+                if (wide) Column(Modifier.width(190.dp).fillMaxHeight().padding(start = 24.dp, end = 18.dp, top = 32.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                    Brand()
+                    Spacer(Modifier.height(26.dp))
+                    Page.entries.filter { it != Page.DETAIL && it != Page.PLAYER && it != Page.SEARCH }.forEach { destination ->
+                        Action(destination.label, Modifier.fillMaxWidth(), selected = page == destination) {
+                            navigate(destination)
+                        }
+                    }
+                    Spacer(Modifier.weight(1f))
+                    Text("LE CINÉMA, CHEZ VOUS.", color = Muted, fontSize = 10.sp, letterSpacing = 1.sp, modifier = Modifier.padding(bottom = 24.dp))
+                }
+                Column(Modifier.weight(1f).fillMaxHeight().padding(horizontal = if (wide) 24.dp else 16.dp)) {
+                    Row(Modifier.fillMaxWidth().padding(vertical = 16.dp), verticalAlignment = Alignment.CenterVertically) {
+                        if (!wide) Brand() else Text("COLLECTION FRANÇAISE", color = Muted, fontSize = 11.sp, letterSpacing = 2.sp)
+                        Spacer(Modifier.weight(1f))
+                        Text("Leon Made <3", color = Color(0xFFFF79B9), fontWeight = FontWeight.SemiBold, fontSize = 12.sp)
+                        Spacer(Modifier.width(12.dp)); Action("⌕", Modifier.size(44.dp).padding(0.dp)) { navigate(Page.SEARCH) }
+                        Spacer(Modifier.width(8.dp)); CastRouteButton(Modifier.size(44.dp))
+                    }
+                    if (!wide) LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp), contentPadding = PaddingValues(bottom = 16.dp)) {
+                        items(Page.entries.filter { it != Page.DETAIL && it != Page.PLAYER && it != Page.SEARCH }) { destination ->
+                            Action(destination.label, selected = page == destination) { navigate(destination) }
+                        }
+                    }
+                    when (page) {
+                        Page.HOME, Page.SEARCH -> {
+                            if (page == Page.SEARCH) {
+                                SectionTitle("Qu’allez-vous regarder ?", "Une recherche dans vos catalogues français.")
+                                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                                    OutlinedTextField(query, { query = it }, Modifier.weight(1f), placeholder = { Text("Film, série, animation…") }, singleLine = true)
+                                    Action("Micro") {
+                                        try { voice.launch(Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH).putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM).putExtra(RecognizerIntent.EXTRA_LANGUAGE, "fr-FR")) }
+                                        catch (_: Exception) { catalogError = "La recherche vocale n’est pas disponible sur cet appareil." }
+                                    }
+                                }
+                            }
+                            CategoryRail(category) { category = it }
+                            Row(Modifier.fillMaxWidth().padding(bottom = 8.dp), horizontalArrangement = Arrangement.End) { Action("↻ Actualiser") { scope.launch { manager.refreshSources(); generation++ } } }
+                            if (catalogLoading) LinearProgressIndicator(Modifier.fillMaxWidth(), color = Color.White)
+                            if (catalogError.isNotBlank()) Text(catalogError, color = Muted, modifier = Modifier.padding(vertical = 14.dp))
+                            LazyVerticalGrid(columns = GridCells.Adaptive(if (wide) 145.dp else 125.dp), modifier = Modifier.weight(1f), horizontalArrangement = Arrangement.spacedBy(14.dp), verticalArrangement = Arrangement.spacedBy(18.dp), contentPadding = PaddingValues(bottom = 32.dp)) {
+                                if (page == Page.HOME && catalog.isNotEmpty()) item(span = { androidx.compose.foundation.lazy.grid.GridItemSpan(maxLineSpan) }) {
+                                    Hero(catalog.first(), wide) { openDetails(catalog.first()) }
+                                }
+                                item(span = { androidx.compose.foundation.lazy.grid.GridItemSpan(maxLineSpan) }) {
+                                    Text(if (page == Page.SEARCH) "${catalog.size} titres" else "À découvrir", style = MaterialTheme.typography.titleLarge, modifier = Modifier.padding(top = 12.dp))
+                                }
+                                items(catalog) { anime -> PosterCard(anime) { openDetails(anime) } }
+                                if (catalog.isNotEmpty()) item(span = { androidx.compose.foundation.lazy.grid.GridItemSpan(maxLineSpan) }) {
+                                    Action(if (loadingMore) "Chargement…" else "Afficher davantage", enabled = !loadingMore) {
+                                        pageJob = scope.launch {
+                                            loadingMore = true
+                                            try {
+                                                val next = manager.searchAllProviders(query, category, catalogPage + 1)
+                                                if (next.isEmpty()) catalogError = "Vous avez atteint la fin des résultats disponibles."
+                                                else { catalog = (catalog + next).distinctBy { it.title.lowercase() + it.year + it.tag }; catalogPage++ }
+                                            } catch (e: CancellationException) { throw e } catch (_: Exception) { catalogError = "Impossible de charger la suite." } finally { loadingMore = false }
+                                        }
+                                    }
                                 }
                             }
                         }
-                    }
-                }
-                Screen.DETAILS -> {
-                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(22.dp)) {
-                        Poster(selected.poster, selected.title, Modifier.width(190.dp).height(270.dp))
-                        Column(Modifier.weight(1f)) {
-                            Text(selected.title, fontSize = 30.sp, fontWeight = FontWeight.Bold)
-                            Text(selected.tag, color = Color.LightGray)
-                            Spacer(Modifier.height(12.dp))
-                            Text(selected.description.ifBlank { "Fiche du catalogue Internet Archive." }, color = Color(0xFFE2E0E8))
-                            Spacer(Modifier.height(16.dp))
-                            if (detailLoading) CircularProgressIndicator()
-                            else if (availableSources.isEmpty()) Text("Aucun fichier vidéo direct compatible n’est disponible pour cet élément.", color = Color.LightGray)
-                            availableSources.forEach { src -> Button(onClick = { selectedSource = src; screen = Screen.PLAYER }) { Text("Lire · ${src.name}") } }
-                            if (selected.episodes.isNotEmpty()) selected.episodes.forEach { ep -> Button(onClick = { selectedSource = ep.sources.first(); screen = Screen.PLAYER }) { Text(ep.title) } }
+                        Page.DETAIL -> selected?.let { anime ->
+                            LazyColumn(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(18.dp), contentPadding = PaddingValues(bottom = 40.dp)) {
+                                item { Action("‹ ${returnPage.label}") { page = returnPage; detailJob?.cancel(); resolveJob?.cancel() } }
+                                item {
+                                    Row(horizontalArrangement = Arrangement.spacedBy(24.dp)) {
+                                        if (wide) Artwork(anime.poster, anime.title, Modifier.width(175.dp).height(260.dp))
+                                        Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                                            Text(anime.tag.uppercase(), color = Accent, fontSize = 12.sp, letterSpacing = 2.sp)
+                                            SectionTitle(anime.title)
+                                            Text((listOfNotNull(anime.year?.toString()) + anime.genres).joinToString(" · "), color = Muted)
+                                            Text(anime.description.ifBlank { "Le synopsis n’est pas disponible pour ce titre." }, color = Color(0xFFE0E0E0))
+                                            Row(Modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                                                Action(if (streamLoading) "Recherche des serveurs…" else if (library.progress(anime, episode) > 0) "▶ Reprendre" else "▶ Regarder", primary = true, enabled = !detailLoading && !streamLoading) { resolve(true) }
+                                                Action(if (library.favorite(anime)) "✓ Dans ma liste" else "+ Ma liste") { library.toggle(anime); favorites = library.favorites() }
+                                            }
+                                        }
+                                    }
+                                }
+                                if (detailLoading || streamLoading) item { LinearProgressIndicator(Modifier.fillMaxWidth(), color = Color.White) }
+                                if (detailError.isNotBlank()) item { Text(detailError, color = Color(0xFFFFB4AB)); Action("Réessayer") { if (detailLoading || anime.episodes.isEmpty() && anime.tag != "Film") openDetails(anime) else resolve(false, true) } }
+                                if (anime.episodes.isNotEmpty()) item {
+                                    EpisodePicker(anime.episodes, episode, language, onSelect = { chosen -> episode = chosen; sources = emptyList(); detailError = ""; resolve(true, target = chosen) })
+                                }
+                                item {
+                                    Text("Versions et serveurs", style = MaterialTheme.typography.titleLarge)
+                                    Text("Les serveurs disponibles sont classés par qualité. Vous gardez le choix.", color = Muted, modifier = Modifier.padding(vertical = 8.dp))
+                                    Row(Modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                                        listOf("Toutes", "VF", "VOSTFR").forEach { filter -> Action(if (filter == "Toutes") "VF + VOSTFR" else filter, selected = language == filter) { language = filter; library.setLanguage(filter); episode = anime.episodes.firstOrNull { filter == "Toutes" || it.language == filter }; sources = emptyList(); resolveJob?.cancel(); streamLoading = false } }
+                                        Action("↻ Sources", enabled = !streamLoading && !detailLoading) { resolve(false, true) }
+                                    }
+                                }
+                                items(sources) { video ->
+                                    Action("▶ ${video.provider}  ·  ${video.name}  ·  ${video.language}  ${video.quality}  ·  ${video.latencyMs.takeIf { it > 0 } ?: "?"} ms", Modifier.fillMaxWidth()) { source = video; currentQuality = "Détection…"; playerError = ""; page = Page.PLAYER }
+                                }
+                            }
                         }
-                    }
-                    LaunchedEffect(selected.id) {
-                        if (selected.id.isNotBlank()) {
-                            detailLoading = true
-                            availableSources = runCatching { provider.streams(selected) }.getOrDefault(emptyList())
-                            detailLoading = false
+                        Page.FAVORITES -> {
+                            SectionTitle("Ma liste", "Vos films et séries, à retrouver quand vous voulez.")
+                            if (favorites.isEmpty()) EmptyState("Votre collection commence ici", "Ouvrez une fiche puis sélectionnez « + Ma liste ».")
+                            LazyVerticalGrid(GridCells.Adaptive(145.dp), Modifier.weight(1f), horizontalArrangement = Arrangement.spacedBy(14.dp), verticalArrangement = Arrangement.spacedBy(18.dp)) { items(favorites) { anime -> PosterCard(anime) { openDetails(anime) } } }
                         }
-                    }
-                }
-                Screen.SOURCES -> {
-                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                        Column { Text("Mes sources", fontSize = 30.sp, fontWeight = FontWeight.Bold); Text("Flux directs HTTPS que tu es autorisé à lire.", color = Color.LightGray) }
-                        Button(onClick = { showAdd = true }) { Text("Ajouter un flux") }
-                    }
-                    Spacer(Modifier.height(14.dp))
-                    if (customSources.isEmpty()) Text("Aucune source personnelle ajoutée.", color = Color.LightGray)
-                    customSources.forEachIndexed { index, line ->
-                        val parts = line.split("|", limit = 2)
-                        Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                            Text("${parts.first()}  ${parts.getOrElse(1) { "" }}", Modifier.weight(1f))
-                            Button(onClick = { editingIndex = index; showAdd = true }) { Text("Modifier") }
-                            Button(onClick = { customSources = customSources.filterIndexed { i, _ -> i != index }; preferences.edit().putString("items", customSources.joinToString("\n")).apply() }) { Text("Supprimer") }
+                        Page.HISTORY -> {
+                            SectionTitle("Reprendre", "Retrouvez votre épisode et votre position de lecture.")
+                            if (history.isEmpty()) EmptyState("Rien en cours pour le moment", "Vos lectures apparaîtront ici automatiquement.")
+                            LazyColumn(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(20.dp)) {
+                                items(history) { entry ->
+                                    Row(horizontalArrangement = Arrangement.spacedBy(16.dp), verticalAlignment = Alignment.CenterVertically) {
+                                        Artwork(entry.anime.poster, entry.anime.title, Modifier.width(70.dp).height(100.dp))
+                                        Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                                            Text(entry.anime.title, fontWeight = FontWeight.Bold)
+                                            Text("${entry.episodeTitle} · ${entry.position / 60000} min", color = Muted)
+                                            LinearProgressIndicator(progress = { (entry.position.toFloat() / entry.duration.coerceAtLeast(1)).coerceIn(0f, 1f) }, modifier = Modifier.fillMaxWidth(), color = Color.White)
+                                            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                                                Action("Reprendre") { openDetails(entry.anime, entry.episodeId) }
+                                                Action("×") { library.removeHistory(entry.anime, entry.episodeId); history = library.history() }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
                         }
-                    }
-                    Spacer(Modifier.height(12.dp))
-                    Text("Les intégrations externes passent par une API ou un lecteur officiellement autorisé. TvSama ne récupère pas les liens cachés dans les pages web.", color = Color(0xFFC4B8E8))
-                }
-                Screen.PLAYER -> {
-                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                        Column { Text(selected.title, fontSize = 24.sp, fontWeight = FontWeight.Bold); Text("Lecture · ${selectedSource.name}", color = Color.LightGray) }
-                        Button(onClick = { screen = Screen.DETAILS }) { Text("Fiche") }
-                    }
-                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) { availableSources.forEach { src -> Button(onClick = { selectedSource = src }) { Text(src.name.take(24)) } } }
-                    customSources.forEach { line -> val parts = line.split("|", limit = 2); if (parts.size == 2) Button(onClick = { selectedSource = VideoSource(parts[0], parts[1]) }) { Text(parts[0]) } }
-                    Spacer(Modifier.height(8.dp))
-                    VideoPlayer(selectedSource.url, "${selected.title} · ${selectedSource.name}", watchProgress.firstOrNull { it.url == selectedSource.url }?.position ?: 0L, { position, duration ->
-                        if (duration > 0 && position > 0) {
-                            saveProgress(preferences, WatchProgress("${selected.title} · ${selectedSource.name}", selectedSource.url, position, duration))
-                            watchProgress = readProgress(preferences)
+                        Page.SOURCES -> Column(Modifier.weight(1f).verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(14.dp)) {
+                            SectionTitle("Vos sources", "Catalogues français regroupés dans une seule recherche.")
+                            Action("↻ Actualiser les catalogues") { scope.launch { manager.refreshSources(); generation++ }; providerRevision++ }
+                            providerNames.forEach { name ->
+                                val enabled = remember(name, providerRevision) { manager.isProviderEnabled(name) }
+                                Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                                    Column(Modifier.weight(1f)) {
+                                        Text(name, fontWeight = FontWeight.SemiBold)
+                                        Text(manager.externalSource(name)?.url ?: (manager.providerStatuses()[name] ?: "Prêt à rechercher"), color = Muted, fontSize = 12.sp, maxLines = 1)
+                                        manager.externalSource(name)?.let { Text(manager.providerStatuses()[name] ?: "Catalogue web", color = Muted, fontSize = 11.sp) }
+                                    }
+                                    Action(if (enabled) "Activé" else "Désactivé", selected = enabled) { manager.setProviderEnabled(name, !enabled); providerRevision++; generation++ }
+                                }
+                                HorizontalDivider(color = Line)
+                            }
+                            PersonalSources { custom -> selected = Anime(custom.name, "Flux personnel", emptyList(), id = custom.url); episode = null; source = custom; sources = listOf(custom); page = Page.PLAYER }
+                            Spacer(Modifier.height(24.dp))
                         }
-                    }, Modifier.weight(1f).fillMaxWidth())
-                }
-                Screen.CONTINUE -> {
-                    Text("En cours de visionnage", fontSize = 30.sp, fontWeight = FontWeight.Bold)
-                    Text("La position est enregistrée sur cet appareil pour chaque flux.", color = Color.LightGray)
-                    Spacer(Modifier.height(12.dp))
-                    if (watchProgress.isEmpty()) Text("Aucune lecture commencée.", color = Color.LightGray)
-                    watchProgress.forEach { entry ->
-                        val percent = if (entry.duration > 0) (entry.position * 100 / entry.duration).toInt().coerceIn(0, 100) else 0
-                        Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                            Column(Modifier.weight(1f)) { Text(entry.title, fontSize = 18.sp, fontWeight = FontWeight.Bold); Text("Reprendre à ${formatTime(entry.position)} · $percent %", color = Color.LightGray) }
-                            Button(onClick = { selectedSource = VideoSource("Reprise", entry.url); screen = Screen.PLAYER }) { Text("Reprendre") }
-                            Button(onClick = { watchProgress = watchProgress.filterNot { it.url == entry.url }; preferences.edit().putString("watch_progress", org.json.JSONArray().apply { watchProgress.forEach { p -> put(org.json.JSONObject().put("title", p.title).put("url", p.url).put("position", p.position).put("duration", p.duration)) } }.toString()).apply() }) { Text("Retirer") }
-                        }
+                        Page.SETTINGS -> TvSettings(language, { language = it; library.setLanguage(it) }, autoplay, { autoplay = it; library.setAutoplay(it) }, { library.clearHistory(); history = emptyList() })
+                        else -> Unit
                     }
                 }
             }
         }
     }
+}
 
-    if (showAdd) {
-        val editIndex = editingIndex
-        var name by remember(editIndex) { mutableStateOf(editIndex?.let { customSources[it].substringBefore('|') } ?: "") }
-        var url by remember(editIndex) { mutableStateOf(editIndex?.let { customSources[it].substringAfter('|') } ?: "") }
-        AlertDialog(onDismissRequest = { showAdd = false; editingIndex = null }, title = { Text(if (editIndex == null) "Ajouter un flux autorisé" else "Modifier le flux") }, text = {
-            Column { OutlinedTextField(name, { name = it }, label = { Text("Nom du flux") }, singleLine = true); OutlinedTextField(url, { url = it }, label = { Text("URL HTTPS .m3u8, .mpd ou .mp4") }, singleLine = true) }
-        }, confirmButton = { TextButton(onClick = {
-            val uri = runCatching { Uri.parse(url.trim()) }.getOrNull()
-            if (name.isNotBlank() && uri?.scheme == "https" && uri.host != null && url.substringBefore('?').let { it.endsWith(".m3u8", true) || it.endsWith(".mpd", true) || it.endsWith(".mp4", true) }) {
-                val line = "${name.trim()}|${url.trim()}"
-                customSources = if (editIndex == null) customSources + line else customSources.toMutableList().also { it[editIndex] = line }
-                preferences.edit().putString("items", customSources.joinToString("\n")).apply(); showAdd = false; editingIndex = null
-            }
-        }) { Text(if (editIndex == null) "Ajouter" else "Enregistrer") }, dismissButton = { TextButton(onClick = { showAdd = false; editingIndex = null }) { Text("Annuler") } })
+@Composable
+private fun Brand() {
+    Row(verticalAlignment = Alignment.CenterVertically) {
+        Text("TV", fontWeight = FontWeight.Black, fontSize = 25.sp, color = Color.White)
+        Text("SAMA", fontWeight = FontWeight.Light, fontSize = 25.sp, letterSpacing = 2.sp, color = Color.White)
+        Text("•", color = Accent, fontSize = 25.sp)
     }
 }
 
 @Composable
-private fun LinearLoading() { Row(Modifier.fillMaxWidth().padding(12.dp), horizontalArrangement = Arrangement.Center) { CircularProgressIndicator(Modifier.size(28.dp)) } }
-
-@Composable
-private fun Poster(url: String, title: String, modifier: Modifier = Modifier.fillMaxWidth().height(190.dp)) {
-    val bitmap by produceState<android.graphics.Bitmap?>(null, url) {
-        value = if (url.isBlank()) null else withContext(Dispatchers.IO) {
-            runCatching { URL(url).openConnection().apply { connectTimeout = 7000; readTimeout = 7000 }.getInputStream().use { BitmapFactory.decodeStream(it) } }.getOrNull()
+private fun Hero(anime: Anime, wide: Boolean, onClick: () -> Unit) {
+    Box(Modifier.fillMaxWidth().height(if (wide) 310.dp else 280.dp)) {
+        Artwork(anime.banner.ifBlank { anime.poster }, anime.title, Modifier.fillMaxSize())
+        Box(Modifier.fillMaxSize().background(Brush.horizontalGradient(listOf(Ink, Ink.copy(alpha = .7f), Color.Transparent))))
+        Box(Modifier.fillMaxSize().background(Brush.verticalGradient(listOf(Color.Transparent, Ink))))
+        Column(Modifier.align(Alignment.BottomStart).widthIn(max = 500.dp).padding(20.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            Text("À L’AFFICHE", color = Accent, fontSize = 11.sp, fontWeight = FontWeight.Bold, letterSpacing = 3.sp)
+            Text(anime.title, color = Color.White, fontSize = if (wide) 36.sp else 28.sp, fontWeight = FontWeight.Bold, maxLines = 2)
+            Text(listOfNotNull(anime.tag, anime.year?.toString()).joinToString(" · "), color = Muted)
+            Action("Découvrir  →", primary = true, onClick = onClick)
         }
     }
-    Box(modifier.clip(RoundedCornerShape(10.dp)).background(Color(0xFF302744)), contentAlignment = Alignment.Center) {
-        if (bitmap != null) Image(bitmap!!.asImageBitmap(), contentDescription = "Couverture de $title", modifier = Modifier.fillMaxSize(), contentScale = ContentScale.Crop)
-        else Text(title.take(1).uppercase(), color = Color(0xFFCFB9FF), fontSize = 48.sp, fontWeight = FontWeight.Black)
+}
+
+@Composable
+private fun EpisodePicker(episodes: List<Episode>, selected: Episode?, language: String, onSelect: (Episode) -> Unit) {
+    val visibleEpisodes = episodes.filter { language == "Toutes" || it.language == language }
+        .distinctBy { "${it.seasonNumber}|${it.number}|${it.language}|${it.title.trim().lowercase()}" }
+    val seasons = visibleEpisodes.map { it.seasonNumber }.distinct().sorted()
+    var season by remember(episodes, language) { mutableStateOf(selected?.seasonNumber ?: seasons.firstOrNull()) }
+    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+        Text("Épisodes", style = MaterialTheme.typography.titleLarge)
+        LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) { items(seasons) { number -> Action("Saison $number", selected = season == number) { season = number } } }
+        LazyRow(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+            items(visibleEpisodes.filter { it.seasonNumber == season }) { entry ->
+                Column(Modifier.width(225.dp)) {
+                    if (entry.poster.isNotBlank()) Artwork(entry.poster, entry.title, Modifier.fillMaxWidth().height(120.dp))
+                    val label = if (language == "Toutes") "▶ ${entry.title} · ${entry.language}" else "▶ ${entry.title}"
+                    Action(label, Modifier.fillMaxWidth(), selected = selected?.id == entry.id) { onSelect(entry) }
+                }
+            }
+        }
     }
 }
 
 @Composable
-private fun VideoPlayer(url: String, title: String, resumeAt: Long, onProgress: (Long, Long) -> Unit, modifier: Modifier = Modifier) {
+private fun PersonalSources(onPlay: (VideoSource) -> Unit) {
     val context = LocalContext.current
-    val player = remember(url) {
-        ExoPlayer.Builder(context).build().apply {
-            val clean = url.substringBefore('?')
-            val mime = when { clean.endsWith(".m3u8", true) -> MimeTypes.APPLICATION_M3U8; clean.endsWith(".mpd", true) -> MimeTypes.APPLICATION_MPD; else -> MimeTypes.VIDEO_MP4 }
-            setMediaItem(MediaItem.Builder().setUri(url).setMimeType(mime).build()); prepare(); if (resumeAt > 0) seekTo(resumeAt); playWhenReady = true
+    val prefs = remember { context.getSharedPreferences("sources", 0) }
+    var entries by remember { mutableStateOf(prefs.getString("items", "").orEmpty().lines().filter { it.contains("|") }) }
+    var showAdd by remember { mutableStateOf(false) }
+    var name by remember { mutableStateOf("") }
+    var url by remember { mutableStateOf("") }
+    var error by remember { mutableStateOf("") }
+    Text("Flux personnels", style = MaterialTheme.typography.titleLarge)
+    Action("+ Ajouter un lien vidéo") { showAdd = true }
+    entries.forEach { line ->
+        val parts = line.split("|", limit = 2)
+        Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+            Action("▶ ${parts[0]}", Modifier.weight(1f)) { onPlay(VideoSource(parts[0], parts[1], "VF", "Auto", "Personnel")) }
+            Action("Retirer") { entries = entries - line; prefs.edit().putString("items", entries.joinToString("\n")).apply() }
         }
     }
-    DisposableEffect(player) { onDispose { player.release() } }
-    LaunchedEffect(player, title) { while (true) { delay(5000); if (player.duration > 0 && player.currentPosition > 0) onProgress(player.currentPosition, player.duration) } }
-    AndroidView(modifier = modifier, factory = { PlayerView(it).apply { player = player; useController = true } }, update = { it.player = player })
-}
-
-private fun formatTime(milliseconds: Long): String {
-    val total = milliseconds / 1000
-    return "%02d:%02d:%02d".format(total / 3600, (total / 60) % 60, total % 60)
+    if (showAdd) AlertDialog(onDismissRequest = { showAdd = false }, title = { Text("Ajouter un flux") }, text = {
+        Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            OutlinedTextField(name, { name = it }, label = { Text("Nom") }, singleLine = true)
+            OutlinedTextField(url, { url = it }, label = { Text("Lien HTTPS du média") }, singleLine = true)
+            if (error.isNotBlank()) Text(error)
+        }
+    }, confirmButton = { TextButton(onClick = {
+        val parsed = android.net.Uri.parse(url.trim())
+        if (name.isBlank() || name.contains("|") || name.contains("\n") || parsed.scheme != "https" || parsed.host.isNullOrBlank() || url.contains("\n")) error = "Indiquez un nom et une adresse HTTPS valide."
+        else { entries = entries + "${name.trim()}|${url.trim()}"; prefs.edit().putString("items", entries.joinToString("\n")).apply(); showAdd = false; name = ""; url = ""; error = "" }
+    }) { Text("Ajouter") } }, dismissButton = { TextButton(onClick = { showAdd = false }) { Text("Annuler") } })
 }
