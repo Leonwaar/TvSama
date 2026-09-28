@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+<meta http-equiv="x-ua-compatible" content="IE=edge"/>
+<title>Test results - Class fr.nekotv.SourceNetworkAuditTest</title>
+<link href="../css/base-style.css" rel="stylesheet" type="text/css"/>
+<link href="../css/style.css" rel="stylesheet" type="text/css"/>
+<script src="../js/report.js" type="text/javascript"></script>
+</head>
+<body>
+<div id="content">
+<h1>Class fr.nekotv.SourceNetworkAuditTest</h1>
+<div class="breadcrumbs">
+<a href="../index.html">all</a> &gt; 
+<a href="../packages/fr.nekotv.html">fr.nekotv</a> &gt; SourceNetworkAuditTest</div>
+<div id="summary">
+<table>
+<tr>
+<td>
+<div class="summaryGroup">
+<table>
+<tr>
+<td>
+<div class="infoBox" id="tests">
+<div class="counter">2</div>
+<p>tests</p>
+</div>
+</td>
+<td>
+<div class="infoBox" id="failures">
+<div class="counter">0</div>
+<p>failures</p>
+</div>
+</td>
+<td>
+<div class="infoBox" id="ignored">
+<div class="counter">0</div>
+<p>ignored</p>
+</div>
+</td>
+<td>
+<div class="infoBox" id="duration">
+<div class="counter">49.291s</div>
+<p>duration</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+</td>
+<td>
+<div class="infoBox success" id="successRate">
+<div class="percent">100%</div>
+<p>successful</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<div class="tab-container">
+<ul class="tabLinks">
+<li>
+<a href="#">Tests</a>
+</li>
+<li>
+<a href="#">Standard output</a>
+</li>
+<li>
+<a href="#">Standard error</a>
+</li>
+</ul>
+<div class="tab">
+<h2>Tests</h2>
+<table>
+<thead>
+<tr>
+<th>Test</th>
+<th>Duration</th>
+<th>Result</th>
+</tr>
+</thead>
+<tr>
+<td class="success">allFrenchSources</td>
+<td class="success">36.545s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
+<td class="success">animeUltimePlayback</td>
+<td class="success">12.746s</td>
+<td class="success">passed</td>
+</tr>
+</table>
+</div>
+<div class="tab">
+<h2>Standard output</h2>
+<span class="code">
+<pre>AUDIT Anime-Ultime [https://v5.anime-ultime.net/]: OK, OK, OK, OK
+AUDIT Animes-Sama [https://animes-sama.su/]: IllegalStateException: Vide, IllegalStateException: Aucun résultat pour Naruto, IllegalStateException: Pas de fiche accessible, Non testable
+AUDIT Voiranime [https://voir-anime.to/]: OK, OK, OK, IllegalStateException: Aucun média vérifié (LECTEUR myTV:Exception, LECTEUR MOON:Exception, LECTEUR SB:Exception)
+AUDIT Anime-Sama [https://anime-sama.to/]: OK, OK, OK, OK
+AUDIT AnimeKO [https://v4.animeko.ws/]: OK, OK, OK, IllegalStateException: AnimeKO : captcha requis sur le site avant lecture
+AUDIT MyFluneo [https://myfluneo.eu/]: IllegalStateException: Vide, IllegalStateException: Aucun résultat pour Naruto, IllegalStateException: Pas de fiche accessible, Non testable
+AUDIT Papadustream [https://papadustreami.pics/]: OK, IllegalStateException: Papadustream : HTTP 403, OK, IllegalStateException: Papadustream : validation captcha requise sur le site
+AUDIT Movix [https://movix.college/]: IllegalStateException: Movix : configurez une clé TMDB dans les réglages des sources, IllegalStateException: Movix : configurez une clé TMDB dans les réglages des sources, IllegalStateException: Pas de fiche accessible, Non testable
+AUDIT Wiflix [https://flemmix.style/]: OK, OK, OK, OK
+AUDIT FrenchAnime [https://french-anime.com/]: OK, OK, OK, OK
+AUDIT FrenchStream [https://fs16.lol/]: OK, OK, OK, OK
+AUDIT Frembed [https://frembed.surf/]: OK, OK, OK, IllegalStateException: Check failed.
+AUDIT Kidraz [https://kidraz.com/saby1jy/home/kidraz/]: OK, OK, OK, OK
+AUDIT FrenchManga [https://w16.french-manga.net/]: OK, OK, OK, OK
+AUDIT Pluto TV FR [https://raw.githubusercontent.com]: OK, OK, OK, OK
+AUDIT Vavoo France Live TV [https://vavoo.to]: OK, OK, OK, OK
+</pre>
+</span>
+</div>
+<div class="tab">
+<h2>Standard error</h2>
+<span class="code">
+<pre>Sep 28, 2026 4:57:50 PM okhttp3.internal.platform.Platform log
+INFO: --&gt; GET https://cloudflare-dns.com/dns-query?dns=AAABAAABAAAAAAAAA3d3MQ93aWZsaXgtYWRyZXNzZXMDZnVuAAAcAAE
+Sep 28, 2026 4:57:50 PM okhttp3.internal.platform.Platform log
+INFO: --&gt; GET https://cloudflare-dns.com/dns-query?dns=AAABAAABAAAAAAAAA3d3MQ93aWZsaXgtYWRyZXNzZXMDZnVuAAABAAE
+Sep 28, 2026 4:57:50 PM okhttp3.internal.platform.Platform log
+INFO: &lt;-- 200 https://cloudflare-dns.com/dns-query?dns=AAABAAABAAAAAAAAA3d3MQ93aWZsaXgtYWRyZXNzZXMDZnVuAAAcAAE (112ms, 97-byte body)
+Sep 28, 2026 4:57:50 PM okhttp3.internal.platform.Platform log
+INFO: &lt;-- 200 https://cloudflare-dns.com/dns-query?dns=AAABAAABAAAAAAAAA3d3MQ93aWZsaXgtYWRyZXNzZXMDZnVuAAABAAE (116ms, 73-byte body)
+Sep 28, 2026 4:57:51 PM okhttp3.internal.platform.Platform log
+INFO: --&gt; GET https://cloudflare-dns.com/dns-query?dns=AAABAAABAAAAAAAAB2ZsZW1taXgFc3R5bGUAABwAAQ
+Sep 28, 2026 4:57:51 PM okhttp3.internal.platform.Platform log
+INFO: --&gt; GET https://cloudflare-dns.com/dns-query?dns=AAABAAABAAAAAAAAB2ZsZW1taXgFc3R5bGUAAAEAAQ
+Sep 28, 2026 4:57:51 PM okhttp3.internal.platform.Platform log
+INFO: &lt;-- 200 https://cloudflare-dns.com/dns-query?dns=AAABAAABAAAAAAAAB2ZsZW1taXgFc3R5bGUAABwAAQ (18ms, 87-byte body)
+Sep 28, 2026 4:57:51 PM okhttp3.internal.platform.Platform log
+INFO: &lt;-- 200 https://cloudflare-dns.com/dns-query?dns=AAABAAABAAAAAAAAB2ZsZW1taXgFc3R5bGUAAAEAAQ (23ms, 63-byte body)
+Sep 28, 2026 4:57:52 PM okhttp3.internal.platform.Platform log
+INFO: --&gt; GET https://cloudflare-dns.com/dns-query?dns=AAABAAABAAAAAAAAA3ZvZQJzeAAAHAAB
+Sep 28, 2026 4:57:52 PM okhttp3.internal.platform.Platform log
+INFO: --&gt; GET https://cloudflare-dns.com/dns-query?dns=AAABAAABAAAAAAAAA3ZvZQJzeAAAAQAB
+Sep 28, 2026 4:57:52 PM okhttp3.internal.platform.Platform log
+INFO: &lt;-- 200 https://cloudflare-dns.com/dns-query?dns=AAABAAABAAAAAAAAA3ZvZQJzeAAAHAAB (13ms, 89-byte body)
+Sep 28, 2026 4:57:52 PM okhttp3.internal.platform.Platform log
+INFO: &lt;-- 200 https://cloudflare-dns.com/dns-query?dns=AAABAAABAAAAAAAAA3ZvZQJzeAAAAQAB (35ms, 40-byte body)
+Sep 28, 2026 4:57:53 PM okhttp3.internal.platform.Platform log
+INFO: --&gt; GET https://cloudflare-dns.com/dns-query?dns=AAABAAABAAAAAAAADGZyZW5jaC1hbmltZQNjb20AABwAAQ
+Sep 28, 2026 4:57:53 PM okhttp3.internal.platform.Platform log
+INFO: --&gt; GET https://cloudflare-dns.com/dns-query?dns=AAABAAABAAAAAAAADGZyZW5jaC1hbmltZQNjb20AAAEAAQ
+Sep 28, 2026 4:57:53 PM okhttp3.internal.platform.Platform log
+INFO: &lt;-- 200 https://cloudflare-dns.com/dns-query?dns=AAABAAABAAAAAAAADGZyZW5jaC1hbmltZQNjb20AABwAAQ (14ms, 90-byte body)
+Sep 28, 2026 4:57:53 PM okhttp3.internal.platform.Platform log
+INFO: &lt;-- 200 https://cloudflare-dns.com/dns-query?dns=AAABAAABAAAAAAAADGZyZW5jaC1hbmltZQNjb20AAAEAAQ (29ms, 66-byte body)
+Sep 28, 2026 4:57:56 PM okhttp3.internal.platform.Platform log
+INFO: --&gt; GET https://cloudflare-dns.com/dns-query?dns=AAABAAABAAAAAAAAB2ZzdHJlYW0EaW5mbwAAAQAB
+Sep 28, 2026 4:57:56 PM okhttp3.internal.platform.Platform log
+INFO: --&gt; GET https://cloudflare-dns.com/dns-query?dns=AAABAAABAAAAAAAAB2ZzdHJlYW0EaW5mbwAAHAAB
+Sep 28, 2026 4:57:56 PM okhttp3.internal.platform.Platform log
+INFO: &lt;-- 200 https://cloudflare-dns.com/dns-query?dns=AAABAAABAAAAAAAAB2ZzdHJlYW0EaW5mbwAAAQAB (16ms, 62-byte body)
+Sep 28, 2026 4:57:56 PM okhttp3.internal.platform.Platform log
+INFO: &lt;-- 200 https://cloudflare-dns.com/dns-query?dns=AAABAAABAAAAAAAAB2ZzdHJlYW0EaW5mbwAAHAAB (30ms, 86-byte body)
+Sep 28, 2026 4:57:56 PM okhttp3.internal.platform.Platform log
+INFO: --&gt; GET https://cloudflare-dns.com/dns-query?dns=AAABAAABAAAAAAAABGZzMTYDbG9sAAAcAAE
+Sep 28, 2026 4:57:56 PM okhttp3.internal.platform.Platform log
+INFO: --&gt; GET https://cloudflare-dns.com/dns-query?dns=AAABAAABAAAAAAAABGZzMTYDbG9sAAABAAE
+Sep 28, 2026 4:57:56 PM okhttp3.internal.platform.Platform log
+INFO: &lt;-- 200 https://cloudflare-dns.com/dns-query?dns=AAABAAABAAAAAAAABGZzMTYDbG9sAAAcAAE (13ms, 82-byte body)
+Sep 28, 2026 4:57:56 PM okhttp3.internal.platform.Platform log
+INFO: &lt;-- 200 https://cloudflare-dns.com/dns-query?dns=AAABAAABAAAAAAAABGZzMTYDbG9sAAABAAE (27ms, 58-byte body)
+Sep 28, 2026 4:57:57 PM okhttp3.internal.platform.Platform log
+INFO: --&gt; GET https://cloudflare-dns.com/dns-query?dns=AAABAAABAAAAAAAABnVxbG9hZAJ2YwAAHAAB
+Sep 28, 2026 4:57:57 PM okhttp3.internal.platform.Platform log
+INFO: --&gt; GET https://cloudflare-dns.com/dns-query?dns=AAABAAABAAAAAAAABnVxbG9hZAJ2YwAAAQAB
+Sep 28, 2026 4:57:57 PM okhttp3.internal.platform.Platform log
+INFO: &lt;-- 200 https://cloudflare-dns.com/dns-query?dns=AAABAAABAAAAAAAABnVxbG9hZAJ2YwAAHAAB (13ms, 83-byte body)
+Sep 28, 2026 4:57:57 PM okhttp3.internal.platform.Platform log
+INFO: &lt;-- 200 https://cloudflare-dns.com/dns-query?dns=AAABAAABAAAAAAAABnVxbG9hZAJ2YwAAAQAB (26ms, 59-byte body)
+Sep 28, 2026 4:57:58 PM okhttp3.internal.platform.Platform log
+INFO: --&gt; GET https://cloudflare-dns.com/dns-query?dns=AAABAAABAAAAAAAACGF1ZGluMjEzA2NvbQAAHAAB
+Sep 28, 2026 4:57:58 PM okhttp3.internal.platform.Platform log
+INFO: --&gt; GET https://cloudflare-dns.com/dns-query?dns=AAABAAABAAAAAAAACGF1ZGluMjEzA2NvbQAAAQAB
+Sep 28, 2026 4:57:58 PM okhttp3.internal.platform.Platform log
+INFO: &lt;-- 200 https://cloudflare-dns.com/dns-query?dns=AAABAAABAAAAAAAACGF1ZGluMjEzA2NvbQAAHAAB (37ms, 86-byte body)
+Sep 28, 2026 4:57:58 PM okhttp3.internal.platform.Platform log
+INFO: &lt;-- 200 https://cloudflare-dns.com/dns-query?dns=AAABAAABAAAAAAAACGF1ZGluMjEzA2NvbQAAAQAB (63ms, 46-byte body)
+Sep 28, 2026 4:57:58 PM okhttp3.internal.platform.Platform log
+INFO: --&gt; GET https://cloudflare-dns.com/dns-query?dns=AAABAAABAAAAAAAAB2ZyZW1iZWQEY2FzYQAAAQAB
+Sep 28, 2026 4:57:58 PM okhttp3.internal.platform.Platform log
+INFO: --&gt; GET https://cloudflare-dns.com/dns-query?dns=AAABAAABAAAAAAAAB2ZyZW1iZWQEY2FzYQAAHAAB
+Sep 28, 2026 4:57:58 PM okhttp3.internal.platform.Platform log
+INFO: &lt;-- 200 https://cloudflare-dns.com/dns-query?dns=AAABAAABAAAAAAAAB2ZyZW1iZWQEY2FzYQAAHAAB (14ms, 86-byte body)
+Sep 28, 2026 4:57:58 PM okhttp3.internal.platform.Platform log
+INFO: &lt;-- 200 https://cloudflare-dns.com/dns-query?dns=AAABAAABAAAAAAAAB2ZyZW1iZWQEY2FzYQAAAQAB (24ms, 62-byte body)
+Sep 28, 2026 4:57:58 PM okhttp3.internal.platform.Platform log
+INFO: --&gt; GET https://cloudflare-dns.com/dns-query?dns=AAABAAABAAAAAAAAB2ZyZW1iZWQEc3VyZgAAHAAB
+Sep 28, 2026 4:57:58 PM okhttp3.internal.platform.Platform log
+INFO: --&gt; GET https://cloudflare-dns.com/dns-query?dns=AAABAAABAAAAAAAAB2ZyZW1iZWQEc3VyZgAAAQAB
+Sep 28, 2026 4:57:58 PM okhttp3.internal.platform.Platform log
+INFO: &lt;-- 200 https://cloudflare-dns.com/dns-query?dns=AAABAAABAAAAAAAAB2ZyZW1iZWQEc3VyZgAAHAAB (12ms, 86-byte body)
+Sep 28, 2026 4:57:58 PM okhttp3.internal.platform.Platform log
+INFO: &lt;-- 200 https://cloudflare-dns.com/dns-query?dns=AAABAAABAAAAAAAAB2ZyZW1iZWQEc3VyZgAAAQAB (17ms, 62-byte body)
+Sep 28, 2026 4:57:59 PM okhttp3.internal.platform.Platform log
+INFO: --&gt; GET https://cloudflare-dns.com/dns-query?dns=AAABAAABAAAAAAAAB2ZyZW1iZWQEY2FzYQAAHAAB
+Sep 28, 2026 4:57:59 PM okhttp3.internal.platform.Platform log
+INFO: --&gt; GET https://cloudflare-dns.com/dns-query?dns=AAABAAABAAAAAAAAB2ZyZW1iZWQEY2FzYQAAAQAB
+Sep 28, 2026 4:57:59 PM okhttp3.internal.platform.Platform log
+INFO: &lt;-- 200 https://cloudflare-dns.com/dns-query?dns=AAABAAABAAAAAAAAB2ZyZW1iZWQEY2FzYQAAHAAB (13ms, 86-byte body)
+Sep 28, 2026 4:57:59 PM okhttp3.internal.platform.Platform log
+INFO: &lt;-- 200 https://cloudflare-dns.com/dns-query?dns=AAABAAABAAAAAAAAB2ZyZW1iZWQEY2FzYQAAAQAB (27ms, 62-byte body)
+Sep 28, 2026 4:57:59 PM okhttp3.internal.platform.Platform log
+INFO: --&gt; GET https://cloudflare-dns.com/dns-query?dns=AAABAAABAAAAAAAAB2ZyZW1iZWQEc3VyZgAAHAAB
+Sep 28, 2026 4:57:59 PM okhttp3.internal.platform.Platform log
+INFO: --&gt; GET https://cloudflare-dns.com/dns-query?dns=AAABAAABAAAAAAAAB2ZyZW1iZWQEc3VyZgAAAQAB
+Sep 28, 2026 4:57:59 PM okhttp3.internal.platform.Platform log
+INFO: &lt;-- 200 https://cloudflare-dns.com/dns-query?dns=AAABAAABAAAAAAAAB2ZyZW1iZWQEc3VyZgAAHAAB (12ms, 86-byte body)
+Sep 28, 2026 4:57:59 PM okhttp3.internal.platform.Platform log
+INFO: &lt;-- 200 https://cloudflare-dns.com/dns-query?dns=AAABAAABAAAAAAAAB2ZyZW1iZWQEc3VyZgAAAQAB (23ms, 62-byte body)
+Sep 28, 2026 4:57:59 PM okhttp3.internal.platform.Platform log
+INFO: --&gt; GET https://cloudflare-dns.com/dns-query?dns=AAABAAABAAAAAAAAC2NoZXpsZXNkdWNzBGZyZWUCZnIAABwAAQ
+Sep 28, 2026 4:57:59 PM okhttp3.internal.platform.Platform log
+INFO: --&gt; GET https://cloudflare-dns.com/dns-query?dns=AAABAAABAAAAAAAAC2NoZXpsZXNkdWNzBGZyZWUCZnIAAAEAAQ
+Sep 28, 2026 4:57:59 PM okhttp3.internal.platform.Platform log
+INFO: &lt;-- 200 https://cloudflare-dns.com/dns-query?dns=AAABAAABAAAAAAAAC2NoZXpsZXNkdWNzBGZyZWUCZnIAABwAAQ (13ms, 91-byte body)
+Sep 28, 2026 4:57:59 PM okhttp3.internal.platform.Platform log
+INFO: &lt;-- 200 https://cloudflare-dns.com/dns-query?dns=AAABAAABAAAAAAAAC2NoZXpsZXNkdWNzBGZyZWUCZnIAAAEAAQ (23ms, 79-byte body)
+Sep 28, 2026 4:57:59 PM okhttp3.internal.platform.Platform log
+INFO: --&gt; GET https://cloudflare-dns.com/dns-query?dns=AAABAAABAAAAAAAAA3d3dwZraWRyYXoDY29tAAAcAAE
+Sep 28, 2026 4:57:59 PM okhttp3.internal.platform.Platform log
+INFO: --&gt; GET https://cloudflare-dns.com/dns-query?dns=AAABAAABAAAAAAAAA3d3dwZraWRyYXoDY29tAAABAAE
+Sep 28, 2026 4:57:59 PM okhttp3.internal.platform.Platform log
+INFO: &lt;-- 200 https://cloudflare-dns.com/dns-query?dns=AAABAAABAAAAAAAAA3d3dwZraWRyYXoDY29tAAABAAE (14ms, 64-byte body)
+Sep 28, 2026 4:57:59 PM okhttp3.internal.platform.Platform log
+INFO: &lt;-- 200 https://cloudflare-dns.com/dns-query?dns=AAABAAABAAAAAAAAA3d3dwZraWRyYXoDY29tAAAcAAE (23ms, 88-byte body)
+Sep 28, 2026 4:58:00 PM okhttp3.internal.platform.Platform log
+INFO: --&gt; GET https://cloudflare-dns.com/dns-query?dns=AAABAAABAAAAAAAAA3d3dwZraWRyYXoDY29tAAABAAE
+Sep 28, 2026 4:58:00 PM okhttp3.internal.platform.Platform log
+INFO: --&gt; GET https://cloudflare-dns.com/dns-query?dns=AAABAAABAAAAAAAAA3d3dwZraWRyYXoDY29tAAAcAAE
+Sep 28, 2026 4:58:00 PM okhttp3.internal.platform.Platform log
+INFO: &lt;-- 200 https://cloudflare-dns.com/dns-query?dns=AAABAAABAAAAAAAAA3d3dwZraWRyYXoDY29tAAABAAE (14ms, 64-byte body)
+Sep 28, 2026 4:58:00 PM okhttp3.internal.platform.Platform log
+INFO: &lt;-- 200 https://cloudflare-dns.com/dns-query?dns=AAABAAABAAAAAAAAA3d3dwZraWRyYXoDY29tAAAcAAE (26ms, 88-byte body)
+Sep 28, 2026 4:58:00 PM okhttp3.internal.platform.Platform log
+INFO: --&gt; GET https://cloudflare-dns.com/dns-query?dns=AAABAAABAAAAAAAABmtpZHJhegNjb20AAAEAAQ
+Sep 28, 2026 4:58:00 PM okhttp3.internal.platform.Platform log
+INFO: --&gt; GET https://cloudflare-dns.com/dns-query?dns=AAABAAABAAAAAAAABmtpZHJhegNjb20AABwAAQ
+Sep 28, 2026 4:58:00 PM okhttp3.internal.platform.Platform log
+INFO: &lt;-- 200 https://cloudflare-dns.com/dns-query?dns=AAABAAABAAAAAAAABmtpZHJhegNjb20AAAEAAQ (14ms, 60-byte body)
+Sep 28, 2026 4:58:00 PM okhttp3.internal.platform.Platform log
+INFO: &lt;-- 200 https://cloudflare-dns.com/dns-query?dns=AAABAAABAAAAAAAABmtpZHJhegNjb20AABwAAQ (26ms, 84-byte body)
+Sep 28, 2026 4:58:00 PM okhttp3.internal.platform.Platform log
+INFO: --&gt; GET https://cloudflare-dns.com/dns-query?dns=AAABAAABAAAAAAAABmtpZHJhegNjb20AAAEAAQ
+Sep 28, 2026 4:58:00 PM okhttp3.internal.platform.Platform log
+INFO: --&gt; GET https://cloudflare-dns.com/dns-query?dns=AAABAAABAAAAAAAABmtpZHJhegNjb20AABwAAQ
+Sep 28, 2026 4:58:00 PM okhttp3.internal.platform.Platform log
+INFO: &lt;-- 200 https://cloudflare-dns.com/dns-query?dns=AAABAAABAAAAAAAABmtpZHJhegNjb20AAAEAAQ (11ms, 60-byte body)
+Sep 28, 2026 4:58:00 PM okhttp3.internal.platform.Platform log
+INFO: &lt;-- 200 https://cloudflare-dns.com/dns-query?dns=AAABAAABAAAAAAAABmtpZHJhegNjb20AABwAAQ (22ms, 84-byte body)
+Sep 28, 2026 4:58:00 PM okhttp3.internal.platform.Platform log
+INFO: --&gt; GET https://cloudflare-dns.com/dns-query?dns=AAABAAABAAAAAAAABmtpZHJhegNjb20AABwAAQ
+Sep 28, 2026 4:58:00 PM okhttp3.internal.platform.Platform log
+INFO: --&gt; GET https://cloudflare-dns.com/dns-query?dns=AAABAAABAAAAAAAABmtpZHJhegNjb20AAAEAAQ
+Sep 28, 2026 4:58:00 PM okhttp3.internal.platform.Platform log
+INFO: &lt;-- 200 https://cloudflare-dns.com/dns-query?dns=AAABAAABAAAAAAAABmtpZHJhegNjb20AABwAAQ (16ms, 84-byte body)
+Sep 28, 2026 4:58:00 PM okhttp3.internal.platform.Platform log
+INFO: &lt;-- 200 https://cloudflare-dns.com/dns-query?dns=AAABAAABAAAAAAAABmtpZHJhegNjb20AAAEAAQ (25ms, 60-byte body)
+Sep 28, 2026 4:58:00 PM okhttp3.internal.platform.Platform log
+INFO: --&gt; GET https://cloudflare-dns.com/dns-query?dns=AAABAAABAAAAAAAABmtpZHJhegNjb20AABwAAQ
+Sep 28, 2026 4:58:00 PM okhttp3.internal.platform.Platform log
+INFO: --&gt; GET https://cloudflare-dns.com/dns-query?dns=AAABAAABAAAAAAAABmtpZHJhegNjb20AAAEAAQ
+Sep 28, 2026 4:58:00 PM okhttp3.internal.platform.Platform log
+INFO: &lt;-- 200 https://cloudflare-dns.com/dns-query?dns=AAABAAABAAAAAAAABmtpZHJhegNjb20AABwAAQ (16ms, 84-byte body)
+Sep 28, 2026 4:58:00 PM okhttp3.internal.platform.Platform log
+INFO: &lt;-- 200 https://cloudflare-dns.com/dns-query?dns=AAABAAABAAAAAAAABmtpZHJhegNjb20AAAEAAQ (27ms, 60-byte body)
+Sep 28, 2026 4:58:00 PM okhttp3.internal.platform.Platform log
+INFO: --&gt; GET https://cloudflare-dns.com/dns-query?dns=AAABAAABAAAAAAAAC3NoYXJlY2xvdWR5A2NvbQAAHAAB
+Sep 28, 2026 4:58:00 PM okhttp3.internal.platform.Platform log
+INFO: --&gt; GET https://cloudflare-dns.com/dns-query?dns=AAABAAABAAAAAAAAC3NoYXJlY2xvdWR5A2NvbQAAAQAB
+Sep 28, 2026 4:58:00 PM okhttp3.internal.platform.Platform log
+INFO: &lt;-- 200 https://cloudflare-dns.com/dns-query?dns=AAABAAABAAAAAAAAC3NoYXJlY2xvdWR5A2NvbQAAHAAB (14ms, 89-byte body)
+Sep 28, 2026 4:58:00 PM okhttp3.internal.platform.Platform log
+INFO: &lt;-- 200 https://cloudflare-dns.com/dns-query?dns=AAABAAABAAAAAAAAC3NoYXJlY2xvdWR5A2NvbQAAAQAB (29ms, 65-byte body)
+Sep 28, 2026 4:58:01 PM okhttp3.internal.platform.Platform log
+INFO: --&gt; GET https://cloudflare-dns.com/dns-query?dns=AAABAAABAAAAAAAABmRvdHJhYgNjb20AABwAAQ
+Sep 28, 2026 4:58:01 PM okhttp3.internal.platform.Platform log
+INFO: --&gt; GET https://cloudflare-dns.com/dns-query?dns=AAABAAABAAAAAAAABmRvdHJhYgNjb20AAAEAAQ
+Sep 28, 2026 4:58:01 PM okhttp3.internal.platform.Platform log
+INFO: &lt;-- 200 https://cloudflare-dns.com/dns-query?dns=AAABAAABAAAAAAAABmRvdHJhYgNjb20AABwAAQ (14ms, 84-byte body)
+Sep 28, 2026 4:58:01 PM okhttp3.internal.platform.Platform log
+INFO: &lt;-- 200 https://cloudflare-dns.com/dns-query?dns=AAABAAABAAAAAAAABmRvdHJhYgNjb20AAAEAAQ (23ms, 60-byte body)
+Sep 28, 2026 4:58:03 PM okhttp3.internal.platform.Platform log
+INFO: --&gt; GET https://cloudflare-dns.com/dns-query?dns=AAABAAABAAAAAAAAB2ZzdHJlYW0EaW5mbwAAAQAB
+Sep 28, 2026 4:58:03 PM okhttp3.internal.platform.Platform log
+INFO: --&gt; GET https://cloudflare-dns.com/dns-query?dns=AAABAAABAAAAAAAAB2ZzdHJlYW0EaW5mbwAAHAAB
+Sep 28, 2026 4:58:03 PM okhttp3.internal.platform.Platform log
+INFO: &lt;-- 200 https://cloudflare-dns.com/dns-query?dns=AAABAAABAAAAAAAAB2ZzdHJlYW0EaW5mbwAAAQAB (15ms, 62-byte body)
+Sep 28, 2026 4:58:03 PM okhttp3.internal.platform.Platform log
+INFO: &lt;-- 200 https://cloudflare-dns.com/dns-query?dns=AAABAAABAAAAAAAAB2ZzdHJlYW0EaW5mbwAAHAAB (24ms, 86-byte body)
+Sep 28, 2026 4:58:03 PM okhttp3.internal.platform.Platform log
+INFO: --&gt; GET https://cloudflare-dns.com/dns-query?dns=AAABAAABAAAAAAAABGZzMDEDbG9sAAABAAE
+Sep 28, 2026 4:58:03 PM okhttp3.internal.platform.Platform log
+INFO: --&gt; GET https://cloudflare-dns.com/dns-query?dns=AAABAAABAAAAAAAABGZzMDEDbG9sAAAcAAE
+Sep 28, 2026 4:58:03 PM okhttp3.internal.platform.Platform log
+INFO: &lt;-- 200 https://cloudflare-dns.com/dns-query?dns=AAABAAABAAAAAAAABGZzMDEDbG9sAAABAAE (15ms, 58-byte body)
+Sep 28, 2026 4:58:03 PM okhttp3.internal.platform.Platform log
+INFO: &lt;-- 200 https://cloudflare-dns.com/dns-query?dns=AAABAAABAAAAAAAABGZzMDEDbG9sAAAcAAE (25ms, 82-byte body)
+Sep 28, 2026 4:58:03 PM okhttp3.internal.platform.Platform log
+INFO: --&gt; GET https://cloudflare-dns.com/dns-query?dns=AAABAAABAAAAAAAADGZyZW5jaC1tYW5nYQNuZXQAAAEAAQ
+Sep 28, 2026 4:58:03 PM okhttp3.internal.platform.Platform log
+INFO: --&gt; GET https://cloudflare-dns.com/dns-query?dns=AAABAAABAAAAAAAADGZyZW5jaC1tYW5nYQNuZXQAABwAAQ
+Sep 28, 2026 4:58:03 PM okhttp3.internal.platform.Platform log
+INFO: &lt;-- 200 https://cloudflare-dns.com/dns-query?dns=AAABAAABAAAAAAAADGZyZW5jaC1tYW5nYQNuZXQAAAEAAQ (22ms, 66-byte body)
+Sep 28, 2026 4:58:03 PM okhttp3.internal.platform.Platform log
+INFO: &lt;-- 200 https://cloudflare-dns.com/dns-query?dns=AAABAAABAAAAAAAADGZyZW5jaC1tYW5nYQNuZXQAABwAAQ (41ms, 90-byte body)
+Sep 28, 2026 4:58:03 PM okhttp3.internal.platform.Platform log
+INFO: --&gt; GET https://cloudflare-dns.com/dns-query?dns=AAABAAABAAAAAAAAA3cxNgxmcmVuY2gtbWFuZ2EDbmV0AAABAAE
+Sep 28, 2026 4:58:03 PM okhttp3.internal.platform.Platform log
+INFO: --&gt; GET https://cloudflare-dns.com/dns-query?dns=AAABAAABAAAAAAAAA3cxNgxmcmVuY2gtbWFuZ2EDbmV0AAAcAAE
+Sep 28, 2026 4:58:03 PM okhttp3.internal.platform.Platform log
+INFO: &lt;-- 200 https://cloudflare-dns.com/dns-query?dns=AAABAAABAAAAAAAAA3cxNgxmcmVuY2gtbWFuZ2EDbmV0AAABAAE (13ms, 70-byte body)
+Sep 28, 2026 4:58:03 PM okhttp3.internal.platform.Platform log
+INFO: &lt;-- 200 https://cloudflare-dns.com/dns-query?dns=AAABAAABAAAAAAAAA3cxNgxmcmVuY2gtbWFuZ2EDbmV0AAAcAAE (25ms, 94-byte body)
+Sep 28, 2026 4:58:03 PM okhttp3.internal.platform.Platform log
+INFO: --&gt; GET https://cloudflare-dns.com/dns-query?dns=AAABAAABAAAAAAAAA3cxNgxmcmVuY2gtbWFuZ2EDbmV0AAAcAAE
+Sep 28, 2026 4:58:03 PM okhttp3.internal.platform.Platform log
+INFO: --&gt; GET https://cloudflare-dns.com/dns-query?dns=AAABAAABAAAAAAAAA3cxNgxmcmVuY2gtbWFuZ2EDbmV0AAABAAE
+Sep 28, 2026 4:58:03 PM okhttp3.internal.platform.Platform log
+INFO: &lt;-- 200 https://cloudflare-dns.com/dns-query?dns=AAABAAABAAAAAAAAA3cxNgxmcmVuY2gtbWFuZ2EDbmV0AAAcAAE (13ms, 94-byte body)
+Sep 28, 2026 4:58:04 PM okhttp3.internal.platform.Platform log
+INFO: &lt;-- 200 https://cloudflare-dns.com/dns-query?dns=AAABAAABAAAAAAAAA3cxNgxmcmVuY2gtbWFuZ2EDbmV0AAABAAE (22ms, 70-byte body)
+Sep 28, 2026 4:58:04 PM okhttp3.internal.platform.Platform log
+INFO: --&gt; GET https://cloudflare-dns.com/dns-query?dns=AAABAAABAAAAAAAAA3cxNgxmcmVuY2gtbWFuZ2EDbmV0AAAcAAE
+Sep 28, 2026 4:58:04 PM okhttp3.internal.platform.Platform log
+INFO: --&gt; GET https://cloudflare-dns.com/dns-query?dns=AAABAAABAAAAAAAAA3cxNgxmcmVuY2gtbWFuZ2EDbmV0AAABAAE
+Sep 28, 2026 4:58:04 PM okhttp3.internal.platform.Platform log
+INFO: &lt;-- 200 https://cloudflare-dns.com/dns-query?dns=AAABAAABAAAAAAAAA3cxNgxmcmVuY2gtbWFuZ2EDbmV0AAAcAAE (12ms, 94-byte body)
+Sep 28, 2026 4:58:04 PM okhttp3.internal.platform.Platform log
+INFO: &lt;-- 200 https://cloudflare-dns.com/dns-query?dns=AAABAAABAAAAAAAAA3cxNgxmcmVuY2gtbWFuZ2EDbmV0AAABAAE (26ms, 70-byte body)
+Sep 28, 2026 4:58:04 PM okhttp3.internal.platform.Platform log
+INFO: --&gt; GET https://cloudflare-dns.com/dns-query?dns=AAABAAABAAAAAAAAA3cxNgxmcmVuY2gtbWFuZ2EDbmV0AAAcAAE
+Sep 28, 2026 4:58:04 PM okhttp3.internal.platform.Platform log
+INFO: --&gt; GET https://cloudflare-dns.com/dns-query?dns=AAABAAABAAAAAAAAA3cxNgxmcmVuY2gtbWFuZ2EDbmV0AAABAAE
+Sep 28, 2026 4:58:04 PM okhttp3.internal.platform.Platform log
+INFO: &lt;-- 200 https://cloudflare-dns.com/dns-query?dns=AAABAAABAAAAAAAAA3cxNgxmcmVuY2gtbWFuZ2EDbmV0AAAcAAE (13ms, 94-byte body)
+Sep 28, 2026 4:58:04 PM okhttp3.internal.platform.Platform log
+INFO: &lt;-- 200 https://cloudflare-dns.com/dns-query?dns=AAABAAABAAAAAAAAA3cxNgxmcmVuY2gtbWFuZ2EDbmV0AAABAAE (15ms, 70-byte body)
+Sep 28, 2026 4:58:04 PM okhttp3.internal.platform.Platform log
+INFO: --&gt; GET https://cloudflare-dns.com/dns-query?dns=AAABAAABAAAAAAAAA3cxNgxmcmVuY2gtbWFuZ2EDbmV0AAAcAAE
+Sep 28, 2026 4:58:04 PM okhttp3.internal.platform.Platform log
+INFO: --&gt; GET https://cloudflare-dns.com/dns-query?dns=AAABAAABAAAAAAAAA3cxNgxmcmVuY2gtbWFuZ2EDbmV0AAABAAE
+Sep 28, 2026 4:58:04 PM okhttp3.internal.platform.Platform log
+INFO: &lt;-- 200 https://cloudflare-dns.com/dns-query?dns=AAABAAABAAAAAAAAA3cxNgxmcmVuY2gtbWFuZ2EDbmV0AAAcAAE (18ms, 94-byte body)
+Sep 28, 2026 4:58:04 PM okhttp3.internal.platform.Platform log
+INFO: &lt;-- 200 https://cloudflare-dns.com/dns-query?dns=AAABAAABAAAAAAAAA3cxNgxmcmVuY2gtbWFuZ2EDbmV0AAABAAE (25ms, 70-byte body)
+Sep 28, 2026 4:58:04 PM okhttp3.internal.platform.Platform log
+INFO: --&gt; GET https://cloudflare-dns.com/dns-query?dns=AAABAAABAAAAAAAAA3cxNgxmcmVuY2gtbWFuZ2EDbmV0AAABAAE
+Sep 28, 2026 4:58:04 PM okhttp3.internal.platform.Platform log
+INFO: --&gt; GET https://cloudflare-dns.com/dns-query?dns=AAABAAABAAAAAAAAA3cxNgxmcmVuY2gtbWFuZ2EDbmV0AAAcAAE
+Sep 28, 2026 4:58:04 PM okhttp3.internal.platform.Platform log
+INFO: &lt;-- 200 https://cloudflare-dns.com/dns-query?dns=AAABAAABAAAAAAAAA3cxNgxmcmVuY2gtbWFuZ2EDbmV0AAABAAE (16ms, 70-byte body)
+Sep 28, 2026 4:58:04 PM okhttp3.internal.platform.Platform log
+INFO: &lt;-- 200 https://cloudflare-dns.com/dns-query?dns=AAABAAABAAAAAAAAA3cxNgxmcmVuY2gtbWFuZ2EDbmV0AAAcAAE (28ms, 94-byte body)
+Sep 28, 2026 4:58:04 PM okhttp3.internal.platform.Platform log
+INFO: --&gt; GET https://cloudflare-dns.com/dns-query?dns=AAABAAABAAAAAAAABXZpZHp5A29yZwAAHAAB
+Sep 28, 2026 4:58:04 PM okhttp3.internal.platform.Platform log
+INFO: --&gt; GET https://cloudflare-dns.com/dns-query?dns=AAABAAABAAAAAAAABXZpZHp5A29yZwAAAQAB
+Sep 28, 2026 4:58:04 PM okhttp3.internal.platform.Platform log
+INFO: &lt;-- 200 https://cloudflare-dns.com/dns-query?dns=AAABAAABAAAAAAAABXZpZHp5A29yZwAAHAAB (31ms, 83-byte body)
+Sep 28, 2026 4:58:04 PM okhttp3.internal.platform.Platform log
+INFO: &lt;-- 200 https://cloudflare-dns.com/dns-query?dns=AAABAAABAAAAAAAABXZpZHp5A29yZwAAAQAB (43ms, 59-byte body)
+</pre>
+</span>
+</div>
+</div>
+<div id="footer">
+<p>
+<div>
+<label class="hidden" id="label-for-line-wrapping-toggle" for="line-wrapping-toggle">Wrap lines
+<input id="line-wrapping-toggle" type="checkbox" autocomplete="off"/>
+</label>
+</div>Generated by 
+<a href="https://www.gradle.org">Gradle 8.13</a> at Sep 28, 2026, 4:58:17 PM</p>
+</div>
+</div>
+</body>
+</html>

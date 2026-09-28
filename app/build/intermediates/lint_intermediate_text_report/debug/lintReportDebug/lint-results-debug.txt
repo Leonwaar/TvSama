@@ -1,0 +1,454 @@
+/home/leon/TvSama_fixed_v2/TvSama_fixed/app/src/main/java/fr/nekotv/Playback.kt:134: Error: Call requires API level 24 (current min is 23): android.app.Activity#isInPictureInPictureMode [NewApi]
+                if ((context as? android.app.Activity)?.isInPictureInPictureMode != true) player.pause()
+                                                        ~~~~~~~~~~~~~~~~~~~~~~~~
+/home/leon/TvSama_fixed_v2/TvSama_fixed/app/src/main/java/fr/nekotv/Playback.kt:321: Error: Call requires API level 24 (current min is 23): android.app.Activity#isInPictureInPictureMode [NewApi]
+        if (controlsVisible && !casting && (context as? android.app.Activity)?.isInPictureInPictureMode != true) Row(
+                                                                               ~~~~~~~~~~~~~~~~~~~~~~~~
+/home/leon/TvSama_fixed_v2/TvSama_fixed/app/src/main/java/fr/nekotv/Playback.kt:330: Error: Call requires API level 24 (current min is 23): android.app.Activity#isInPictureInPictureMode [NewApi]
+        if (controlsVisible && (context as? android.app.Activity)?.isInPictureInPictureMode != true) Row(Modifier.align(Alignment.TopEnd).padding(14.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                                                                   ~~~~~~~~~~~~~~~~~~~~~~~~
+
+   Explanation for issues of type "NewApi":
+   This check scans through all the Android API calls in the application and
+   warns about any calls that are not available on all versions targeted by
+   this application (according to its minimum SDK attribute in the manifest).
+
+   If you really want to use this API and don't need to support older devices
+   just set the minSdkVersion in your build.gradle or AndroidManifest.xml
+   files.
+
+   If your code is deliberately accessing newer APIs, and you have ensured
+   (e.g. with conditional execution) that this code will only ever be called
+   on a supported platform, then you can annotate your class or method with
+   the @TargetApi annotation specifying the local minimum SDK to apply, such
+   as @TargetApi(11), such that this check considers 11 rather than your
+   manifest file's minimum SDK as the required API level.
+
+   If you are deliberately setting android: attributes in style definitions,
+   make sure you place this in a values-vNN folder in order to avoid running
+   into runtime conflicts on certain devices where manufacturers have added
+   custom attributes whose ids conflict with the new ones on later platforms.
+
+   Similarly, you can use tools:targetApi="11" in an XML file to indicate that
+   the element will only be inflated in an adequate context.
+
+/home/leon/TvSama_fixed_v2/TvSama_fixed/app/src/main/java/fr/nekotv/StreamFlixProviderManager.kt:309: Error: Suspicious indentation: This is indented but is not nested under the previous expression (if (language != "Tou...) [SuspiciousIndentation]
+                                if (!video.source.startsWith("http")) return@withTimeout null
+                                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    /home/leon/TvSama_fixed_v2/TvSama_fixed/app/src/main/java/fr/nekotv/StreamFlixProviderManager.kt:308: Previous statement here
+
+   Explanation for issues of type "SuspiciousIndentation":
+   This check looks for cases where the indentation suggests a grouping that
+   isn't actually there in the code. A common example of this would be
+   something like
+   if (column > width)
+       line++
+       column = 0
+   Here, the column = 0 line will be executed every single time, not just if
+   the condition is true.
+
+   Available options:
+
+   **always-run** (default is false):
+   Whether this check should be included while editing.
+
+   While you're editing, it's common to have a temporary situation where you have suspicious indentation scenarios -- e.g. you start typing an `if` statement on the line above something you want to make conditional, and you haven't indented it yet. It can be distracting and misleading to suddenly have both statements light up as errors. Therefore, lint will avoid including this check when running on the fly in the editor, unless it looks like the file has not been recently edited. With this option, you can turn it on in all cases.
+
+   To configure this option, use a `lint.xml` file with an <option> like this:
+
+   ```xml
+   <lint>
+       <issue id="SuspiciousIndentation">
+           <option name="always-run" value="false" />
+       </issue>
+   </lint>
+   ```
+
+/home/leon/TvSama_fixed_v2/TvSama_fixed/app/src/main/AndroidManifest.xml:37: Warning: Attribute supportsPictureInPicture is only used in API level 24 and higher (current min is 23) [UnusedAttribute]
+            android:supportsPictureInPicture="true"
+            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+   Explanation for issues of type "UnusedAttribute":
+   This check finds attributes set in XML files that were introduced in a
+   version newer than the oldest version targeted by your application (with
+   the minSdkVersion attribute).
+
+   This is not an error; the application will simply ignore the attribute.
+   However, if the attribute is important to the appearance or functionality
+   of your application, you should consider finding an alternative way to
+   achieve the same result with only available attributes, and then you can
+   optionally create a copy of the layout in a layout-vNN folder which will be
+   used on API NN or higher where you can take advantage of the newer
+   attribute.
+
+   Note: This check does not only apply to attributes. For example, some tags
+   can be unused too, such as the new <tag> element in layouts introduced in
+   API 21.
+
+/home/leon/TvSama_fixed_v2/TvSama_fixed/app/src/main/AndroidManifest.xml:6: Warning: Requiring Wifi permissions limits app availability on TVs that support only Ethernet [LeanbackUsesWifi]
+    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+   Explanation for issues of type "LeanbackUsesWifi":
+   WiFi is not required for Android TV and many devices connect to the
+   internet via alternative methods e.g. Ethernet.
+
+   If your app is not focused specifically on WiFi functionality and only
+   wishes to connect to the internet, please modify your Manifest to contain:
+   <uses-feature android:name="android.hardware.wifi" android:required="false"
+   />
+
+   Un-metered or non-roaming connections can be detected in software using
+   NetworkCapabilities#NET_CAPABILITY_NOT_METERED and
+   NetworkCapabilities#NET_CAPABILITY_NOT_ROAMING.
+
+/home/leon/TvSama_fixed_v2/TvSama_fixed/app/src/main/AndroidManifest.xml:15: Warning: An activity in this app supports picture-in-picture and the targetSdkVersion is 31 or above; it is therefore strongly recommended to call both setAutoEnterEnabled(true) and setSourceRectHint(...) [PictureInPictureIssue]
+    <application
+     ~~~~~~~~~~~
+
+   Explanation for issues of type "PictureInPictureIssue":
+   Starting in Android 12, the recommended approach for enabling
+   picture-in-picture (PiP) has changed. If your app does not use the new
+   approach, your app's transition animations will be of poor quality compared
+   to other apps. The new approach requires calling setAutoEnterEnabled(true)
+   and setSourceRectHint(...).
+
+   https://developer.android.com/develop/ui/views/picture-in-picture#smoother-transition
+
+/home/leon/TvSama_fixed_v2/TvSama_fixed/app/src/main/res/drawable/tvsama_banner.xml:2: Warning: Limit vector icons sizes to 200×200 to keep icon drawing fast; see https://developer.android.com/studio/write/vector-asset-studio#when for more [VectorRaster]
+    android:width="320dp" android:height="180dp" android:viewportWidth="320" android:viewportHeight="180">
+                   ~~~~~
+
+   Explanation for issues of type "VectorRaster":
+   Vector icons require API 21 or API 24 depending on used features, but when
+   minSdkVersion is less than 21 or 24 and Android Gradle plugin 1.4 or higher
+   is used, a vector drawable placed in the drawable folder is automatically
+   moved to drawable-anydpi-v21 or drawable-anydpi-v24 and bitmap images are
+   generated for different screen resolutions for backwards compatibility.
+
+   However, there are some limitations to this raster image generation, and
+   this lint check flags elements and attributes that are not fully supported.
+   You should manually check whether the generated output is acceptable for
+   those older devices.
+
+/home/leon/TvSama_fixed_v2/TvSama_fixed/gradle/wrapper/gradle-wrapper.properties:3: Warning: A newer version of Gradle than 8.13 is available: 8.14.5 [AndroidGradlePluginVersion]
+distributionUrl=https\://services.gradle.org/distributions/gradle-8.13-bin.zip
+                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+   Explanation for issues of type "AndroidGradlePluginVersion":
+   This detector looks for usage of the Android Gradle Plugin where the
+   version you are using is not the current stable release. Using older
+   versions is fine, and there are cases where you deliberately want to stick
+   with an older version. However, you may simply not be aware that a more
+   recent version is available, and that is what this lint check helps find.
+
+/home/leon/TvSama_fixed_v2/TvSama_fixed/app/build.gradle.kts:41: Warning: A newer version of androidx.fragment:fragment-ktx than 1.8.6 is available: 1.9.1 [GradleDependency]
+    implementation("androidx.fragment:fragment-ktx:1.8.6")
+                   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/home/leon/TvSama_fixed_v2/TvSama_fixed/app/build.gradle.kts:43: Warning: A newer version of androidx.compose:compose-bom than 2025.08.00 is available: 2026.09.00 [GradleDependency]
+    implementation(platform("androidx.compose:compose-bom:2025.08.00"))
+                   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/home/leon/TvSama_fixed_v2/TvSama_fixed/app/build.gradle.kts:48: Warning: A newer version of androidx.lifecycle:lifecycle-runtime-ktx than 2.10.0 is available: 2.11.0 [GradleDependency]
+    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.10.0")
+                   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/home/leon/TvSama_fixed_v2/TvSama_fixed/app/build.gradle.kts:49: Warning: A newer version of androidx.media3:media3-exoplayer than 1.8.0 is available: 1.11.1 [GradleDependency]
+    implementation("androidx.media3:media3-exoplayer:1.8.0")
+                   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/home/leon/TvSama_fixed_v2/TvSama_fixed/app/build.gradle.kts:50: Warning: A newer version of androidx.media3:media3-exoplayer-hls than 1.8.0 is available: 1.11.1 [GradleDependency]
+    implementation("androidx.media3:media3-exoplayer-hls:1.8.0")
+                   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/home/leon/TvSama_fixed_v2/TvSama_fixed/app/build.gradle.kts:51: Warning: A newer version of androidx.media3:media3-exoplayer-dash than 1.8.0 is available: 1.11.1 [GradleDependency]
+    implementation("androidx.media3:media3-exoplayer-dash:1.8.0")
+                   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/home/leon/TvSama_fixed_v2/TvSama_fixed/app/build.gradle.kts:52: Warning: A newer version of androidx.media3:media3-ui than 1.8.0 is available: 1.11.1 [GradleDependency]
+    implementation("androidx.media3:media3-ui:1.8.0")
+                   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/home/leon/TvSama_fixed_v2/TvSama_fixed/app/build.gradle.kts:53: Warning: A newer version of com.google.android.gms:play-services-cast-framework than 21.4.0 is available: 22.3.1 [GradleDependency]
+    implementation("com.google.android.gms:play-services-cast-framework:21.4.0")
+                   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+   Explanation for issues of type "GradleDependency":
+   This detector looks for usages of libraries where the version you are using
+   is not the current stable release. Using older versions is fine, and there
+   are cases where you deliberately want to stick with an older version.
+   However, you may simply not be aware that a more recent version is
+   available, and that is what this lint check helps find.
+
+/home/leon/TvSama_fixed_v2/TvSama_fixed/app/build.gradle.kts:37: Warning: A newer version of org.robolectric:robolectric than 4.14.1 is available: 4.17 [NewerVersionAvailable]
+    testImplementation("org.robolectric:robolectric:4.14.1")
+                       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/home/leon/TvSama_fixed_v2/TvSama_fixed/app/build.gradle.kts:40: Warning: A newer version of com.github.bumptech.glide:glide than 5.0.0-rc01 is available: 5.0.9 [NewerVersionAvailable]
+    implementation("com.github.bumptech.glide:glide:5.0.0-rc01")
+                   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/home/leon/TvSama_fixed_v2/TvSama_fixed/app/build.gradle.kts:54: Warning: A newer version of com.google.zxing:core than 3.5.1 is available: 3.5.4 [NewerVersionAvailable]
+    implementation("com.google.zxing:core:3.5.1")
+                   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+   Explanation for issues of type "NewerVersionAvailable":
+   This detector checks with a central repository to see if there are newer
+   versions available for the dependencies used by this project. This is
+   similar to the GradleDependency check, which checks for newer versions
+   available in the Android SDK tools and libraries, but this works with any
+   MavenCentral dependency, and connects to the library every time, which
+   makes it more flexible but also much slower.
+
+/home/leon/TvSama_fixed_v2/TvSama_fixed/app/src/main/java/fr/nekotv/Ui.kt:31: Warning: CompositionLocal properties should be prefixed with Local [CompositionLocalNaming from androidx.compose.runtime]
+private val ThemeBackground = compositionLocalOf { Color(0xFF050505) }
+            ~~~~~~~~~~~~~~~
+
+   Explanation for issues of type "CompositionLocalNaming":
+   CompositionLocal properties should be prefixed with Local. This helps make
+   it clear at their use site that these values are local to the current
+   composition. Typically the full name will be Local + the type of the
+   CompositionLocal, for example val LocalFoo = compositionLocalOf { Foo() }.
+
+   Vendor: Jetpack Compose
+   Identifier: androidx.compose.runtime
+   Feedback: https://issuetracker.google.com/issues/new?component=612128
+
+/home/leon/TvSama_fixed_v2/TvSama_fixed/app/src/main/java/fr/nekotv/Playback.kt:64: Warning: Modifier parameter should be the first optional parameter [ModifierParameter from androidx.compose.ui]
+    modifier: Modifier = Modifier,
+    ~~~~~~~~
+
+   Explanation for issues of type "ModifierParameter":
+   The first (or only) Modifier parameter in a Composable function should
+   follow the following rules:
+   - Be named modifier
+   - Have a type of Modifier
+   - Either have no default value, or have a default value of Modifier
+   - If optional, be the first optional parameter in the parameter list
+
+   Vendor: Jetpack Compose
+   Identifier: androidx.compose.ui
+   Feedback: https://issuetracker.google.com/issues/new?component=612128
+
+/home/leon/TvSama_fixed_v2/TvSama_fixed/app/src/main/java/fr/nekotv/LiveReminders.kt:37: Warning: Unnecessary; SDK_INT is always >= 23 [ObsoleteSdkInt]
+        if (Build.VERSION.SDK_INT >= 23) alarm.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, notificationAt, pending)
+            ~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+   Explanation for issues of type "ObsoleteSdkInt":
+   This check flags version checks that are not necessary, because the
+   minSdkVersion (or surrounding known API level) is already at least as high
+   as the version checked for.
+
+   Similarly, it also looks for resources in -vNN folders, such as values-v14
+   where the version qualifier is less than or equal to the minSdkVersion,
+   where the contents should be merged into the best folder.
+
+/home/leon/TvSama_fixed_v2/TvSama_fixed/app/src/main/res/drawable/ic_kiki_broom.xml:1: Warning: The resource R.drawable.ic_kiki_broom appears to be unused [UnusedResources]
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+^
+/home/leon/TvSama_fixed_v2/TvSama_fixed/app/src/main/res/menu/menu_cast.xml:2: Warning: The resource R.menu.menu_cast appears to be unused [UnusedResources]
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+^
+/home/leon/TvSama_fixed_v2/TvSama_fixed/app/src/main/res/values/strings.xml:2: Warning: The resource R.string.app_name appears to be unused [UnusedResources]
+    <string name="app_name">TvSama</string>
+            ~~~~~~~~~~~~~~~
+/home/leon/TvSama_fixed_v2/TvSama_fixed/app/src/main/res/values/strings.xml:3: Warning: The resource R.string.media_route_menu_title appears to be unused [UnusedResources]
+    <string name="media_route_menu_title">Cast</string>
+            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+   Explanation for issues of type "UnusedResources":
+   Unused resources make applications larger and slow down builds.
+
+
+   The unused resource check can ignore tests. If you want to include
+   resources that are only referenced from tests, consider packaging them in a
+   test source set instead.
+
+   You can include test sources in the unused resource check by setting the
+   system property lint.unused-resources.include-tests =true, and to exclude
+   them (usually for performance reasons), use
+   lint.unused-resources.exclude-tests =true.
+   ,
+
+   Available options:
+
+   **skip-libraries** (default is true):
+   Whether the unused resource check should skip reporting unused resources in libraries.
+
+   Many libraries will declare resources that are part of the library surface; other modules depending on the library will also reference the resources. To avoid reporting all these resources as unused (in the context of a library), the unused resource check normally skips reporting unused resources in libraries. Instead, run the unused resource check on the consuming app module (along with `checkDependencies=true`).
+
+   However, there are cases where you want to check that all the resources declared in a library are used; in that case, you can disable the skip option.
+
+   To configure this option, use a `lint.xml` file with an <option> like this:
+
+   ```xml
+   <lint>
+       <issue id="UnusedResources">
+           <option name="skip-libraries" value="true" />
+       </issue>
+   </lint>
+   ```
+
+/home/leon/TvSama_fixed_v2/TvSama_fixed/app/src/main/java/fr/nekotv/AdvancedSettings.kt:98: Warning: Use the KTX extension function SharedPreferences.edit instead? [UseKtx]
+                            val edit = context.getSharedPreferences(name, Context.MODE_PRIVATE).edit().clear()
+                                       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/home/leon/TvSama_fixed_v2/TvSama_fixed/app/src/main/java/fr/nekotv/AppUpdates.kt:141: Warning: Use the KTX extension function String.toUri instead? [UseKtx]
+            context.startActivity(Intent(android.provider.Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES, Uri.parse("package:${context.packageName}")))
+                                                                                                      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/home/leon/TvSama_fixed_v2/TvSama_fixed/app/src/main/java/fr/nekotv/CastSupport.kt:70: Warning: Use the KTX extension function String.toUri instead? [UseKtx]
+            val uri = android.net.Uri.parse(raw)
+                      ~~~~~~~~~~~~~~~~~~~~~~~~~~
+/home/leon/TvSama_fixed_v2/TvSama_fixed/app/src/main/java/fr/nekotv/CastSupport.kt:73: Warning: Use the KTX extension function SharedPreferences.edit instead? [UseKtx]
+                context.getSharedPreferences("tvsama_settings", 0).edit().putString("paired_tv_token", code)
+                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/home/leon/TvSama_fixed_v2/TvSama_fixed/app/src/main/java/fr/nekotv/CastSupport.kt:80: Warning: Use the KTX extension function SharedPreferences.edit instead? [UseKtx]
+        prefs.getString("pairing_token", null) ?: UUID.randomUUID().toString().replace("-", "").take(12).also { prefs.edit().putString("pairing_token", it).apply() }
+                                                                                                                ~~~~~~~~~~~~
+/home/leon/TvSama_fixed_v2/TvSama_fixed/app/src/main/java/fr/nekotv/CastSupport.kt:107: Warning: Use the KTX function createBitmap instead? [UseKtx]
+    return Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888).also { bitmap ->
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/home/leon/TvSama_fixed_v2/TvSama_fixed/app/src/main/java/fr/nekotv/CastSupport.kt:108: Warning: Use the KTX extension function Bitmap.set instead? [UseKtx]
+        for (x in 0 until size) for (y in 0 until size) bitmap.setPixel(x, y, if (matrix[x, y]) AndroidColor.BLACK else AndroidColor.WHITE)
+                                                        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/home/leon/TvSama_fixed_v2/TvSama_fixed/app/src/main/java/fr/nekotv/LibraryStore.kt:46: Warning: Use the KTX extension function SharedPreferences.edit instead? [UseKtx]
+    fun hideResume(anime: Anime) { prefs.edit().putStringSet("hidden_resume",
+                                   ~~~~~~~~~~~~
+/home/leon/TvSama_fixed_v2/TvSama_fixed/app/src/main/java/fr/nekotv/LibraryStore.kt:59: Warning: Use the KTX extension function SharedPreferences.edit instead? [UseKtx]
+        prefs.edit().putStringSet("hidden_resume", prefs.getStringSet("hidden_resume", emptySet()).orEmpty() - key(anime)).apply()
+        ~~~~~~~~~~~~
+/home/leon/TvSama_fixed_v2/TvSama_fixed/app/src/main/java/fr/nekotv/LibraryStore.kt:63: Warning: Use the KTX extension function SharedPreferences.edit instead? [UseKtx]
+    fun clearHistory() { prefs.edit().remove("history").remove("hidden_resume").apply() }
+                         ~~~~~~~~~~~~
+/home/leon/TvSama_fixed_v2/TvSama_fixed/app/src/main/java/fr/nekotv/LibraryStore.kt:71: Warning: Use the KTX extension function SharedPreferences.edit instead? [UseKtx]
+    fun setLanguage(value: String) { prefs.edit().putString("language", value).apply() }
+                                     ~~~~~~~~~~~~
+/home/leon/TvSama_fixed_v2/TvSama_fixed/app/src/main/java/fr/nekotv/LibraryStore.kt:73: Warning: Use the KTX extension function SharedPreferences.edit instead? [UseKtx]
+    fun setAutoplay(value: Boolean) { prefs.edit().putBoolean("autoplay", value).apply() }
+                                      ~~~~~~~~~~~~
+/home/leon/TvSama_fixed_v2/TvSama_fixed/app/src/main/java/fr/nekotv/LibraryStore.kt:78: Warning: Use the KTX extension function SharedPreferences.edit instead? [UseKtx]
+    private fun saveArray(key: String, items: List<JSONObject>) { prefs.edit().putString(key, JSONArray(items).toString()).apply() }
+                                                                  ~~~~~~~~~~~~
+/home/leon/TvSama_fixed_v2/TvSama_fixed/app/src/main/java/fr/nekotv/LiveReminders.kt:39: Warning: Use the KTX extension function SharedPreferences.edit instead? [UseKtx]
+        context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit().putString(id, JSONObject().put("title", title).put("startsAt", startsAt).toString()).apply()
+        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/home/leon/TvSama_fixed_v2/TvSama_fixed/app/src/main/java/fr/nekotv/LiveReminders.kt:59: Warning: Use the KTX extension function SharedPreferences.edit instead? [UseKtx]
+        context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit().remove(id).apply()
+        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/home/leon/TvSama_fixed_v2/TvSama_fixed/app/src/main/java/fr/nekotv/LiveReminders.kt:81: Warning: Use the KTX extension function SharedPreferences.edit instead? [UseKtx]
+        context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit().remove(id).apply()
+        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/home/leon/TvSama_fixed_v2/TvSama_fixed/app/src/main/java/fr/nekotv/LiveScreen.kt:53: Warning: Use the KTX extension function String.toUri instead? [UseKtx]
+            exactPermission.launch(Intent(android.provider.Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM, Uri.parse("package:${context.packageName}")))
+                                                                                                         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/home/leon/TvSama_fixed_v2/TvSama_fixed/app/src/main/java/fr/nekotv/MainActivity.kt:63: Warning: Use the KTX extension function SharedPreferences.edit instead? [UseKtx]
+            getSharedPreferences("tvsama_settings", MODE_PRIVATE).edit()
+            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/home/leon/TvSama_fixed_v2/TvSama_fixed/app/src/main/java/fr/nekotv/MainActivity.kt:403: Warning: Use the KTX extension function String.toUri instead? [UseKtx]
+                                                runCatching { context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url))) }
+                                                                                                               ~~~~~~~~~~~~~~
+/home/leon/TvSama_fixed_v2/TvSama_fixed/app/src/main/java/fr/nekotv/MainActivity.kt:553: Warning: Use the KTX extension function SharedPreferences.edit instead? [UseKtx]
+            Action("Retirer") { entries = entries - line; prefs.edit().putString("items", entries.joinToString("\n")).apply() }
+                                                          ~~~~~~~~~~~~
+/home/leon/TvSama_fixed_v2/TvSama_fixed/app/src/main/java/fr/nekotv/MainActivity.kt:563: Warning: Use the KTX extension function String.toUri instead? [UseKtx]
+        val parsed = android.net.Uri.parse(url.trim())
+                     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/home/leon/TvSama_fixed_v2/TvSama_fixed/app/src/main/java/fr/nekotv/MainActivity.kt:565: Warning: Use the KTX extension function SharedPreferences.edit instead? [UseKtx]
+        else { entries = entries + "${name.trim()}|${url.trim()}"; prefs.edit().putString("items", entries.joinToString("\n")).apply(); showAdd = false; name = ""; url = ""; error = "" }
+                                                                   ~~~~~~~~~~~~
+/home/leon/TvSama_fixed_v2/TvSama_fixed/app/src/main/java/fr/nekotv/Playback.kt:40: Warning: Use the KTX extension function String.toUri instead? [UseKtx]
+    Uri.parse(url).path.orEmpty().endsWith(".m3u8", true) -> MimeTypes.APPLICATION_M3U8
+    ~~~~~~~~~~~~~~
+/home/leon/TvSama_fixed_v2/TvSama_fixed/app/src/main/java/fr/nekotv/Playback.kt:41: Warning: Use the KTX extension function String.toUri instead? [UseKtx]
+    Uri.parse(url).path.orEmpty().endsWith(".mpd", true) -> MimeTypes.APPLICATION_MPD
+    ~~~~~~~~~~~~~~
+/home/leon/TvSama_fixed_v2/TvSama_fixed/app/src/main/java/fr/nekotv/Playback.kt:42: Warning: Use the KTX extension function String.toUri instead? [UseKtx]
+    Uri.parse(url).path.orEmpty().endsWith(".mp4", true) -> MimeTypes.VIDEO_MP4
+    ~~~~~~~~~~~~~~
+/home/leon/TvSama_fixed_v2/TvSama_fixed/app/src/main/java/fr/nekotv/Playback.kt:96: Warning: Use the KTX extension function String.toUri instead? [UseKtx]
+                    MediaItem.SubtitleConfiguration.Builder(Uri.parse(subtitle.url))
+                                                            ~~~~~~~~~~~~~~~~~~~~~~~
+/home/leon/TvSama_fixed_v2/TvSama_fixed/app/src/main/java/fr/nekotv/Playback.kt:205: Warning: Use the KTX extension function String.toUri instead? [UseKtx]
+                if (poster.startsWith("http")) addImage(WebImage(Uri.parse(poster)))
+                                                                 ~~~~~~~~~~~~~~~~~
+/home/leon/TvSama_fixed_v2/TvSama_fixed/app/src/main/java/fr/nekotv/StreamFlixProviderManager.kt:55: Warning: Use the KTX extension function SharedPreferences.edit instead? [UseKtx]
+        preferences.edit().putStringSet("disabled_providers", disabled).apply()
+        ~~~~~~~~~~~~~~~~~~
+/home/leon/TvSama_fixed_v2/TvSama_fixed/app/src/main/java/fr/nekotv/Ui.kt:188: Warning: Use the KTX extension function SharedPreferences.edit instead? [UseKtx]
+            Action(if (subtitles) "Activés" else "Désactivés", selected = subtitles) { subtitles = !subtitles; prefs.edit().putBoolean("subtitles", subtitles).apply() }
+                                                                                                               ~~~~~~~~~~~~
+/home/leon/TvSama_fixed_v2/TvSama_fixed/app/src/main/java/fr/nekotv/Ui.kt:193: Warning: Use the KTX extension function SharedPreferences.edit instead? [UseKtx]
+                prefs.edit().putBoolean("oled", !prefs.getBoolean("oled", false)).apply()
+                ~~~~~~~~~~~~
+/home/leon/TvSama_fixed_v2/TvSama_fixed/app/src/main/java/fr/nekotv/Ui.kt:197: Warning: Use the KTX extension function SharedPreferences.edit instead? [UseKtx]
+            Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) { listOf("Accueil", "Reprendre", "Ma liste").forEach { value -> Action(value, selected = startup == value) { startup = value; prefs.edit().putString("startup", value).apply() } } }
+                                                                                                                                                                                                  ~~~~~~~~~~~~
+/home/leon/TvSama_fixed_v2/TvSama_fixed/app/src/main/java/fr/nekotv/Ui.kt:200: Warning: Use the KTX extension function SharedPreferences.edit instead? [UseKtx]
+            Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) { listOf("Confort", "Compact").forEach { value -> Action(value, selected = density == value) { density = value; prefs.edit().putString("density", value).apply() } } }
+                                                                                                                                                                                    ~~~~~~~~~~~~
+/home/leon/TvSama_fixed_v2/TvSama_fixed/app/src/main/java/fr/nekotv/Ui.kt:203: Warning: Use the KTX extension function SharedPreferences.edit instead? [UseKtx]
+            Action(if (motion) "Activées" else "Réduites", selected = motion) { motion = !motion; prefs.edit().putBoolean("motion", motion).apply() }
+                                                                                                  ~~~~~~~~~~~~
+/home/leon/TvSama_fixed_v2/TvSama_fixed/app/src/main/java/fr/nekotv/Ui.kt:211: Warning: Use the KTX extension function SharedPreferences.edit instead? [UseKtx]
+        Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) { Action("Effacer l’historique") { onClearHistory() }; Action("Réinitialiser les préférences") { prefs.edit().clear().apply() } }
+                                                                                                                                                                  ~~~~~~~~~~~~
+
+   Explanation for issues of type "UseKtx":
+   The Android KTX libraries decorates the Android platform SDK as well as
+   various libraries with more convenient extension functions available from
+   Kotlin, allowing you to use default parameters, named parameters, and
+   more.
+
+   Available options:
+
+   **remove-defaults** (default is true):
+   Whether to skip arguments that match the defaults provided by the extension.
+
+   Extensions often provide default values for some of the parameters. For example:
+   ```kotlin
+   fun Path.readLines(charset: Charset = Charsets.UTF_8): List<String> { return Files.readAllLines(this, charset) }
+   ```
+   This lint check will by default automatically omit parameters that match the default, so if your code was calling
+
+   ```kotlin
+   Files.readAllLines(file, Charset.UTF_8)
+   ```
+   lint would replace this with
+   ```kotlin
+   file.readLines()
+   ```
+   rather than
+
+   ```kotlin
+   file.readLines(Charset.UTF_8
+   ```
+   You can turn this behavior off using this option.
+
+   To configure this option, use a `lint.xml` file with an <option> like this:
+
+   ```xml
+   <lint>
+       <issue id="UseKtx">
+           <option name="remove-defaults" value="true" />
+       </issue>
+   </lint>
+   ```
+
+   **require-present** (default is true):
+   Whether to only offer extensions already available.
+
+   This option lets you only have lint suggest extension replacements if those extensions are already available on the class path (in other words, you're already depending on the library containing the extension method.)
+
+   To configure this option, use a `lint.xml` file with an <option> like this:
+
+   ```xml
+   <lint>
+       <issue id="UseKtx">
+           <option name="require-present" value="true" />
+       </issue>
+   </lint>
+   ```
+
+/home/leon/TvSama_fixed_v2/TvSama_fixed/app/src/main/java/fr/nekotv/Playback.kt:314: Warning: onTouch lambda should call View#performClick when a click is detected [ClickableViewAccessibility]
+                setOnTouchListener { _, event -> gestures.onTouchEvent(event); false }
+                                   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+   Explanation for issues of type "ClickableViewAccessibility":
+   If a View that overrides onTouchEvent or uses an OnTouchListener does not
+   also implement performClick and call it when clicks are detected, the View
+   may not handle accessibility actions properly. Logic handling the click
+   actions should ideally be placed in View#performClick as some accessibility
+   services invoke performClick when a click action should occur.
+
+4 errors, 58 warnings

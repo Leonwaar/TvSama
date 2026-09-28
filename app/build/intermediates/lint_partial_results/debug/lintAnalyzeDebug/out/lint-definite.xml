@@ -1,0 +1,2453 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<incidents format="6" by="lint 8.13.2" type="incidents">
+
+    <incident
+        id="SuspiciousIndentation"
+        severity="error"
+        message="Suspicious indentation: This is indented but is not nested under the previous expression (`if (language != &quot;Tou`...)">
+        <location
+            file="${:app*debug*MAIN*sourceProvider*0*javaDir*0}/fr/nekotv/StreamFlixProviderManager.kt"
+            line="309"
+            column="33"
+            startOffset="17968"
+            endLine="309"
+            endColumn="94"
+            endOffset="18029"/>
+        <location
+            file="${:app*debug*MAIN*sourceProvider*0*javaDir*0}/fr/nekotv/StreamFlixProviderManager.kt"
+            line="308"
+            column="25"
+            startOffset="17866"
+            endLine="308"
+            endColumn="94"
+            endOffset="17935"
+            message="Previous statement here"/>
+    </incident>
+
+    <incident
+        id="VectorRaster"
+        severity="warning"
+        message="Limit vector icons sizes to 200×200 to keep icon drawing fast; see https://developer.android.com/studio/write/vector-asset-studio#when for more">
+        <location
+            file="${:app*debug*MAIN*sourceProvider*0*resDir*0}/drawable/tvsama_banner.xml"
+            line="2"
+            column="20"
+            startOffset="86"
+            endLine="2"
+            endColumn="25"
+            endOffset="91"/>
+    </incident>
+
+    <incident
+        id="AndroidGradlePluginVersion"
+        severity="warning"
+        message="A newer version of Gradle than 8.13 is available: 8.14.5">
+        <fix-replace
+            description="Update to 8.14.5"
+            oldString="8.13"
+            replacement="8.14.5"
+            priority="0"/>
+        <location
+            file="$HOME/TvSama_fixed_v2/TvSama_fixed/gradle/wrapper/gradle-wrapper.properties"
+            line="3"
+            column="17"
+            startOffset="81"
+            endLine="3"
+            endColumn="79"
+            endOffset="143"/>
+    </incident>
+
+    <incident
+        id="GradleDependency"
+        severity="warning"
+        message="A newer version of androidx.fragment:fragment-ktx than 1.8.6 is available: 1.9.1">
+        <fix-replace
+            description="Change to 1.9.1"
+            family="Update versions"
+            oldString="1.8.6"
+            replacement="1.9.1"
+            priority="0"/>
+        <location
+            file="${:app*projectDir}/build.gradle.kts"
+            line="41"
+            column="20"
+            startOffset="1354"
+            endLine="41"
+            endColumn="58"
+            endOffset="1392"/>
+    </incident>
+
+    <incident
+        id="GradleDependency"
+        severity="warning"
+        message="A newer version of androidx.compose:compose-bom than 2025.08.00 is available: 2026.09.00">
+        <fix-replace
+            description="Change to 2026.09.00"
+            family="Update versions"
+            oldString="2025.08.00"
+            replacement="2026.09.00"
+            priority="0"/>
+        <location
+            file="${:app*projectDir}/build.gradle.kts"
+            line="43"
+            column="20"
+            startOffset="1477"
+            endLine="43"
+            endColumn="71"
+            endOffset="1528"/>
+    </incident>
+
+    <incident
+        id="GradleDependency"
+        severity="warning"
+        message="A newer version of androidx.lifecycle:lifecycle-runtime-ktx than 2.10.0 is available: 2.11.0">
+        <fix-replace
+            description="Change to 2.11.0"
+            family="Update versions"
+            oldString="2.10.0"
+            replacement="2.11.0"
+            priority="0"/>
+        <location
+            file="${:app*projectDir}/build.gradle.kts"
+            line="48"
+            column="20"
+            startOffset="1766"
+            endLine="48"
+            endColumn="69"
+            endOffset="1815"/>
+    </incident>
+
+    <incident
+        id="GradleDependency"
+        severity="warning"
+        message="A newer version of androidx.media3:media3-exoplayer than 1.8.0 is available: 1.11.1">
+        <fix-replace
+            description="Change to 1.11.1"
+            family="Update versions"
+            oldString="1.8.0"
+            replacement="1.11.1"
+            priority="0"/>
+        <location
+            file="${:app*projectDir}/build.gradle.kts"
+            line="49"
+            column="20"
+            startOffset="1836"
+            endLine="49"
+            endColumn="60"
+            endOffset="1876"/>
+    </incident>
+
+    <incident
+        id="GradleDependency"
+        severity="warning"
+        message="A newer version of androidx.media3:media3-exoplayer-hls than 1.8.0 is available: 1.11.1">
+        <fix-replace
+            description="Change to 1.11.1"
+            family="Update versions"
+            oldString="1.8.0"
+            replacement="1.11.1"
+            priority="0"/>
+        <location
+            file="${:app*projectDir}/build.gradle.kts"
+            line="50"
+            column="20"
+            startOffset="1897"
+            endLine="50"
+            endColumn="64"
+            endOffset="1941"/>
+    </incident>
+
+    <incident
+        id="GradleDependency"
+        severity="warning"
+        message="A newer version of androidx.media3:media3-exoplayer-dash than 1.8.0 is available: 1.11.1">
+        <fix-replace
+            description="Change to 1.11.1"
+            family="Update versions"
+            oldString="1.8.0"
+            replacement="1.11.1"
+            priority="0"/>
+        <location
+            file="${:app*projectDir}/build.gradle.kts"
+            line="51"
+            column="20"
+            startOffset="1962"
+            endLine="51"
+            endColumn="65"
+            endOffset="2007"/>
+    </incident>
+
+    <incident
+        id="GradleDependency"
+        severity="warning"
+        message="A newer version of androidx.media3:media3-ui than 1.8.0 is available: 1.11.1">
+        <fix-replace
+            description="Change to 1.11.1"
+            family="Update versions"
+            oldString="1.8.0"
+            replacement="1.11.1"
+            priority="0"/>
+        <location
+            file="${:app*projectDir}/build.gradle.kts"
+            line="52"
+            column="20"
+            startOffset="2028"
+            endLine="52"
+            endColumn="53"
+            endOffset="2061"/>
+    </incident>
+
+    <incident
+        id="GradleDependency"
+        severity="warning"
+        message="A newer version of com.google.android.gms:play-services-cast-framework than 21.4.0 is available: 22.3.1">
+        <fix-replace
+            description="Change to 22.3.1"
+            family="Update versions"
+            oldString="21.4.0"
+            replacement="22.3.1"
+            priority="0"/>
+        <location
+            file="${:app*projectDir}/build.gradle.kts"
+            line="53"
+            column="20"
+            startOffset="2082"
+            endLine="53"
+            endColumn="80"
+            endOffset="2142"/>
+    </incident>
+
+    <incident
+        id="NewerVersionAvailable"
+        severity="warning"
+        message="A newer version of org.robolectric:robolectric than 4.14.1 is available: 4.17">
+        <fix-replace
+            description="Change to 4.17"
+            family="Update versions"
+            oldString="4.14.1"
+            replacement="4.17"
+            priority="0"/>
+        <location
+            file="${:app*projectDir}/build.gradle.kts"
+            line="37"
+            column="24"
+            startOffset="1119"
+            endLine="37"
+            endColumn="60"
+            endOffset="1155"/>
+    </incident>
+
+    <incident
+        id="NewerVersionAvailable"
+        severity="warning"
+        message="A newer version of com.github.bumptech.glide:glide than 5.0.0-rc01 is available: 5.0.9">
+        <fix-replace
+            description="Change to 5.0.9"
+            family="Update versions"
+            oldString="5.0.0-rc01"
+            replacement="5.0.9"
+            priority="0"/>
+        <location
+            file="${:app*projectDir}/build.gradle.kts"
+            line="40"
+            column="20"
+            startOffset="1289"
+            endLine="40"
+            endColumn="64"
+            endOffset="1333"/>
+    </incident>
+
+    <incident
+        id="NewerVersionAvailable"
+        severity="warning"
+        message="A newer version of com.google.zxing:core than 3.5.1 is available: 3.5.4">
+        <fix-replace
+            description="Change to 3.5.4"
+            family="Update versions"
+            oldString="3.5.1"
+            replacement="3.5.4"
+            priority="0"/>
+        <location
+            file="${:app*projectDir}/build.gradle.kts"
+            line="54"
+            column="20"
+            startOffset="2163"
+            endLine="54"
+            endColumn="49"
+            endOffset="2192"/>
+    </incident>
+
+    <incident
+        id="CompositionLocalNaming"
+        severity="warning"
+        message="CompositionLocal properties should be prefixed with `Local`">
+        <location
+            file="${:app*debug*MAIN*sourceProvider*0*javaDir*0}/fr/nekotv/Ui.kt"
+            line="31"
+            column="13"
+            startOffset="1200"
+            endLine="31"
+            endColumn="28"
+            endOffset="1215"/>
+    </incident>
+
+    <incident
+        id="ModifierParameter"
+        severity="warning"
+        message="Modifier parameter should be the first optional parameter">
+        <location
+            file="${:app*debug*MAIN*sourceProvider*0*javaDir*0}/fr/nekotv/Playback.kt"
+            line="64"
+            column="5"
+            startOffset="2539"
+            endLine="64"
+            endColumn="13"
+            endOffset="2547"/>
+    </incident>
+
+    <incident
+        id="ObsoleteSdkInt"
+        severity="warning"
+        message="Unnecessary; `SDK_INT` is always >= 23">
+        <fix-data conditional="true"/>
+        <location
+            file="${:app*debug*MAIN*sourceProvider*0*javaDir*0}/fr/nekotv/LiveReminders.kt"
+            line="37"
+            column="13"
+            startOffset="2022"
+            endLine="37"
+            endColumn="40"
+            endOffset="2049"/>
+    </incident>
+
+    <incident
+        id="UseKtx"
+        severity="warning"
+        message="Use the KTX extension function `SharedPreferences.edit` instead?">
+        <fix-composite
+            description="Replace with the edit extension function"
+            family="Replace with the edit extension function"
+            robot="true"
+            independent="true">
+            <fix-replace
+                description="Delete &quot;val edit = &quot;"
+                robot="true"
+                independent="true"
+                oldString="val edit = "
+                replacement=""
+                priority="0">
+                <range
+                    file="${:app*debug*MAIN*sourceProvider*0*javaDir*0}/fr/nekotv/AdvancedSettings.kt"
+                    startOffset="5314"
+                    endOffset="5325"/>
+            </fix-replace>
+            <fix-replace
+                description="Replace with edit"
+                robot="true"
+                independent="true"
+                oldString="edit("
+                replacement="edit"
+                reformat="value"
+                imports="androidx.core.content.edit"
+                priority="0">
+                <range
+                    file="${:app*debug*MAIN*sourceProvider*0*javaDir*0}/fr/nekotv/AdvancedSettings.kt"
+                    startOffset="5382"
+                    endOffset="5387"/>
+            </fix-replace>
+            <fix-replace
+                description="Replace with (commit = true) {"
+                robot="true"
+                independent="true"
+                oldString=")"
+                replacement="(commit = true) {"
+                priority="0">
+                <range
+                    file="${:app*debug*MAIN*sourceProvider*0*javaDir*0}/fr/nekotv/AdvancedSettings.kt"
+                    startOffset="5387"
+                    endOffset="5388"/>
+            </fix-replace>
+            <fix-replace
+                description="Delete &quot;edit.&quot;"
+                robot="true"
+                independent="true"
+                oldString="edit."
+                replacement=""
+                priority="0">
+                <range
+                    file="${:app*debug*MAIN*sourceProvider*0*javaDir*0}/fr/nekotv/AdvancedSettings.kt"
+                    startOffset="5641"
+                    endOffset="5646"/>
+            </fix-replace>
+            <fix-replace
+                description="Delete &quot;edit.&quot;"
+                robot="true"
+                independent="true"
+                oldString="edit."
+                replacement=""
+                priority="0">
+                <range
+                    file="${:app*debug*MAIN*sourceProvider*0*javaDir*0}/fr/nekotv/AdvancedSettings.kt"
+                    startOffset="5736"
+                    endOffset="5741"/>
+            </fix-replace>
+            <fix-replace
+                description="Delete &quot;edit.&quot;"
+                robot="true"
+                independent="true"
+                oldString="edit."
+                replacement=""
+                priority="0">
+                <range
+                    file="${:app*debug*MAIN*sourceProvider*0*javaDir*0}/fr/nekotv/AdvancedSettings.kt"
+                    startOffset="5829"
+                    endOffset="5834"/>
+            </fix-replace>
+            <fix-replace
+                description="Delete &quot;edit.&quot;"
+                robot="true"
+                independent="true"
+                oldString="edit."
+                replacement=""
+                priority="0">
+                <range
+                    file="${:app*debug*MAIN*sourceProvider*0*javaDir*0}/fr/nekotv/AdvancedSettings.kt"
+                    startOffset="5915"
+                    endOffset="5920"/>
+            </fix-replace>
+            <fix-replace
+                description="Delete &quot;edit.&quot;"
+                robot="true"
+                independent="true"
+                oldString="edit."
+                replacement=""
+                priority="0">
+                <range
+                    file="${:app*debug*MAIN*sourceProvider*0*javaDir*0}/fr/nekotv/AdvancedSettings.kt"
+                    startOffset="6004"
+                    endOffset="6009"/>
+            </fix-replace>
+            <fix-replace
+                description="Delete &quot;edit.&quot;"
+                robot="true"
+                independent="true"
+                oldString="edit."
+                replacement=""
+                priority="0">
+                <range
+                    file="${:app*debug*MAIN*sourceProvider*0*javaDir*0}/fr/nekotv/AdvancedSettings.kt"
+                    startOffset="6108"
+                    endOffset="6113"/>
+            </fix-replace>
+            <fix-replace
+                description="Replace with }"
+                robot="true"
+                independent="true"
+                oldString="edit.commit()"
+                replacement="}"
+                priority="0">
+                <range
+                    file="${:app*debug*MAIN*sourceProvider*0*javaDir*0}/fr/nekotv/AdvancedSettings.kt"
+                    startOffset="6336"
+                    endOffset="6349"/>
+            </fix-replace>
+            <fix-replace
+                description="Replace with     "
+                robot="true"
+                independent="true"
+                oldString=""
+                replacement="    "
+                priority="0">
+                <range
+                    file="${:app*debug*MAIN*sourceProvider*0*javaDir*0}/fr/nekotv/AdvancedSettings.kt"
+                    startOffset="5397"
+                    endOffset="5397"/>
+            </fix-replace>
+            <fix-replace
+                description="Replace with     "
+                robot="true"
+                independent="true"
+                oldString=""
+                replacement="    "
+                priority="0">
+                <range
+                    file="${:app*debug*MAIN*sourceProvider*0*javaDir*0}/fr/nekotv/AdvancedSettings.kt"
+                    startOffset="5457"
+                    endOffset="5457"/>
+            </fix-replace>
+            <fix-replace
+                description="Replace with     "
+                robot="true"
+                independent="true"
+                oldString=""
+                replacement="    "
+                priority="0">
+                <range
+                    file="${:app*debug*MAIN*sourceProvider*0*javaDir*0}/fr/nekotv/AdvancedSettings.kt"
+                    startOffset="5528"
+                    endOffset="5528"/>
+            </fix-replace>
+            <fix-replace
+                description="Replace with     "
+                robot="true"
+                independent="true"
+                oldString=""
+                replacement="    "
+                priority="0">
+                <range
+                    file="${:app*debug*MAIN*sourceProvider*0*javaDir*0}/fr/nekotv/AdvancedSettings.kt"
+                    startOffset="5593"
+                    endOffset="5593"/>
+            </fix-replace>
+            <fix-replace
+                description="Replace with     "
+                robot="true"
+                independent="true"
+                oldString=""
+                replacement="    "
+                priority="0">
+                <range
+                    file="${:app*debug*MAIN*sourceProvider*0*javaDir*0}/fr/nekotv/AdvancedSettings.kt"
+                    startOffset="5687"
+                    endOffset="5687"/>
+            </fix-replace>
+            <fix-replace
+                description="Replace with     "
+                robot="true"
+                independent="true"
+                oldString=""
+                replacement="    "
+                priority="0">
+                <range
+                    file="${:app*debug*MAIN*sourceProvider*0*javaDir*0}/fr/nekotv/AdvancedSettings.kt"
+                    startOffset="5784"
+                    endOffset="5784"/>
+            </fix-replace>
+            <fix-replace
+                description="Replace with     "
+                robot="true"
+                independent="true"
+                oldString=""
+                replacement="    "
+                priority="0">
+                <range
+                    file="${:app*debug*MAIN*sourceProvider*0*javaDir*0}/fr/nekotv/AdvancedSettings.kt"
+                    startOffset="5869"
+                    endOffset="5869"/>
+            </fix-replace>
+            <fix-replace
+                description="Replace with     "
+                robot="true"
+                independent="true"
+                oldString=""
+                replacement="    "
+                priority="0">
+                <range
+                    file="${:app*debug*MAIN*sourceProvider*0*javaDir*0}/fr/nekotv/AdvancedSettings.kt"
+                    startOffset="5957"
+                    endOffset="5957"/>
+            </fix-replace>
+            <fix-replace
+                description="Replace with     "
+                robot="true"
+                independent="true"
+                oldString=""
+                replacement="    "
+                priority="0">
+                <range
+                    file="${:app*debug*MAIN*sourceProvider*0*javaDir*0}/fr/nekotv/AdvancedSettings.kt"
+                    startOffset="6059"
+                    endOffset="6059"/>
+            </fix-replace>
+            <fix-replace
+                description="Replace with     "
+                robot="true"
+                independent="true"
+                oldString=""
+                replacement="    "
+                priority="0">
+                <range
+                    file="${:app*debug*MAIN*sourceProvider*0*javaDir*0}/fr/nekotv/AdvancedSettings.kt"
+                    startOffset="6238"
+                    endOffset="6238"/>
+            </fix-replace>
+            <fix-replace
+                description="Replace with     "
+                robot="true"
+                independent="true"
+                oldString=""
+                replacement="    "
+                priority="0">
+                <range
+                    file="${:app*debug*MAIN*sourceProvider*0*javaDir*0}/fr/nekotv/AdvancedSettings.kt"
+                    startOffset="6272"
+                    endOffset="6272"/>
+            </fix-replace>
+        </fix-composite>
+        <location
+            file="${:app*debug*MAIN*sourceProvider*0*javaDir*0}/fr/nekotv/AdvancedSettings.kt"
+            line="98"
+            column="40"
+            startOffset="5325"
+            endLine="98"
+            endColumn="103"
+            endOffset="5388"/>
+    </incident>
+
+    <incident
+        id="UseKtx"
+        severity="warning"
+        message="Use the KTX extension function `String.toUri` instead?">
+        <fix-replace
+            description="Replace with the toUri extension function"
+            family="Replace with the toUri extension function"
+            robot="true"
+            independent="true"
+            oldString="Uri.parse(&quot;package:${context.packageName}&quot;)"
+            replacement="&quot;package:${context.packageName}&quot;.toUri()"
+            reformat="value"
+            imports="androidx.core.net.toUri"
+            priority="0">
+            <range
+                file="${:app*debug*MAIN*sourceProvider*0*javaDir*0}/fr/nekotv/AppUpdates.kt"
+                startOffset="8578"
+                endOffset="8621"/>
+        </fix-replace>
+        <location
+            file="${:app*debug*MAIN*sourceProvider*0*javaDir*0}/fr/nekotv/AppUpdates.kt"
+            line="141"
+            column="103"
+            startOffset="8578"
+            endLine="141"
+            endColumn="146"
+            endOffset="8621"/>
+    </incident>
+
+    <incident
+        id="UseKtx"
+        severity="warning"
+        message="Use the KTX extension function `String.toUri` instead?">
+        <fix-replace
+            description="Replace with the toUri extension function"
+            family="Replace with the toUri extension function"
+            robot="true"
+            independent="true"
+            oldString="android.net.Uri.parse(raw)"
+            replacement="raw.toUri()"
+            reformat="value"
+            imports="androidx.core.net.toUri"
+            priority="0">
+            <range
+                file="${:app*debug*MAIN*sourceProvider*0*javaDir*0}/fr/nekotv/CastSupport.kt"
+                startOffset="3594"
+                endOffset="3620"/>
+        </fix-replace>
+        <location
+            file="${:app*debug*MAIN*sourceProvider*0*javaDir*0}/fr/nekotv/CastSupport.kt"
+            line="70"
+            column="23"
+            startOffset="3594"
+            endLine="70"
+            endColumn="49"
+            endOffset="3620"/>
+    </incident>
+
+    <incident
+        id="UseKtx"
+        severity="warning"
+        message="Use the KTX extension function `SharedPreferences.edit` instead?">
+        <fix-composite
+            description="Replace with the edit extension function"
+            family="Replace with the edit extension function"
+            robot="true"
+            independent="true">
+            <fix-replace
+                description="Replace with edit"
+                robot="true"
+                independent="true"
+                oldString="edit("
+                replacement="edit"
+                reformat="value"
+                imports="androidx.core.content.edit"
+                priority="0">
+                <range
+                    file="${:app*debug*MAIN*sourceProvider*0*javaDir*0}/fr/nekotv/CastSupport.kt"
+                    startOffset="3861"
+                    endOffset="3866"/>
+            </fix-replace>
+            <fix-replace
+                description="Replace with  {"
+                robot="true"
+                independent="true"
+                oldString=")"
+                replacement=" {"
+                priority="0">
+                <range
+                    file="${:app*debug*MAIN*sourceProvider*0*javaDir*0}/fr/nekotv/CastSupport.kt"
+                    startOffset="3866"
+                    endOffset="3867"/>
+            </fix-replace>
+            <fix-replace
+                description="Delete &quot;.&quot;"
+                robot="true"
+                independent="true"
+                oldString="."
+                replacement=""
+                priority="0">
+                <range
+                    file="${:app*debug*MAIN*sourceProvider*0*javaDir*0}/fr/nekotv/CastSupport.kt"
+                    startOffset="3867"
+                    endOffset="3868"/>
+            </fix-replace>
+            <fix-replace
+                description="Replace with }"
+                robot="true"
+                independent="true"
+                oldString=".apply()"
+                replacement="}"
+                priority="0">
+                <range
+                    file="${:app*debug*MAIN*sourceProvider*0*javaDir*0}/fr/nekotv/CastSupport.kt"
+                    startOffset="3998"
+                    endOffset="4006"/>
+            </fix-replace>
+        </fix-composite>
+        <location
+            file="${:app*debug*MAIN*sourceProvider*0*javaDir*0}/fr/nekotv/CastSupport.kt"
+            line="73"
+            column="17"
+            startOffset="3810"
+            endLine="73"
+            endColumn="74"
+            endOffset="3867"/>
+    </incident>
+
+    <incident
+        id="UseKtx"
+        severity="warning"
+        message="Use the KTX extension function `SharedPreferences.edit` instead?">
+        <fix-composite
+            description="Replace with the edit extension function"
+            family="Replace with the edit extension function"
+            robot="true"
+            independent="true">
+            <fix-replace
+                description="Replace with edit"
+                robot="true"
+                independent="true"
+                oldString="edit("
+                replacement="edit"
+                reformat="value"
+                imports="androidx.core.content.edit"
+                priority="0">
+                <range
+                    file="${:app*debug*MAIN*sourceProvider*0*javaDir*0}/fr/nekotv/CastSupport.kt"
+                    startOffset="4430"
+                    endOffset="4435"/>
+            </fix-replace>
+            <fix-replace
+                description="Replace with  {"
+                robot="true"
+                independent="true"
+                oldString=")"
+                replacement=" {"
+                priority="0">
+                <range
+                    file="${:app*debug*MAIN*sourceProvider*0*javaDir*0}/fr/nekotv/CastSupport.kt"
+                    startOffset="4435"
+                    endOffset="4436"/>
+            </fix-replace>
+            <fix-replace
+                description="Delete &quot;.&quot;"
+                robot="true"
+                independent="true"
+                oldString="."
+                replacement=""
+                priority="0">
+                <range
+                    file="${:app*debug*MAIN*sourceProvider*0*javaDir*0}/fr/nekotv/CastSupport.kt"
+                    startOffset="4436"
+                    endOffset="4437"/>
+            </fix-replace>
+            <fix-replace
+                description="Replace with }"
+                robot="true"
+                independent="true"
+                oldString=".apply()"
+                replacement="}"
+                priority="0">
+                <range
+                    file="${:app*debug*MAIN*sourceProvider*0*javaDir*0}/fr/nekotv/CastSupport.kt"
+                    startOffset="4467"
+                    endOffset="4475"/>
+            </fix-replace>
+        </fix-composite>
+        <location
+            file="${:app*debug*MAIN*sourceProvider*0*javaDir*0}/fr/nekotv/CastSupport.kt"
+            line="80"
+            column="113"
+            startOffset="4424"
+            endLine="80"
+            endColumn="125"
+            endOffset="4436"/>
+    </incident>
+
+    <incident
+        id="UseKtx"
+        severity="warning"
+        message="Use the KTX function `createBitmap` instead?">
+        <fix-replace
+            description="Replace with the createBitmap function"
+            family="Replace with the createBitmap function"
+            robot="true"
+            independent="true"
+            oldString="Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888)"
+            replacement="createBitmap(size, size)"
+            reformat="value"
+            imports="androidx.core.graphics.createBitmap"
+            priority="0">
+            <range
+                file="${:app*debug*MAIN*sourceProvider*0*javaDir*0}/fr/nekotv/CastSupport.kt"
+                startOffset="6597"
+                endOffset="6653"/>
+        </fix-replace>
+        <location
+            file="${:app*debug*MAIN*sourceProvider*0*javaDir*0}/fr/nekotv/CastSupport.kt"
+            line="107"
+            column="12"
+            startOffset="6597"
+            endLine="107"
+            endColumn="68"
+            endOffset="6653"/>
+    </incident>
+
+    <incident
+        id="UseKtx"
+        severity="warning"
+        message="Use the KTX extension function `Bitmap.set` instead?">
+        <fix-replace
+            description="Replace with the set extension function"
+            family="Replace with the set extension function"
+            robot="true"
+            independent="true"
+            oldString="bitmap.setPixel(x, y, if (matrix[x, y]) AndroidColor.BLACK else AndroidColor.WHITE)"
+            replacement="bitmap[x, y] = if (matrix[x, y]) AndroidColor.BLACK else AndroidColor.WHITE"
+            reformat="value"
+            imports="androidx.core.graphics.set"
+            priority="0">
+            <range
+                file="${:app*debug*MAIN*sourceProvider*0*javaDir*0}/fr/nekotv/CastSupport.kt"
+                startOffset="6727"
+                endOffset="6810"/>
+        </fix-replace>
+        <location
+            file="${:app*debug*MAIN*sourceProvider*0*javaDir*0}/fr/nekotv/CastSupport.kt"
+            line="108"
+            column="57"
+            startOffset="6727"
+            endLine="108"
+            endColumn="140"
+            endOffset="6810"/>
+    </incident>
+
+    <incident
+        id="UseKtx"
+        severity="warning"
+        message="Use the KTX extension function `SharedPreferences.edit` instead?">
+        <fix-composite
+            description="Replace with the edit extension function"
+            family="Replace with the edit extension function"
+            robot="true"
+            independent="true">
+            <fix-replace
+                description="Replace with edit"
+                robot="true"
+                independent="true"
+                oldString="edit("
+                replacement="edit"
+                reformat="value"
+                imports="androidx.core.content.edit"
+                priority="0">
+                <range
+                    file="${:app*debug*MAIN*sourceProvider*0*javaDir*0}/fr/nekotv/LibraryStore.kt"
+                    startOffset="2982"
+                    endOffset="2987"/>
+            </fix-replace>
+            <fix-replace
+                description="Replace with  {"
+                robot="true"
+                independent="true"
+                oldString=")"
+                replacement=" {"
+                priority="0">
+                <range
+                    file="${:app*debug*MAIN*sourceProvider*0*javaDir*0}/fr/nekotv/LibraryStore.kt"
+                    startOffset="2987"
+                    endOffset="2988"/>
+            </fix-replace>
+            <fix-replace
+                description="Delete &quot;.&quot;"
+                robot="true"
+                independent="true"
+                oldString="."
+                replacement=""
+                priority="0">
+                <range
+                    file="${:app*debug*MAIN*sourceProvider*0*javaDir*0}/fr/nekotv/LibraryStore.kt"
+                    startOffset="2988"
+                    endOffset="2989"/>
+            </fix-replace>
+            <fix-replace
+                description="Replace with }"
+                robot="true"
+                independent="true"
+                oldString=".apply()"
+                replacement="}"
+                priority="0">
+                <range
+                    file="${:app*debug*MAIN*sourceProvider*0*javaDir*0}/fr/nekotv/LibraryStore.kt"
+                    startOffset="3098"
+                    endOffset="3106"/>
+            </fix-replace>
+        </fix-composite>
+        <location
+            file="${:app*debug*MAIN*sourceProvider*0*javaDir*0}/fr/nekotv/LibraryStore.kt"
+            line="46"
+            column="36"
+            startOffset="2976"
+            endLine="46"
+            endColumn="48"
+            endOffset="2988"/>
+    </incident>
+
+    <incident
+        id="UseKtx"
+        severity="warning"
+        message="Use the KTX extension function `SharedPreferences.edit` instead?">
+        <fix-composite
+            description="Replace with the edit extension function"
+            family="Replace with the edit extension function"
+            robot="true"
+            independent="true">
+            <fix-replace
+                description="Replace with edit"
+                robot="true"
+                independent="true"
+                oldString="edit("
+                replacement="edit"
+                reformat="value"
+                imports="androidx.core.content.edit"
+                priority="0">
+                <range
+                    file="${:app*debug*MAIN*sourceProvider*0*javaDir*0}/fr/nekotv/LibraryStore.kt"
+                    startOffset="4028"
+                    endOffset="4033"/>
+            </fix-replace>
+            <fix-replace
+                description="Replace with  {"
+                robot="true"
+                independent="true"
+                oldString=")"
+                replacement=" {"
+                priority="0">
+                <range
+                    file="${:app*debug*MAIN*sourceProvider*0*javaDir*0}/fr/nekotv/LibraryStore.kt"
+                    startOffset="4033"
+                    endOffset="4034"/>
+            </fix-replace>
+            <fix-replace
+                description="Delete &quot;.&quot;"
+                robot="true"
+                independent="true"
+                oldString="."
+                replacement=""
+                priority="0">
+                <range
+                    file="${:app*debug*MAIN*sourceProvider*0*javaDir*0}/fr/nekotv/LibraryStore.kt"
+                    startOffset="4034"
+                    endOffset="4035"/>
+            </fix-replace>
+            <fix-replace
+                description="Replace with }"
+                robot="true"
+                independent="true"
+                oldString=".apply()"
+                replacement="}"
+                priority="0">
+                <range
+                    file="${:app*debug*MAIN*sourceProvider*0*javaDir*0}/fr/nekotv/LibraryStore.kt"
+                    startOffset="4136"
+                    endOffset="4144"/>
+            </fix-replace>
+        </fix-composite>
+        <location
+            file="${:app*debug*MAIN*sourceProvider*0*javaDir*0}/fr/nekotv/LibraryStore.kt"
+            line="59"
+            column="9"
+            startOffset="4022"
+            endLine="59"
+            endColumn="21"
+            endOffset="4034"/>
+    </incident>
+
+    <incident
+        id="UseKtx"
+        severity="warning"
+        message="Use the KTX extension function `SharedPreferences.edit` instead?">
+        <fix-composite
+            description="Replace with the edit extension function"
+            family="Replace with the edit extension function"
+            robot="true"
+            independent="true">
+            <fix-replace
+                description="Replace with edit"
+                robot="true"
+                independent="true"
+                oldString="edit("
+                replacement="edit"
+                reformat="value"
+                imports="androidx.core.content.edit"
+                priority="0">
+                <range
+                    file="${:app*debug*MAIN*sourceProvider*0*javaDir*0}/fr/nekotv/LibraryStore.kt"
+                    startOffset="4680"
+                    endOffset="4685"/>
+            </fix-replace>
+            <fix-replace
+                description="Replace with  {"
+                robot="true"
+                independent="true"
+                oldString=")"
+                replacement=" {"
+                priority="0">
+                <range
+                    file="${:app*debug*MAIN*sourceProvider*0*javaDir*0}/fr/nekotv/LibraryStore.kt"
+                    startOffset="4685"
+                    endOffset="4686"/>
+            </fix-replace>
+            <fix-replace
+                description="Delete &quot;.&quot;"
+                robot="true"
+                independent="true"
+                oldString="."
+                replacement=""
+                priority="0">
+                <range
+                    file="${:app*debug*MAIN*sourceProvider*0*javaDir*0}/fr/nekotv/LibraryStore.kt"
+                    startOffset="4686"
+                    endOffset="4687"/>
+            </fix-replace>
+            <fix-replace
+                description="Replace with }"
+                robot="true"
+                independent="true"
+                oldString=".apply()"
+                replacement="}"
+                priority="0">
+                <range
+                    file="${:app*debug*MAIN*sourceProvider*0*javaDir*0}/fr/nekotv/LibraryStore.kt"
+                    startOffset="4728"
+                    endOffset="4736"/>
+            </fix-replace>
+        </fix-composite>
+        <location
+            file="${:app*debug*MAIN*sourceProvider*0*javaDir*0}/fr/nekotv/LibraryStore.kt"
+            line="63"
+            column="26"
+            startOffset="4674"
+            endLine="63"
+            endColumn="38"
+            endOffset="4686"/>
+    </incident>
+
+    <incident
+        id="UseKtx"
+        severity="warning"
+        message="Use the KTX extension function `SharedPreferences.edit` instead?">
+        <fix-composite
+            description="Replace with the edit extension function"
+            family="Replace with the edit extension function"
+            robot="true"
+            independent="true">
+            <fix-replace
+                description="Replace with edit"
+                robot="true"
+                independent="true"
+                oldString="edit("
+                replacement="edit"
+                reformat="value"
+                imports="androidx.core.content.edit"
+                priority="0">
+                <range
+                    file="${:app*debug*MAIN*sourceProvider*0*javaDir*0}/fr/nekotv/LibraryStore.kt"
+                    startOffset="5365"
+                    endOffset="5370"/>
+            </fix-replace>
+            <fix-replace
+                description="Replace with  {"
+                robot="true"
+                independent="true"
+                oldString=")"
+                replacement=" {"
+                priority="0">
+                <range
+                    file="${:app*debug*MAIN*sourceProvider*0*javaDir*0}/fr/nekotv/LibraryStore.kt"
+                    startOffset="5370"
+                    endOffset="5371"/>
+            </fix-replace>
+            <fix-replace
+                description="Delete &quot;.&quot;"
+                robot="true"
+                independent="true"
+                oldString="."
+                replacement=""
+                priority="0">
+                <range
+                    file="${:app*debug*MAIN*sourceProvider*0*javaDir*0}/fr/nekotv/LibraryStore.kt"
+                    startOffset="5371"
+                    endOffset="5372"/>
+            </fix-replace>
+            <fix-replace
+                description="Replace with }"
+                robot="true"
+                independent="true"
+                oldString=".apply()"
+                replacement="}"
+                priority="0">
+                <range
+                    file="${:app*debug*MAIN*sourceProvider*0*javaDir*0}/fr/nekotv/LibraryStore.kt"
+                    startOffset="5400"
+                    endOffset="5408"/>
+            </fix-replace>
+        </fix-composite>
+        <location
+            file="${:app*debug*MAIN*sourceProvider*0*javaDir*0}/fr/nekotv/LibraryStore.kt"
+            line="71"
+            column="38"
+            startOffset="5359"
+            endLine="71"
+            endColumn="50"
+            endOffset="5371"/>
+    </incident>
+
+    <incident
+        id="UseKtx"
+        severity="warning"
+        message="Use the KTX extension function `SharedPreferences.edit` instead?">
+        <fix-composite
+            description="Replace with the edit extension function"
+            family="Replace with the edit extension function"
+            robot="true"
+            independent="true">
+            <fix-replace
+                description="Replace with edit"
+                robot="true"
+                independent="true"
+                oldString="edit("
+                replacement="edit"
+                reformat="value"
+                imports="androidx.core.content.edit"
+                priority="0">
+                <range
+                    file="${:app*debug*MAIN*sourceProvider*0*javaDir*0}/fr/nekotv/LibraryStore.kt"
+                    startOffset="5520"
+                    endOffset="5525"/>
+            </fix-replace>
+            <fix-replace
+                description="Replace with  {"
+                robot="true"
+                independent="true"
+                oldString=")"
+                replacement=" {"
+                priority="0">
+                <range
+                    file="${:app*debug*MAIN*sourceProvider*0*javaDir*0}/fr/nekotv/LibraryStore.kt"
+                    startOffset="5525"
+                    endOffset="5526"/>
+            </fix-replace>
+            <fix-replace
+                description="Delete &quot;.&quot;"
+                robot="true"
+                independent="true"
+                oldString="."
+                replacement=""
+                priority="0">
+                <range
+                    file="${:app*debug*MAIN*sourceProvider*0*javaDir*0}/fr/nekotv/LibraryStore.kt"
+                    startOffset="5526"
+                    endOffset="5527"/>
+            </fix-replace>
+            <fix-replace
+                description="Replace with }"
+                robot="true"
+                independent="true"
+                oldString=".apply()"
+                replacement="}"
+                priority="0">
+                <range
+                    file="${:app*debug*MAIN*sourceProvider*0*javaDir*0}/fr/nekotv/LibraryStore.kt"
+                    startOffset="5556"
+                    endOffset="5564"/>
+            </fix-replace>
+        </fix-composite>
+        <location
+            file="${:app*debug*MAIN*sourceProvider*0*javaDir*0}/fr/nekotv/LibraryStore.kt"
+            line="73"
+            column="39"
+            startOffset="5514"
+            endLine="73"
+            endColumn="51"
+            endOffset="5526"/>
+    </incident>
+
+    <incident
+        id="UseKtx"
+        severity="warning"
+        message="Use the KTX extension function `SharedPreferences.edit` instead?">
+        <fix-composite
+            description="Replace with the edit extension function"
+            family="Replace with the edit extension function"
+            robot="true"
+            independent="true">
+            <fix-replace
+                description="Replace with edit"
+                robot="true"
+                independent="true"
+                oldString="edit("
+                replacement="edit"
+                reformat="value"
+                imports="androidx.core.content.edit"
+                priority="0">
+                <range
+                    file="${:app*debug*MAIN*sourceProvider*0*javaDir*0}/fr/nekotv/LibraryStore.kt"
+                    startOffset="5952"
+                    endOffset="5957"/>
+            </fix-replace>
+            <fix-replace
+                description="Replace with  {"
+                robot="true"
+                independent="true"
+                oldString=")"
+                replacement=" {"
+                priority="0">
+                <range
+                    file="${:app*debug*MAIN*sourceProvider*0*javaDir*0}/fr/nekotv/LibraryStore.kt"
+                    startOffset="5957"
+                    endOffset="5958"/>
+            </fix-replace>
+            <fix-replace
+                description="Delete &quot;.&quot;"
+                robot="true"
+                independent="true"
+                oldString="."
+                replacement=""
+                priority="0">
+                <range
+                    file="${:app*debug*MAIN*sourceProvider*0*javaDir*0}/fr/nekotv/LibraryStore.kt"
+                    startOffset="5958"
+                    endOffset="5959"/>
+            </fix-replace>
+            <fix-replace
+                description="Replace with }"
+                robot="true"
+                independent="true"
+                oldString=".apply()"
+                replacement="}"
+                priority="0">
+                <range
+                    file="${:app*debug*MAIN*sourceProvider*0*javaDir*0}/fr/nekotv/LibraryStore.kt"
+                    startOffset="6002"
+                    endOffset="6010"/>
+            </fix-replace>
+        </fix-composite>
+        <location
+            file="${:app*debug*MAIN*sourceProvider*0*javaDir*0}/fr/nekotv/LibraryStore.kt"
+            line="78"
+            column="67"
+            startOffset="5946"
+            endLine="78"
+            endColumn="79"
+            endOffset="5958"/>
+    </incident>
+
+    <incident
+        id="UseKtx"
+        severity="warning"
+        message="Use the KTX extension function `SharedPreferences.edit` instead?">
+        <fix-composite
+            description="Replace with the edit extension function"
+            family="Replace with the edit extension function"
+            robot="true"
+            independent="true">
+            <fix-replace
+                description="Replace with edit"
+                robot="true"
+                independent="true"
+                oldString="edit("
+                replacement="edit"
+                reformat="value"
+                imports="androidx.core.content.edit"
+                priority="0">
+                <range
+                    file="${:app*debug*MAIN*sourceProvider*0*javaDir*0}/fr/nekotv/LiveReminders.kt"
+                    startOffset="2277"
+                    endOffset="2282"/>
+            </fix-replace>
+            <fix-replace
+                description="Replace with  {"
+                robot="true"
+                independent="true"
+                oldString=")"
+                replacement=" {"
+                priority="0">
+                <range
+                    file="${:app*debug*MAIN*sourceProvider*0*javaDir*0}/fr/nekotv/LiveReminders.kt"
+                    startOffset="2282"
+                    endOffset="2283"/>
+            </fix-replace>
+            <fix-replace
+                description="Delete &quot;.&quot;"
+                robot="true"
+                independent="true"
+                oldString="."
+                replacement=""
+                priority="0">
+                <range
+                    file="${:app*debug*MAIN*sourceProvider*0*javaDir*0}/fr/nekotv/LiveReminders.kt"
+                    startOffset="2283"
+                    endOffset="2284"/>
+            </fix-replace>
+            <fix-replace
+                description="Replace with }"
+                robot="true"
+                independent="true"
+                oldString=".apply()"
+                replacement="}"
+                priority="0">
+                <range
+                    file="${:app*debug*MAIN*sourceProvider*0*javaDir*0}/fr/nekotv/LiveReminders.kt"
+                    startOffset="2368"
+                    endOffset="2376"/>
+            </fix-replace>
+        </fix-composite>
+        <location
+            file="${:app*debug*MAIN*sourceProvider*0*javaDir*0}/fr/nekotv/LiveReminders.kt"
+            line="39"
+            column="9"
+            startOffset="2219"
+            endLine="39"
+            endColumn="73"
+            endOffset="2283"/>
+    </incident>
+
+    <incident
+        id="UseKtx"
+        severity="warning"
+        message="Use the KTX extension function `SharedPreferences.edit` instead?">
+        <fix-composite
+            description="Replace with the edit extension function"
+            family="Replace with the edit extension function"
+            robot="true"
+            independent="true">
+            <fix-replace
+                description="Replace with edit"
+                robot="true"
+                independent="true"
+                oldString="edit("
+                replacement="edit"
+                reformat="value"
+                imports="androidx.core.content.edit"
+                priority="0">
+                <range
+                    file="${:app*debug*MAIN*sourceProvider*0*javaDir*0}/fr/nekotv/LiveReminders.kt"
+                    startOffset="3361"
+                    endOffset="3366"/>
+            </fix-replace>
+            <fix-replace
+                description="Replace with  {"
+                robot="true"
+                independent="true"
+                oldString=")"
+                replacement=" {"
+                priority="0">
+                <range
+                    file="${:app*debug*MAIN*sourceProvider*0*javaDir*0}/fr/nekotv/LiveReminders.kt"
+                    startOffset="3366"
+                    endOffset="3367"/>
+            </fix-replace>
+            <fix-replace
+                description="Delete &quot;.&quot;"
+                robot="true"
+                independent="true"
+                oldString="."
+                replacement=""
+                priority="0">
+                <range
+                    file="${:app*debug*MAIN*sourceProvider*0*javaDir*0}/fr/nekotv/LiveReminders.kt"
+                    startOffset="3367"
+                    endOffset="3368"/>
+            </fix-replace>
+            <fix-replace
+                description="Replace with }"
+                robot="true"
+                independent="true"
+                oldString=".apply()"
+                replacement="}"
+                priority="0">
+                <range
+                    file="${:app*debug*MAIN*sourceProvider*0*javaDir*0}/fr/nekotv/LiveReminders.kt"
+                    startOffset="3378"
+                    endOffset="3386"/>
+            </fix-replace>
+        </fix-composite>
+        <location
+            file="${:app*debug*MAIN*sourceProvider*0*javaDir*0}/fr/nekotv/LiveReminders.kt"
+            line="59"
+            column="9"
+            startOffset="3303"
+            endLine="59"
+            endColumn="73"
+            endOffset="3367"/>
+    </incident>
+
+    <incident
+        id="UseKtx"
+        severity="warning"
+        message="Use the KTX extension function `SharedPreferences.edit` instead?">
+        <fix-composite
+            description="Replace with the edit extension function"
+            family="Replace with the edit extension function"
+            robot="true"
+            independent="true">
+            <fix-replace
+                description="Replace with edit"
+                robot="true"
+                independent="true"
+                oldString="edit("
+                replacement="edit"
+                reformat="value"
+                imports="androidx.core.content.edit"
+                priority="0">
+                <range
+                    file="${:app*debug*MAIN*sourceProvider*0*javaDir*0}/fr/nekotv/LiveReminders.kt"
+                    startOffset="4948"
+                    endOffset="4953"/>
+            </fix-replace>
+            <fix-replace
+                description="Replace with  {"
+                robot="true"
+                independent="true"
+                oldString=")"
+                replacement=" {"
+                priority="0">
+                <range
+                    file="${:app*debug*MAIN*sourceProvider*0*javaDir*0}/fr/nekotv/LiveReminders.kt"
+                    startOffset="4953"
+                    endOffset="4954"/>
+            </fix-replace>
+            <fix-replace
+                description="Delete &quot;.&quot;"
+                robot="true"
+                independent="true"
+                oldString="."
+                replacement=""
+                priority="0">
+                <range
+                    file="${:app*debug*MAIN*sourceProvider*0*javaDir*0}/fr/nekotv/LiveReminders.kt"
+                    startOffset="4954"
+                    endOffset="4955"/>
+            </fix-replace>
+            <fix-replace
+                description="Replace with }"
+                robot="true"
+                independent="true"
+                oldString=".apply()"
+                replacement="}"
+                priority="0">
+                <range
+                    file="${:app*debug*MAIN*sourceProvider*0*javaDir*0}/fr/nekotv/LiveReminders.kt"
+                    startOffset="4965"
+                    endOffset="4973"/>
+            </fix-replace>
+        </fix-composite>
+        <location
+            file="${:app*debug*MAIN*sourceProvider*0*javaDir*0}/fr/nekotv/LiveReminders.kt"
+            line="81"
+            column="9"
+            startOffset="4890"
+            endLine="81"
+            endColumn="73"
+            endOffset="4954"/>
+    </incident>
+
+    <incident
+        id="UseKtx"
+        severity="warning"
+        message="Use the KTX extension function `String.toUri` instead?">
+        <fix-replace
+            description="Replace with the toUri extension function"
+            family="Replace with the toUri extension function"
+            robot="true"
+            independent="true"
+            oldString="Uri.parse(&quot;package:${context.packageName}&quot;)"
+            replacement="&quot;package:${context.packageName}&quot;.toUri()"
+            reformat="value"
+            imports="androidx.core.net.toUri"
+            priority="0">
+            <range
+                file="${:app*debug*MAIN*sourceProvider*0*javaDir*0}/fr/nekotv/LiveScreen.kt"
+                startOffset="2482"
+                endOffset="2525"/>
+        </fix-replace>
+        <location
+            file="${:app*debug*MAIN*sourceProvider*0*javaDir*0}/fr/nekotv/LiveScreen.kt"
+            line="53"
+            column="106"
+            startOffset="2482"
+            endLine="53"
+            endColumn="149"
+            endOffset="2525"/>
+    </incident>
+
+    <incident
+        id="UseKtx"
+        severity="warning"
+        message="Use the KTX extension function `SharedPreferences.edit` instead?">
+        <fix-composite
+            description="Replace with the edit extension function"
+            family="Replace with the edit extension function"
+            robot="true"
+            independent="true">
+            <fix-replace
+                description="Replace with edit"
+                robot="true"
+                independent="true"
+                oldString="edit("
+                replacement="edit"
+                reformat="value"
+                imports="androidx.core.content.edit"
+                priority="0">
+                <range
+                    file="${:app*debug*MAIN*sourceProvider*0*javaDir*0}/fr/nekotv/MainActivity.kt"
+                    startOffset="2811"
+                    endOffset="2816"/>
+            </fix-replace>
+            <fix-replace
+                description="Replace with  {"
+                robot="true"
+                independent="true"
+                oldString=")"
+                replacement=" {"
+                priority="0">
+                <range
+                    file="${:app*debug*MAIN*sourceProvider*0*javaDir*0}/fr/nekotv/MainActivity.kt"
+                    startOffset="2816"
+                    endOffset="2817"/>
+            </fix-replace>
+            <fix-replace
+                description="Delete &quot;.&quot;"
+                robot="true"
+                independent="true"
+                oldString="."
+                replacement=""
+                priority="0">
+                <range
+                    file="${:app*debug*MAIN*sourceProvider*0*javaDir*0}/fr/nekotv/MainActivity.kt"
+                    startOffset="2834"
+                    endOffset="2835"/>
+            </fix-replace>
+            <fix-replace
+                description="Replace with }"
+                robot="true"
+                independent="true"
+                oldString=".apply()"
+                replacement="}"
+                priority="0">
+                <range
+                    file="${:app*debug*MAIN*sourceProvider*0*javaDir*0}/fr/nekotv/MainActivity.kt"
+                    startOffset="3020"
+                    endOffset="3028"/>
+            </fix-replace>
+            <fix-replace
+                description="Replace with     "
+                robot="true"
+                independent="true"
+                oldString=""
+                replacement="    "
+                priority="0">
+                <range
+                    file="${:app*debug*MAIN*sourceProvider*0*javaDir*0}/fr/nekotv/MainActivity.kt"
+                    startOffset="2818"
+                    endOffset="2818"/>
+            </fix-replace>
+            <fix-replace
+                description="Replace with     "
+                robot="true"
+                independent="true"
+                oldString=""
+                replacement="    "
+                priority="0">
+                <range
+                    file="${:app*debug*MAIN*sourceProvider*0*javaDir*0}/fr/nekotv/MainActivity.kt"
+                    startOffset="2910"
+                    endOffset="2910"/>
+            </fix-replace>
+        </fix-composite>
+        <location
+            file="${:app*debug*MAIN*sourceProvider*0*javaDir*0}/fr/nekotv/MainActivity.kt"
+            line="63"
+            column="13"
+            startOffset="2757"
+            endLine="63"
+            endColumn="73"
+            endOffset="2817"/>
+    </incident>
+
+    <incident
+        id="UseKtx"
+        severity="warning"
+        message="Use the KTX extension function `String.toUri` instead?">
+        <fix-replace
+            description="Replace with the toUri extension function"
+            family="Replace with the toUri extension function"
+            robot="true"
+            independent="true"
+            oldString="Uri.parse(url)"
+            replacement="url.toUri()"
+            reformat="value"
+            imports="androidx.core.net.toUri"
+            priority="0">
+            <range
+                file="${:app*debug*MAIN*sourceProvider*0*javaDir*0}/fr/nekotv/MainActivity.kt"
+                startOffset="28253"
+                endOffset="28267"/>
+        </fix-replace>
+        <location
+            file="${:app*debug*MAIN*sourceProvider*0*javaDir*0}/fr/nekotv/MainActivity.kt"
+            line="403"
+            column="112"
+            startOffset="28253"
+            endLine="403"
+            endColumn="126"
+            endOffset="28267"/>
+    </incident>
+
+    <incident
+        id="UseKtx"
+        severity="warning"
+        message="Use the KTX extension function `SharedPreferences.edit` instead?">
+        <fix-composite
+            description="Replace with the edit extension function"
+            family="Replace with the edit extension function"
+            robot="true"
+            independent="true">
+            <fix-replace
+                description="Replace with edit"
+                robot="true"
+                independent="true"
+                oldString="edit("
+                replacement="edit"
+                reformat="value"
+                imports="androidx.core.content.edit"
+                priority="0">
+                <range
+                    file="${:app*debug*MAIN*sourceProvider*0*javaDir*0}/fr/nekotv/MainActivity.kt"
+                    startOffset="40498"
+                    endOffset="40503"/>
+            </fix-replace>
+            <fix-replace
+                description="Replace with  {"
+                robot="true"
+                independent="true"
+                oldString=")"
+                replacement=" {"
+                priority="0">
+                <range
+                    file="${:app*debug*MAIN*sourceProvider*0*javaDir*0}/fr/nekotv/MainActivity.kt"
+                    startOffset="40503"
+                    endOffset="40504"/>
+            </fix-replace>
+            <fix-replace
+                description="Delete &quot;.&quot;"
+                robot="true"
+                independent="true"
+                oldString="."
+                replacement=""
+                priority="0">
+                <range
+                    file="${:app*debug*MAIN*sourceProvider*0*javaDir*0}/fr/nekotv/MainActivity.kt"
+                    startOffset="40504"
+                    endOffset="40505"/>
+            </fix-replace>
+            <fix-replace
+                description="Replace with }"
+                robot="true"
+                independent="true"
+                oldString=".apply()"
+                replacement="}"
+                priority="0">
+                <range
+                    file="${:app*debug*MAIN*sourceProvider*0*javaDir*0}/fr/nekotv/MainActivity.kt"
+                    startOffset="40551"
+                    endOffset="40559"/>
+            </fix-replace>
+        </fix-composite>
+        <location
+            file="${:app*debug*MAIN*sourceProvider*0*javaDir*0}/fr/nekotv/MainActivity.kt"
+            line="553"
+            column="59"
+            startOffset="40492"
+            endLine="553"
+            endColumn="71"
+            endOffset="40504"/>
+    </incident>
+
+    <incident
+        id="UseKtx"
+        severity="warning"
+        message="Use the KTX extension function `String.toUri` instead?">
+        <fix-replace
+            description="Replace with the toUri extension function"
+            family="Replace with the toUri extension function"
+            robot="true"
+            independent="true"
+            oldString="android.net.Uri.parse(url.trim())"
+            replacement="url.trim().toUri()"
+            reformat="value"
+            imports="androidx.core.net.toUri"
+            priority="0">
+            <range
+                file="${:app*debug*MAIN*sourceProvider*0*javaDir*0}/fr/nekotv/MainActivity.kt"
+                startOffset="41092"
+                endOffset="41125"/>
+        </fix-replace>
+        <location
+            file="${:app*debug*MAIN*sourceProvider*0*javaDir*0}/fr/nekotv/MainActivity.kt"
+            line="563"
+            column="22"
+            startOffset="41092"
+            endLine="563"
+            endColumn="55"
+            endOffset="41125"/>
+    </incident>
+
+    <incident
+        id="UseKtx"
+        severity="warning"
+        message="Use the KTX extension function `SharedPreferences.edit` instead?">
+        <fix-composite
+            description="Replace with the edit extension function"
+            family="Replace with the edit extension function"
+            robot="true"
+            independent="true">
+            <fix-replace
+                description="Replace with edit"
+                robot="true"
+                independent="true"
+                oldString="edit("
+                replacement="edit"
+                reformat="value"
+                imports="androidx.core.content.edit"
+                priority="0">
+                <range
+                    file="${:app*debug*MAIN*sourceProvider*0*javaDir*0}/fr/nekotv/MainActivity.kt"
+                    startOffset="41408"
+                    endOffset="41413"/>
+            </fix-replace>
+            <fix-replace
+                description="Replace with  {"
+                robot="true"
+                independent="true"
+                oldString=")"
+                replacement=" {"
+                priority="0">
+                <range
+                    file="${:app*debug*MAIN*sourceProvider*0*javaDir*0}/fr/nekotv/MainActivity.kt"
+                    startOffset="41413"
+                    endOffset="41414"/>
+            </fix-replace>
+            <fix-replace
+                description="Delete &quot;.&quot;"
+                robot="true"
+                independent="true"
+                oldString="."
+                replacement=""
+                priority="0">
+                <range
+                    file="${:app*debug*MAIN*sourceProvider*0*javaDir*0}/fr/nekotv/MainActivity.kt"
+                    startOffset="41414"
+                    endOffset="41415"/>
+            </fix-replace>
+            <fix-replace
+                description="Replace with }"
+                robot="true"
+                independent="true"
+                oldString=".apply()"
+                replacement="}"
+                priority="0">
+                <range
+                    file="${:app*debug*MAIN*sourceProvider*0*javaDir*0}/fr/nekotv/MainActivity.kt"
+                    startOffset="41461"
+                    endOffset="41469"/>
+            </fix-replace>
+        </fix-composite>
+        <location
+            file="${:app*debug*MAIN*sourceProvider*0*javaDir*0}/fr/nekotv/MainActivity.kt"
+            line="565"
+            column="68"
+            startOffset="41402"
+            endLine="565"
+            endColumn="80"
+            endOffset="41414"/>
+    </incident>
+
+    <incident
+        id="UseKtx"
+        severity="warning"
+        message="Use the KTX extension function `String.toUri` instead?">
+        <fix-replace
+            description="Replace with the toUri extension function"
+            family="Replace with the toUri extension function"
+            robot="true"
+            independent="true"
+            oldString="Uri.parse(url)"
+            replacement="url.toUri()"
+            reformat="value"
+            imports="androidx.core.net.toUri"
+            priority="0">
+            <range
+                file="${:app*debug*MAIN*sourceProvider*0*javaDir*0}/fr/nekotv/Playback.kt"
+                startOffset="1687"
+                endOffset="1701"/>
+        </fix-replace>
+        <location
+            file="${:app*debug*MAIN*sourceProvider*0*javaDir*0}/fr/nekotv/Playback.kt"
+            line="40"
+            column="5"
+            startOffset="1687"
+            endLine="40"
+            endColumn="19"
+            endOffset="1701"/>
+    </incident>
+
+    <incident
+        id="UseKtx"
+        severity="warning"
+        message="Use the KTX extension function `String.toUri` instead?">
+        <fix-replace
+            description="Replace with the toUri extension function"
+            family="Replace with the toUri extension function"
+            robot="true"
+            independent="true"
+            oldString="Uri.parse(url)"
+            replacement="url.toUri()"
+            reformat="value"
+            imports="androidx.core.net.toUri"
+            priority="0">
+            <range
+                file="${:app*debug*MAIN*sourceProvider*0*javaDir*0}/fr/nekotv/Playback.kt"
+                startOffset="1775"
+                endOffset="1789"/>
+        </fix-replace>
+        <location
+            file="${:app*debug*MAIN*sourceProvider*0*javaDir*0}/fr/nekotv/Playback.kt"
+            line="41"
+            column="5"
+            startOffset="1775"
+            endLine="41"
+            endColumn="19"
+            endOffset="1789"/>
+    </incident>
+
+    <incident
+        id="UseKtx"
+        severity="warning"
+        message="Use the KTX extension function `String.toUri` instead?">
+        <fix-replace
+            description="Replace with the toUri extension function"
+            family="Replace with the toUri extension function"
+            robot="true"
+            independent="true"
+            oldString="Uri.parse(url)"
+            replacement="url.toUri()"
+            reformat="value"
+            imports="androidx.core.net.toUri"
+            priority="0">
+            <range
+                file="${:app*debug*MAIN*sourceProvider*0*javaDir*0}/fr/nekotv/Playback.kt"
+                startOffset="1861"
+                endOffset="1875"/>
+        </fix-replace>
+        <location
+            file="${:app*debug*MAIN*sourceProvider*0*javaDir*0}/fr/nekotv/Playback.kt"
+            line="42"
+            column="5"
+            startOffset="1861"
+            endLine="42"
+            endColumn="19"
+            endOffset="1875"/>
+    </incident>
+
+    <incident
+        id="UseKtx"
+        severity="warning"
+        message="Use the KTX extension function `String.toUri` instead?">
+        <fix-replace
+            description="Replace with the toUri extension function"
+            family="Replace with the toUri extension function"
+            robot="true"
+            independent="true"
+            oldString="Uri.parse(subtitle.url)"
+            replacement="subtitle.url.toUri()"
+            reformat="value"
+            imports="androidx.core.net.toUri"
+            priority="0">
+            <range
+                file="${:app*debug*MAIN*sourceProvider*0*javaDir*0}/fr/nekotv/Playback.kt"
+                startOffset="4680"
+                endOffset="4703"/>
+        </fix-replace>
+        <location
+            file="${:app*debug*MAIN*sourceProvider*0*javaDir*0}/fr/nekotv/Playback.kt"
+            line="96"
+            column="61"
+            startOffset="4680"
+            endLine="96"
+            endColumn="84"
+            endOffset="4703"/>
+    </incident>
+
+    <incident
+        id="UseKtx"
+        severity="warning"
+        message="Use the KTX extension function `String.toUri` instead?">
+        <fix-replace
+            description="Replace with the toUri extension function"
+            family="Replace with the toUri extension function"
+            robot="true"
+            independent="true"
+            oldString="Uri.parse(poster)"
+            replacement="poster.toUri()"
+            reformat="value"
+            imports="androidx.core.net.toUri"
+            priority="0">
+            <range
+                file="${:app*debug*MAIN*sourceProvider*0*javaDir*0}/fr/nekotv/Playback.kt"
+                startOffset="10209"
+                endOffset="10226"/>
+        </fix-replace>
+        <location
+            file="${:app*debug*MAIN*sourceProvider*0*javaDir*0}/fr/nekotv/Playback.kt"
+            line="205"
+            column="66"
+            startOffset="10209"
+            endLine="205"
+            endColumn="83"
+            endOffset="10226"/>
+    </incident>
+
+    <incident
+        id="UseKtx"
+        severity="warning"
+        message="Use the KTX extension function `SharedPreferences.edit` instead?">
+        <fix-composite
+            description="Replace with the edit extension function"
+            family="Replace with the edit extension function"
+            robot="true"
+            independent="true">
+            <fix-replace
+                description="Replace with edit"
+                robot="true"
+                independent="true"
+                oldString="edit("
+                replacement="edit"
+                reformat="value"
+                imports="androidx.core.content.edit"
+                priority="0">
+                <range
+                    file="${:app*debug*MAIN*sourceProvider*0*javaDir*0}/fr/nekotv/StreamFlixProviderManager.kt"
+                    startOffset="2885"
+                    endOffset="2890"/>
+            </fix-replace>
+            <fix-replace
+                description="Replace with  {"
+                robot="true"
+                independent="true"
+                oldString=")"
+                replacement=" {"
+                priority="0">
+                <range
+                    file="${:app*debug*MAIN*sourceProvider*0*javaDir*0}/fr/nekotv/StreamFlixProviderManager.kt"
+                    startOffset="2890"
+                    endOffset="2891"/>
+            </fix-replace>
+            <fix-replace
+                description="Delete &quot;.&quot;"
+                robot="true"
+                independent="true"
+                oldString="."
+                replacement=""
+                priority="0">
+                <range
+                    file="${:app*debug*MAIN*sourceProvider*0*javaDir*0}/fr/nekotv/StreamFlixProviderManager.kt"
+                    startOffset="2891"
+                    endOffset="2892"/>
+            </fix-replace>
+            <fix-replace
+                description="Replace with }"
+                robot="true"
+                independent="true"
+                oldString=".apply()"
+                replacement="}"
+                priority="0">
+                <range
+                    file="${:app*debug*MAIN*sourceProvider*0*javaDir*0}/fr/nekotv/StreamFlixProviderManager.kt"
+                    startOffset="2936"
+                    endOffset="2944"/>
+            </fix-replace>
+        </fix-composite>
+        <location
+            file="${:app*debug*MAIN*sourceProvider*0*javaDir*0}/fr/nekotv/StreamFlixProviderManager.kt"
+            line="55"
+            column="9"
+            startOffset="2873"
+            endLine="55"
+            endColumn="27"
+            endOffset="2891"/>
+    </incident>
+
+    <incident
+        id="UseKtx"
+        severity="warning"
+        message="Use the KTX extension function `SharedPreferences.edit` instead?">
+        <fix-composite
+            description="Replace with the edit extension function"
+            family="Replace with the edit extension function"
+            robot="true"
+            independent="true">
+            <fix-replace
+                description="Replace with edit"
+                robot="true"
+                independent="true"
+                oldString="edit("
+                replacement="edit"
+                reformat="value"
+                imports="androidx.core.content.edit"
+                priority="0">
+                <range
+                    file="${:app*debug*MAIN*sourceProvider*0*javaDir*0}/fr/nekotv/Ui.kt"
+                    startOffset="11526"
+                    endOffset="11531"/>
+            </fix-replace>
+            <fix-replace
+                description="Replace with  {"
+                robot="true"
+                independent="true"
+                oldString=")"
+                replacement=" {"
+                priority="0">
+                <range
+                    file="${:app*debug*MAIN*sourceProvider*0*javaDir*0}/fr/nekotv/Ui.kt"
+                    startOffset="11531"
+                    endOffset="11532"/>
+            </fix-replace>
+            <fix-replace
+                description="Delete &quot;.&quot;"
+                robot="true"
+                independent="true"
+                oldString="."
+                replacement=""
+                priority="0">
+                <range
+                    file="${:app*debug*MAIN*sourceProvider*0*javaDir*0}/fr/nekotv/Ui.kt"
+                    startOffset="11532"
+                    endOffset="11533"/>
+            </fix-replace>
+            <fix-replace
+                description="Replace with }"
+                robot="true"
+                independent="true"
+                oldString=".apply()"
+                replacement="}"
+                priority="0">
+                <range
+                    file="${:app*debug*MAIN*sourceProvider*0*javaDir*0}/fr/nekotv/Ui.kt"
+                    startOffset="11567"
+                    endOffset="11575"/>
+            </fix-replace>
+        </fix-composite>
+        <location
+            file="${:app*debug*MAIN*sourceProvider*0*javaDir*0}/fr/nekotv/Ui.kt"
+            line="188"
+            column="112"
+            startOffset="11520"
+            endLine="188"
+            endColumn="124"
+            endOffset="11532"/>
+    </incident>
+
+    <incident
+        id="UseKtx"
+        severity="warning"
+        message="Use the KTX extension function `SharedPreferences.edit` instead?">
+        <fix-composite
+            description="Replace with the edit extension function"
+            family="Replace with the edit extension function"
+            robot="true"
+            independent="true">
+            <fix-replace
+                description="Replace with edit"
+                robot="true"
+                independent="true"
+                oldString="edit("
+                replacement="edit"
+                reformat="value"
+                imports="androidx.core.content.edit"
+                priority="0">
+                <range
+                    file="${:app*debug*MAIN*sourceProvider*0*javaDir*0}/fr/nekotv/Ui.kt"
+                    startOffset="11857"
+                    endOffset="11862"/>
+            </fix-replace>
+            <fix-replace
+                description="Replace with  {"
+                robot="true"
+                independent="true"
+                oldString=")"
+                replacement=" {"
+                priority="0">
+                <range
+                    file="${:app*debug*MAIN*sourceProvider*0*javaDir*0}/fr/nekotv/Ui.kt"
+                    startOffset="11862"
+                    endOffset="11863"/>
+            </fix-replace>
+            <fix-replace
+                description="Delete &quot;.&quot;"
+                robot="true"
+                independent="true"
+                oldString="."
+                replacement=""
+                priority="0">
+                <range
+                    file="${:app*debug*MAIN*sourceProvider*0*javaDir*0}/fr/nekotv/Ui.kt"
+                    startOffset="11863"
+                    endOffset="11864"/>
+            </fix-replace>
+            <fix-replace
+                description="Replace with }"
+                robot="true"
+                independent="true"
+                oldString=".apply()"
+                replacement="}"
+                priority="0">
+                <range
+                    file="${:app*debug*MAIN*sourceProvider*0*javaDir*0}/fr/nekotv/Ui.kt"
+                    startOffset="11916"
+                    endOffset="11924"/>
+            </fix-replace>
+        </fix-composite>
+        <location
+            file="${:app*debug*MAIN*sourceProvider*0*javaDir*0}/fr/nekotv/Ui.kt"
+            line="193"
+            column="17"
+            startOffset="11851"
+            endLine="193"
+            endColumn="29"
+            endOffset="11863"/>
+    </incident>
+
+    <incident
+        id="UseKtx"
+        severity="warning"
+        message="Use the KTX extension function `SharedPreferences.edit` instead?">
+        <fix-composite
+            description="Replace with the edit extension function"
+            family="Replace with the edit extension function"
+            robot="true"
+            independent="true">
+            <fix-replace
+                description="Replace with edit"
+                robot="true"
+                independent="true"
+                oldString="edit("
+                replacement="edit"
+                reformat="value"
+                imports="androidx.core.content.edit"
+                priority="0">
+                <range
+                    file="${:app*debug*MAIN*sourceProvider*0*javaDir*0}/fr/nekotv/Ui.kt"
+                    startOffset="12246"
+                    endOffset="12251"/>
+            </fix-replace>
+            <fix-replace
+                description="Replace with  {"
+                robot="true"
+                independent="true"
+                oldString=")"
+                replacement=" {"
+                priority="0">
+                <range
+                    file="${:app*debug*MAIN*sourceProvider*0*javaDir*0}/fr/nekotv/Ui.kt"
+                    startOffset="12251"
+                    endOffset="12252"/>
+            </fix-replace>
+            <fix-replace
+                description="Delete &quot;.&quot;"
+                robot="true"
+                independent="true"
+                oldString="."
+                replacement=""
+                priority="0">
+                <range
+                    file="${:app*debug*MAIN*sourceProvider*0*javaDir*0}/fr/nekotv/Ui.kt"
+                    startOffset="12252"
+                    endOffset="12253"/>
+            </fix-replace>
+            <fix-replace
+                description="Replace with }"
+                robot="true"
+                independent="true"
+                oldString=".apply()"
+                replacement="}"
+                priority="0">
+                <range
+                    file="${:app*debug*MAIN*sourceProvider*0*javaDir*0}/fr/nekotv/Ui.kt"
+                    startOffset="12280"
+                    endOffset="12288"/>
+            </fix-replace>
+        </fix-composite>
+        <location
+            file="${:app*debug*MAIN*sourceProvider*0*javaDir*0}/fr/nekotv/Ui.kt"
+            line="197"
+            column="195"
+            startOffset="12240"
+            endLine="197"
+            endColumn="207"
+            endOffset="12252"/>
+    </incident>
+
+    <incident
+        id="UseKtx"
+        severity="warning"
+        message="Use the KTX extension function `SharedPreferences.edit` instead?">
+        <fix-composite
+            description="Replace with the edit extension function"
+            family="Replace with the edit extension function"
+            robot="true"
+            independent="true">
+            <fix-replace
+                description="Replace with edit"
+                robot="true"
+                independent="true"
+                oldString="edit("
+                replacement="edit"
+                reformat="value"
+                imports="androidx.core.content.edit"
+                priority="0">
+                <range
+                    file="${:app*debug*MAIN*sourceProvider*0*javaDir*0}/fr/nekotv/Ui.kt"
+                    startOffset="12617"
+                    endOffset="12622"/>
+            </fix-replace>
+            <fix-replace
+                description="Replace with  {"
+                robot="true"
+                independent="true"
+                oldString=")"
+                replacement=" {"
+                priority="0">
+                <range
+                    file="${:app*debug*MAIN*sourceProvider*0*javaDir*0}/fr/nekotv/Ui.kt"
+                    startOffset="12622"
+                    endOffset="12623"/>
+            </fix-replace>
+            <fix-replace
+                description="Delete &quot;.&quot;"
+                robot="true"
+                independent="true"
+                oldString="."
+                replacement=""
+                priority="0">
+                <range
+                    file="${:app*debug*MAIN*sourceProvider*0*javaDir*0}/fr/nekotv/Ui.kt"
+                    startOffset="12623"
+                    endOffset="12624"/>
+            </fix-replace>
+            <fix-replace
+                description="Replace with }"
+                robot="true"
+                independent="true"
+                oldString=".apply()"
+                replacement="}"
+                priority="0">
+                <range
+                    file="${:app*debug*MAIN*sourceProvider*0*javaDir*0}/fr/nekotv/Ui.kt"
+                    startOffset="12651"
+                    endOffset="12659"/>
+            </fix-replace>
+        </fix-composite>
+        <location
+            file="${:app*debug*MAIN*sourceProvider*0*javaDir*0}/fr/nekotv/Ui.kt"
+            line="200"
+            column="181"
+            startOffset="12611"
+            endLine="200"
+            endColumn="193"
+            endOffset="12623"/>
+    </incident>
+
+    <incident
+        id="UseKtx"
+        severity="warning"
+        message="Use the KTX extension function `SharedPreferences.edit` instead?">
+        <fix-composite
+            description="Replace with the edit extension function"
+            family="Replace with the edit extension function"
+            robot="true"
+            independent="true">
+            <fix-replace
+                description="Replace with edit"
+                robot="true"
+                independent="true"
+                oldString="edit("
+                replacement="edit"
+                reformat="value"
+                imports="androidx.core.content.edit"
+                priority="0">
+                <range
+                    file="${:app*debug*MAIN*sourceProvider*0*javaDir*0}/fr/nekotv/Ui.kt"
+                    startOffset="12892"
+                    endOffset="12897"/>
+            </fix-replace>
+            <fix-replace
+                description="Replace with  {"
+                robot="true"
+                independent="true"
+                oldString=")"
+                replacement=" {"
+                priority="0">
+                <range
+                    file="${:app*debug*MAIN*sourceProvider*0*javaDir*0}/fr/nekotv/Ui.kt"
+                    startOffset="12897"
+                    endOffset="12898"/>
+            </fix-replace>
+            <fix-replace
+                description="Delete &quot;.&quot;"
+                robot="true"
+                independent="true"
+                oldString="."
+                replacement=""
+                priority="0">
+                <range
+                    file="${:app*debug*MAIN*sourceProvider*0*javaDir*0}/fr/nekotv/Ui.kt"
+                    startOffset="12898"
+                    endOffset="12899"/>
+            </fix-replace>
+            <fix-replace
+                description="Replace with }"
+                robot="true"
+                independent="true"
+                oldString=".apply()"
+                replacement="}"
+                priority="0">
+                <range
+                    file="${:app*debug*MAIN*sourceProvider*0*javaDir*0}/fr/nekotv/Ui.kt"
+                    startOffset="12927"
+                    endOffset="12935"/>
+            </fix-replace>
+        </fix-composite>
+        <location
+            file="${:app*debug*MAIN*sourceProvider*0*javaDir*0}/fr/nekotv/Ui.kt"
+            line="203"
+            column="99"
+            startOffset="12886"
+            endLine="203"
+            endColumn="111"
+            endOffset="12898"/>
+    </incident>
+
+    <incident
+        id="UseKtx"
+        severity="warning"
+        message="Use the KTX extension function `SharedPreferences.edit` instead?">
+        <fix-composite
+            description="Replace with the edit extension function"
+            family="Replace with the edit extension function"
+            robot="true"
+            independent="true">
+            <fix-replace
+                description="Replace with edit"
+                robot="true"
+                independent="true"
+                oldString="edit("
+                replacement="edit"
+                reformat="value"
+                imports="androidx.core.content.edit"
+                priority="0">
+                <range
+                    file="${:app*debug*MAIN*sourceProvider*0*javaDir*0}/fr/nekotv/Ui.kt"
+                    startOffset="13822"
+                    endOffset="13827"/>
+            </fix-replace>
+            <fix-replace
+                description="Replace with  {"
+                robot="true"
+                independent="true"
+                oldString=")"
+                replacement=" {"
+                priority="0">
+                <range
+                    file="${:app*debug*MAIN*sourceProvider*0*javaDir*0}/fr/nekotv/Ui.kt"
+                    startOffset="13827"
+                    endOffset="13828"/>
+            </fix-replace>
+            <fix-replace
+                description="Delete &quot;.&quot;"
+                robot="true"
+                independent="true"
+                oldString="."
+                replacement=""
+                priority="0">
+                <range
+                    file="${:app*debug*MAIN*sourceProvider*0*javaDir*0}/fr/nekotv/Ui.kt"
+                    startOffset="13828"
+                    endOffset="13829"/>
+            </fix-replace>
+            <fix-replace
+                description="Replace with }"
+                robot="true"
+                independent="true"
+                oldString=".apply()"
+                replacement="}"
+                priority="0">
+                <range
+                    file="${:app*debug*MAIN*sourceProvider*0*javaDir*0}/fr/nekotv/Ui.kt"
+                    startOffset="13836"
+                    endOffset="13844"/>
+            </fix-replace>
+        </fix-composite>
+        <location
+            file="${:app*debug*MAIN*sourceProvider*0*javaDir*0}/fr/nekotv/Ui.kt"
+            line="211"
+            column="163"
+            startOffset="13816"
+            endLine="211"
+            endColumn="175"
+            endOffset="13828"/>
+    </incident>
+
+    <incident
+        id="ClickableViewAccessibility"
+        severity="warning"
+        message="`onTouch` lambda should call `View#performClick` when a click is detected">
+        <location
+            file="${:app*debug*MAIN*sourceProvider*0*javaDir*0}/fr/nekotv/Playback.kt"
+            line="314"
+            column="36"
+            startOffset="16602"
+            endLine="314"
+            endColumn="87"
+            endOffset="16653"/>
+    </incident>
+
+</incidents>

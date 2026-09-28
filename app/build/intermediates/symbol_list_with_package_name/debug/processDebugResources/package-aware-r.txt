@@ -4815,6 +4815,7 @@ drawable ic_arrow_back_black_24
 drawable ic_arrow_down_24dp
 drawable ic_audiotrack_dark
 drawable ic_audiotrack_light
+drawable ic_bell
 drawable ic_brightness
 drawable ic_call_answer
 drawable ic_call_answer_low
@@ -5021,6 +5022,7 @@ drawable ic_mtrl_chip_checked_circle
 drawable ic_mtrl_chip_close_circle
 drawable ic_next
 drawable ic_person_placeholder
+drawable ic_pip
 drawable ic_player_back
 drawable ic_player_setting_arrow_right
 drawable ic_player_setting_check
@@ -9870,3 +9872,4 @@ xml settings_about_mobile
 xml settings_about_tv
 xml settings_mobile
 xml settings_tv
+xml update_paths

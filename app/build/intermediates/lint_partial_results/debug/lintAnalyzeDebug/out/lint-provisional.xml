@@ -1,0 +1,142 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<incidents format="6" by="lint 8.13.2" type="conditional_incidents">
+
+    <incident
+        id="NewApi"
+        severity="error"
+        message="">
+        <fix-data minSdk="23-∞" requiresApi="24-∞"/>
+        <location
+            file="${:app*debug*MAIN*sourceProvider*0*javaDir*0}/fr/nekotv/Playback.kt"
+            line="134"
+            column="57"
+            startOffset="6737"
+            endLine="134"
+            endColumn="81"
+            endOffset="6761"/>
+        <map>
+            <entry
+                name="desc"
+                string="()"/>
+            <entry
+                name="message"
+                string="Call requires API level 24 (current min is %1$s): `android.app.Activity#isInPictureInPictureMode`"/>
+            <api-levels id="minSdk"
+                value="23-∞"/>
+            <entry
+                name="name"
+                string="isInPictureInPictureMode"/>
+            <entry
+                name="owner"
+                string="android.app.Activity"/>
+            <api-levels id="requiresApi"
+                value="24-∞"/>
+        </map>
+    </incident>
+
+    <incident
+        id="NewApi"
+        severity="error"
+        message="">
+        <fix-data minSdk="23-∞" requiresApi="24-∞"/>
+        <location
+            file="${:app*debug*MAIN*sourceProvider*0*javaDir*0}/fr/nekotv/Playback.kt"
+            line="321"
+            column="80"
+            startOffset="16994"
+            endLine="321"
+            endColumn="104"
+            endOffset="17018"/>
+        <map>
+            <entry
+                name="desc"
+                string="()"/>
+            <entry
+                name="message"
+                string="Call requires API level 24 (current min is %1$s): `android.app.Activity#isInPictureInPictureMode`"/>
+            <api-levels id="minSdk"
+                value="23-∞"/>
+            <entry
+                name="name"
+                string="isInPictureInPictureMode"/>
+            <entry
+                name="owner"
+                string="android.app.Activity"/>
+            <api-levels id="requiresApi"
+                value="24-∞"/>
+        </map>
+    </incident>
+
+    <incident
+        id="NewApi"
+        severity="error"
+        message="">
+        <fix-data minSdk="23-∞" requiresApi="24-∞"/>
+        <location
+            file="${:app*debug*MAIN*sourceProvider*0*javaDir*0}/fr/nekotv/Playback.kt"
+            line="330"
+            column="68"
+            startOffset="17666"
+            endLine="330"
+            endColumn="92"
+            endOffset="17690"/>
+        <map>
+            <entry
+                name="desc"
+                string="()"/>
+            <entry
+                name="message"
+                string="Call requires API level 24 (current min is %1$s): `android.app.Activity#isInPictureInPictureMode`"/>
+            <api-levels id="minSdk"
+                value="23-∞"/>
+            <entry
+                name="name"
+                string="isInPictureInPictureMode"/>
+            <entry
+                name="owner"
+                string="android.app.Activity"/>
+            <api-levels id="requiresApi"
+                value="24-∞"/>
+        </map>
+    </incident>
+
+    <incident
+        id="NotificationPermission"
+        severity="error"
+        message="When targeting Android 13 or higher, posting a permission requires holding the `POST_NOTIFICATIONS` permission">
+        <fix-data missing="android.permission.POST_NOTIFICATIONS"/>
+        <location
+            file="${:app*debug*MAIN*sourceProvider*0*javaDir*0}/fr/nekotv/LiveReminders.kt"
+            line="79"
+            column="27"
+            startOffset="4834"
+            endLine="79"
+            endColumn="62"
+            endOffset="4869"/>
+    </incident>
+
+    <incident
+        id="UnusedAttribute"
+        severity="warning"
+        message="">
+        <fix-data minSdk="23-∞" requiresApi="24-∞"/>
+        <location
+            file="${:app*debug*MAIN*sourceProvider*0*manifest*0}"
+            line="37"
+            column="13"
+            startOffset="2667"
+            endLine="37"
+            endColumn="52"
+            endOffset="2706"/>
+        <map>
+            <entry
+                name="message"
+                string="Attribute `supportsPictureInPicture` is only used in API level 24 and higher (current min is %1$s)"/>
+            <api-levels id="minSdk"
+                value="23-∞"/>
+            <api-levels id="requiresApi"
+                value="24-∞"/>
+        </map>
+    </incident>
+
+</incidents>

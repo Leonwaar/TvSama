@@ -53,6 +53,13 @@ fun TvSamaPlayer(
     subtitlesEnabled: Boolean = true,
     isFullscreen: Boolean = false,
     onToggleFullscreen: () -> Unit = {},
+    onBack: () -> Unit = {},
+    onPrevious: (() -> Unit)? = null,
+    onNext: (() -> Unit)? = null,
+    imdbId: String? = null,
+    isMovie: Boolean = false,
+    seasonNumber: Int = 0,
+    episodeNumber: Int = 0,
     onActualQuality: (String) -> Unit = {},
     onProgress: (Long, Long) -> Unit,
     modifier: Modifier = Modifier,
@@ -61,12 +68,19 @@ fun TvSamaPlayer(
 ) {
     val context = LocalContext.current
     val lifecycle = LocalLifecycleOwner.current.lifecycle
-    val progressCallback by rememberUpdatedState(onProgress)
+    val inPip = (context as? MainActivity)?.inPictureInPicture == true
     val errorCallback by rememberUpdatedState(onError)
     val endedCallback by rememberUpdatedState(onEnded)
+    val previousCallback by rememberUpdatedState(onPrevious)
+    val nextCallback by rememberUpdatedState(onNext)
     val qualityCallback by rememberUpdatedState(onActualQuality)
     var casting by remember(source) { mutableStateOf(false) }
     var playing by remember(source) { mutableStateOf(false) }
+    var controlsVisible by remember { mutableStateOf(true) }
+    var segments by remember(imdbId, seasonNumber, episodeNumber, isMovie) { mutableStateOf<EpisodeSegments?>(null) }
+    var playbackDuration by remember(source) { mutableLongStateOf(0L) }
+    var position by remember(source) { mutableLongStateOf(0L) }
+    LaunchedEffect(imdbId, seasonNumber, episodeNumber, isMovie) { segments = fetchSegments(imdbId, seasonNumber, episodeNumber, isMovie) }
     var castMessage by remember(source) { mutableStateOf<String?>(null) }
     val castContext = remember(context) { castContextOrNull(context) }
     val player = remember(source) {
@@ -92,9 +106,24 @@ fun TvSamaPlayer(
             playWhenReady = true
         }
     }
+    SideEffect { (context as? MainActivity)?.pictureInPictureEligible = playing && !casting }
+    val progressCallback = remember(player) { onProgress }
     LaunchedEffect(player, subtitlesEnabled) {
         player.trackSelectionParameters = player.trackSelectionParameters.buildUpon()
             .setTrackTypeDisabled(C.TRACK_TYPE_TEXT, !subtitlesEnabled).build()
+    }
+    LaunchedEffect(player, casting) {
+        while (true) {
+            val remote = castContext?.sessionManager?.currentCastSession?.remoteMediaClient
+            if (casting && remote?.mediaInfo?.contentId == source.url) {
+                position = remote.approximateStreamPosition
+                playbackDuration = remote.streamDuration
+            } else {
+                position = player.currentPosition
+                playbackDuration = player.duration
+            }
+            delay(500)
+        }
     }
     DisposableEffect(player, lifecycle) {
         val listener = object : Player.Listener {
@@ -103,7 +132,7 @@ fun TvSamaPlayer(
             }
             override fun onPlaybackStateChanged(state: Int) {
                 playing = player.isPlaying
-                if (state == Player.STATE_ENDED && !casting) endedCallback()
+                if (state == Player.STATE_ENDED && !casting) { progressCallback(player.duration.coerceAtLeast(0), player.duration.coerceAtLeast(0)); endedCallback() }
             }
             override fun onIsPlayingChanged(isPlaying: Boolean) { playing = isPlaying }
             override fun onVideoSizeChanged(videoSize: androidx.media3.common.VideoSize) {
@@ -116,6 +145,7 @@ fun TvSamaPlayer(
             if (event == Lifecycle.Event.ON_STOP) {
                 resumeOnStart = player.playWhenReady
                 progressCallback(player.currentPosition.coerceAtLeast(0), player.duration.coerceAtLeast(0))
+                // A visible PiP activity remains STARTED; STOP means it was hidden or dismissed.
                 player.pause()
             } else if (event == Lifecycle.Event.ON_START && resumeOnStart && !casting) player.play()
         }
@@ -124,6 +154,7 @@ fun TvSamaPlayer(
             progressCallback(player.currentPosition.coerceAtLeast(0), player.duration.coerceAtLeast(0))
             lifecycle.removeObserver(observer)
             player.removeListener(listener)
+            (context as? MainActivity)?.pictureInPictureEligible = false
             player.release()
         }
     }
@@ -259,26 +290,93 @@ fun TvSamaPlayer(
             PlayerView(it).apply {
                 this.player = player
                 useController = true
+                addOnLayoutChangeListener { view, _, _, _, _, _, _, _, _ ->
+                    if (android.os.Build.VERSION.SDK_INT >= 26 && context.packageManager.hasSystemFeature(android.content.pm.PackageManager.FEATURE_PICTURE_IN_PICTURE)) {
+                        val bounds = android.graphics.Rect()
+                        if (view.getGlobalVisibleRect(bounds)) runCatching {
+                            (context as? android.app.Activity)?.setPictureInPictureParams(
+                                android.app.PictureInPictureParams.Builder().setSourceRectHint(bounds).build())
+                        }
+                    }
+                }
                 setShowSubtitleButton(true)
+                setControllerVisibilityListener(PlayerView.ControllerVisibilityListener { visibility ->
+                    controlsVisible = visibility == android.view.View.VISIBLE
+                })
+                setShowPreviousButton(false)
+                setShowNextButton(false)
+                findViewById<android.widget.LinearLayout>(androidx.media3.ui.R.id.exo_time)?.let { timeBar ->
+                    fun episodeButton(tagName: String, description: String, icon: Int, click: () -> Unit) {
+                        timeBar.addView(android.widget.ImageButton(context).apply {
+                            tag = tagName; contentDescription = description
+                            setImageResource(icon); setColorFilter(android.graphics.Color.WHITE)
+                            val selectable = android.util.TypedValue()
+                            context.theme.resolveAttribute(android.R.attr.selectableItemBackgroundBorderless, selectable, true)
+                            setBackgroundResource(selectable.resourceId)
+                            isFocusable = true
+                            setOnClickListener { click() }
+                        }, android.widget.LinearLayout.LayoutParams((44 * resources.displayMetrics.density).toInt(), (44 * resources.displayMetrics.density).toInt()))
+                    }
+                    episodeButton("episode_previous", "Épisode précédent", androidx.media3.ui.R.drawable.exo_icon_previous) { previousCallback?.invoke() }
+                    episodeButton("episode_next", "Épisode suivant", androidx.media3.ui.R.drawable.exo_icon_next) { nextCallback?.invoke() }
+                }
+                findViewById<androidx.media3.ui.DefaultTimeBar>(androidx.media3.ui.R.id.exo_progress)?.apply {
+                    setKeyTimeIncrement(5_000)
+                    setOnKeyListener { _, code, event ->
+                        if (code == android.view.KeyEvent.KEYCODE_DPAD_LEFT || code == android.view.KeyEvent.KEYCODE_DPAD_RIGHT) {
+                            setKeyTimeIncrement(when { event.repeatCount > 20 -> 60_000; event.repeatCount > 8 -> 30_000; event.repeatCount > 3 -> 15_000; else -> 5_000 })
+                        }
+                        false
+                    }
+                }
+                var lastTap = 0L
+                var seekTarget = 0L
+                var tapDirection = 0
+                fun seekTap(event: android.view.MotionEvent) {
+                    val now = android.os.SystemClock.elapsedRealtime()
+                    val direction = if (event.x < width / 2) -1 else 1
+                    val base = if (now - lastTap < 900 && direction == tapDirection) seekTarget else player.currentPosition
+                    seekTarget = (base + direction * 15_000L).coerceIn(0, player.duration.takeIf { it > 0 } ?: Long.MAX_VALUE)
+                    lastTap = now; tapDirection = direction
+                    player.seekTo(seekTarget)
+                }
+                val gestures = android.view.GestureDetector(context, object : android.view.GestureDetector.SimpleOnGestureListener() {
+                    override fun onDown(event: android.view.MotionEvent) = true
+                    override fun onSingleTapUp(event: android.view.MotionEvent): Boolean {
+                        if (android.os.SystemClock.elapsedRealtime() - lastTap < 900) { seekTap(event); return true }
+                        return false
+                    }
+                    override fun onDoubleTap(event: android.view.MotionEvent): Boolean {
+                        seekTap(event)
+                        return true
+                    }
+                })
+                setOnTouchListener { _, event -> gestures.onTouchEvent(event); false }
                 setShowBuffering(PlayerView.SHOW_BUFFERING_WHEN_PLAYING)
                 keepScreenOn = true
                 isFocusable = true
                 requestFocus()
             }
-        }, update = { it.player = player; it.keepScreenOn = !casting })
-        Action(if (isFullscreen) "×" else "⛶", Modifier.align(Alignment.TopEnd).padding(14.dp)) { onToggleFullscreen() }
-        if (!playing && !casting) {
-            androidx.compose.material3.IconButton(
-                onClick = { player.play() },
-                modifier = Modifier.align(Alignment.Center).size(96.dp)
-            ) {
-                androidx.compose.material3.Icon(
-                    painterResource(R.drawable.ic_kiki_play),
-                    contentDescription = "Lire",
-                    tint = Color.Unspecified,
-                    modifier = Modifier.fillMaxSize().padding(8.dp)
-                )
+        }, update = { view ->
+            view.player = player; view.keepScreenOn = playing && !casting
+            view.useController = !inPip
+            if (inPip) view.hideController()
+            view.findViewWithTag<android.widget.ImageButton>("episode_previous")?.apply {
+                isEnabled = onPrevious != null; alpha = if (isEnabled) 1f else .35f
             }
+            view.findViewWithTag<android.widget.ImageButton>("episode_next")?.apply {
+                isEnabled = onNext != null; alpha = if (isEnabled) 1f else .35f
+            }
+        })
+        if (controlsVisible && !inPip) Row(Modifier.align(Alignment.TopEnd).padding(14.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            Action("Retour", onClick = onBack)
+            CastRouteButton(Modifier.size(48.dp))
+            if (android.os.Build.VERSION.SDK_INT >= 26 && context.packageManager.hasSystemFeature(android.content.pm.PackageManager.FEATURE_PICTURE_IN_PICTURE)) {
+                androidx.compose.material3.IconButton(onClick = { (context as? android.app.Activity)?.enterPictureInPictureMode(android.app.PictureInPictureParams.Builder().setAspectRatio(android.util.Rational(16, 9)).build()) }) {
+                    androidx.compose.material3.Icon(painterResource(R.drawable.ic_pip), contentDescription = "Image dans l’image", tint = Color.White)
+                }
+            }
+            Action(if (isFullscreen) "×" else "⛶") { onToggleFullscreen() }
         }
         if (casting) Column(Modifier.fillMaxSize().background(Color.Black), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
             Text("Lecture sur votre télévision", color = Color.White)
@@ -299,6 +397,18 @@ fun TvSamaPlayer(
                     }
                 }
                 CastRouteButton(Modifier.size(48.dp))
+            }
+        }
+        val activeSegment = listOf("Passer l’intro" to segments?.intro, "Passer l’outro" to segments?.outro)
+            .firstOrNull { (_, segment) -> segment != null && position >= segment.start && position < segment.end && segment.end <= playbackDuration }
+        if (!inPip && activeSegment != null) {
+            val segment = activeSegment.second!!
+            Action(activeSegment.first, Modifier.align(Alignment.BottomStart)
+                .padding(start = 16.dp, bottom = if (controlsVisible && !casting) 88.dp else 20.dp)
+                .background(Color.Black.copy(alpha = .6f))) {
+                if (casting) castContext?.sessionManager?.currentCastSession?.remoteMediaClient?.seek(
+                    MediaSeekOptions.Builder().setPosition(segment.end).build())
+                else player.seekTo(segment.end)
             }
         }
         castMessage?.let { Text(it, color = Color.White, modifier = Modifier.align(Alignment.TopCenter).background(Color.Black).padding(16.dp)) }

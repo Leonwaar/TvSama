@@ -63,6 +63,19 @@ fun CastRouteButton(modifier: Modifier = Modifier) {
 
 @Composable
 private fun PairingDialog(context: Context, onDismiss: () -> Unit) {
+    var scanMessage by remember { mutableStateOf("") }
+    val scanner = androidx.activity.compose.rememberLauncherForActivityResult(androidx.activity.result.contract.ActivityResultContracts.StartActivityForResult()) { result ->
+        val raw = result.data?.getStringExtra(com.streamflixreborn.streamflix.activities.tools.QrScannerActivity.EXTRA_QR_VALUE)
+        if (result.resultCode == android.app.Activity.RESULT_OK && raw != null) {
+            val uri = android.net.Uri.parse(raw)
+            val code = uri.getQueryParameter("token").orEmpty()
+            if (uri.scheme == "tvsama" && uri.host == "pair" && code.matches(Regex("[a-zA-Z0-9]{12,64}"))) {
+                context.getSharedPreferences("tvsama_settings", 0).edit().putString("paired_tv_token", code)
+                    .putString("paired_tv_device", uri.getQueryParameter("device") ?: "TvSama").apply()
+                scanMessage = "Code enregistré. Choisissez maintenant le téléviseur Cast."
+            } else scanMessage = "Ce QR code n’est pas un code d’association TvSama."
+        }
+    }
     val token = remember { context.getSharedPreferences("tvsama_settings", Context.MODE_PRIVATE).let { prefs ->
         prefs.getString("pairing_token", null) ?: UUID.randomUUID().toString().replace("-", "").take(12).also { prefs.edit().putString("pairing_token", it).apply() }
     } }
@@ -73,6 +86,10 @@ private fun PairingDialog(context: Context, onDismiss: () -> Unit) {
         text = { Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(12.dp)) {
             Text("Scannez ce code avec l’application TvSama sur votre téléphone. Les deux appareils doivent être sur le même Wi‑Fi.", color = Color.LightGray)
             AndroidView(factory = { android.widget.ImageView(it).apply { setImageBitmap(qr); contentDescription = "QR code de liaison TvSama" } }, modifier = Modifier.size(220.dp))
+            if (context.packageManager.hasSystemFeature(android.content.pm.PackageManager.FEATURE_CAMERA_ANY)) Action("Scanner l’écran avec la caméra") {
+                scanner.launch(android.content.Intent(context, com.streamflixreborn.streamflix.activities.tools.QrScannerActivity::class.java))
+            }
+            if (scanMessage.isNotBlank()) Text(scanMessage, color = Accent)
             Text("Code ${token.chunked(4).joinToString(" ")}", color = Accent, fontSize = 16.sp)
             Text("Après l’association, choisissez le téléviseur dans le bouton Cast.", color = Color.LightGray, fontSize = 12.sp)
         } },

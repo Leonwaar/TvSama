@@ -1,9 +1,20 @@
 -- Merging decision tree log ---
+provider#androidx.core.content.FileProvider
+INJECTED from /home/leon/TvSama_fixed_v2/TvSama_fixed/app/src/main/AndroidManifest.xml:31:9-33:20
+	android:grantUriPermissions
+		ADDED from /home/leon/TvSama_fixed_v2/TvSama_fixed/app/src/main/AndroidManifest.xml:31:141-175
+	android:authorities
+		INJECTED from /home/leon/TvSama_fixed_v2/TvSama_fixed/app/src/main/AndroidManifest.xml
+		ADDED from /home/leon/TvSama_fixed_v2/TvSama_fixed/app/src/main/AndroidManifest.xml:31:69-115
+	android:exported
+		ADDED from /home/leon/TvSama_fixed_v2/TvSama_fixed/app/src/main/AndroidManifest.xml:31:116-140
+	android:name
+		ADDED from /home/leon/TvSama_fixed_v2/TvSama_fixed/app/src/main/AndroidManifest.xml:31:19-68
 manifest
-ADDED from /home/leon/TvSama_fixed_v2/TvSama_fixed/app/src/main/AndroidManifest.xml:1:1-38:12
-INJECTED from /home/leon/TvSama_fixed_v2/TvSama_fixed/app/src/main/AndroidManifest.xml:1:1-38:12
-INJECTED from /home/leon/TvSama_fixed_v2/TvSama_fixed/app/src/main/AndroidManifest.xml:1:1-38:12
-INJECTED from /home/leon/TvSama_fixed_v2/TvSama_fixed/app/src/main/AndroidManifest.xml:1:1-38:12
+ADDED from /home/leon/TvSama_fixed_v2/TvSama_fixed/app/src/main/AndroidManifest.xml:1:1-53:12
+INJECTED from /home/leon/TvSama_fixed_v2/TvSama_fixed/app/src/main/AndroidManifest.xml:1:1-53:12
+INJECTED from /home/leon/TvSama_fixed_v2/TvSama_fixed/app/src/main/AndroidManifest.xml:1:1-53:12
+INJECTED from /home/leon/TvSama_fixed_v2/TvSama_fixed/app/src/main/AndroidManifest.xml:1:1-53:12
 MERGED from [:streamflix] /home/leon/TvSama_fixed_v2/TvSama_fixed/streamflix/app/build/intermediates/merged_manifest/debug/processDebugManifest/AndroidManifest.xml:2:1-70:12
 MERGED from [androidx.preference:preference-ktx:1.2.1] /home/leon/.gradle/caches/8.13/transforms/932742c72b181037ae9666a6cebb088e/transformed/preference-ktx-1.2.1/AndroidManifest.xml:17:1-24:12
 MERGED from [com.github.bumptech.glide:okhttp3-integration:5.0.0-rc01] /home/leon/.gradle/caches/8.13/transforms/92a0c3a95085bebb9c20f994c9efdbc1/transformed/okhttp3-integration-5.0.0-rc01/AndroidManifest.xml:2:1-13:12
@@ -222,49 +233,61 @@ uses-permission#android.permission.ACCESS_WIFI_STATE
 ADDED from /home/leon/TvSama_fixed_v2/TvSama_fixed/app/src/main/AndroidManifest.xml:6:5-76
 	android:name
 		ADDED from /home/leon/TvSama_fixed_v2/TvSama_fixed/app/src/main/AndroidManifest.xml:6:22-73
-uses-feature#android.hardware.camera
-ADDED from /home/leon/TvSama_fixed_v2/TvSama_fixed/app/src/main/AndroidManifest.xml:7:5-118
-	android:required
-		ADDED from /home/leon/TvSama_fixed_v2/TvSama_fixed/app/src/main/AndroidManifest.xml:7:58-82
-	tools:replace
-		ADDED from /home/leon/TvSama_fixed_v2/TvSama_fixed/app/src/main/AndroidManifest.xml:7:83-115
+uses-permission#android.permission.POST_NOTIFICATIONS
+ADDED from /home/leon/TvSama_fixed_v2/TvSama_fixed/app/src/main/AndroidManifest.xml:7:5-77
 	android:name
-		ADDED from /home/leon/TvSama_fixed_v2/TvSama_fixed/app/src/main/AndroidManifest.xml:7:19-57
+		ADDED from /home/leon/TvSama_fixed_v2/TvSama_fixed/app/src/main/AndroidManifest.xml:7:22-74
+uses-permission#android.permission.SCHEDULE_EXACT_ALARM
+ADDED from /home/leon/TvSama_fixed_v2/TvSama_fixed/app/src/main/AndroidManifest.xml:8:5-79
+	android:name
+		ADDED from /home/leon/TvSama_fixed_v2/TvSama_fixed/app/src/main/AndroidManifest.xml:8:22-76
+uses-feature#android.hardware.camera
+ADDED from /home/leon/TvSama_fixed_v2/TvSama_fixed/app/src/main/AndroidManifest.xml:9:5-118
+	android:required
+		ADDED from /home/leon/TvSama_fixed_v2/TvSama_fixed/app/src/main/AndroidManifest.xml:9:58-82
+	tools:replace
+		ADDED from /home/leon/TvSama_fixed_v2/TvSama_fixed/app/src/main/AndroidManifest.xml:9:83-115
+	android:name
+		ADDED from /home/leon/TvSama_fixed_v2/TvSama_fixed/app/src/main/AndroidManifest.xml:9:19-57
 uses-feature#android.hardware.microphone
-ADDED from /home/leon/TvSama_fixed_v2/TvSama_fixed/app/src/main/AndroidManifest.xml:8:5-122
+ADDED from /home/leon/TvSama_fixed_v2/TvSama_fixed/app/src/main/AndroidManifest.xml:10:5-122
 MERGED from [:streamflix] /home/leon/TvSama_fixed_v2/TvSama_fixed/streamflix/app/build/intermediates/merged_manifest/debug/processDebugManifest/AndroidManifest.xml:13:5-15:36
 MERGED from [:streamflix] /home/leon/TvSama_fixed_v2/TvSama_fixed/streamflix/app/build/intermediates/merged_manifest/debug/processDebugManifest/AndroidManifest.xml:13:5-15:36
 	android:required
-		ADDED from /home/leon/TvSama_fixed_v2/TvSama_fixed/app/src/main/AndroidManifest.xml:8:62-86
+		ADDED from /home/leon/TvSama_fixed_v2/TvSama_fixed/app/src/main/AndroidManifest.xml:10:62-86
 		REJECTED from [:streamflix] /home/leon/TvSama_fixed_v2/TvSama_fixed/streamflix/app/build/intermediates/merged_manifest/debug/processDebugManifest/AndroidManifest.xml:15:9-33
 	tools:replace
-		ADDED from /home/leon/TvSama_fixed_v2/TvSama_fixed/app/src/main/AndroidManifest.xml:8:87-119
+		ADDED from /home/leon/TvSama_fixed_v2/TvSama_fixed/app/src/main/AndroidManifest.xml:10:87-119
 	android:name
-		ADDED from /home/leon/TvSama_fixed_v2/TvSama_fixed/app/src/main/AndroidManifest.xml:8:19-61
+		ADDED from /home/leon/TvSama_fixed_v2/TvSama_fixed/app/src/main/AndroidManifest.xml:10:19-61
 uses-permission#android.permission.CAMERA
-ADDED from /home/leon/TvSama_fixed_v2/TvSama_fixed/app/src/main/AndroidManifest.xml:9:5-85
-REJECTED from [:streamflix] /home/leon/TvSama_fixed_v2/TvSama_fixed/streamflix/app/build/intermediates/merged_manifest/debug/processDebugManifest/AndroidManifest.xml:21:5-65
-	tools:node
-		ADDED from /home/leon/TvSama_fixed_v2/TvSama_fixed/app/src/main/AndroidManifest.xml:9:63-82
+ADDED from /home/leon/TvSama_fixed_v2/TvSama_fixed/app/src/main/AndroidManifest.xml:11:5-65
+MERGED from [:streamflix] /home/leon/TvSama_fixed_v2/TvSama_fixed/streamflix/app/build/intermediates/merged_manifest/debug/processDebugManifest/AndroidManifest.xml:21:5-65
+MERGED from [:streamflix] /home/leon/TvSama_fixed_v2/TvSama_fixed/streamflix/app/build/intermediates/merged_manifest/debug/processDebugManifest/AndroidManifest.xml:21:5-65
 	android:name
-		ADDED from /home/leon/TvSama_fixed_v2/TvSama_fixed/app/src/main/AndroidManifest.xml:9:22-62
+		ADDED from /home/leon/TvSama_fixed_v2/TvSama_fixed/app/src/main/AndroidManifest.xml:11:22-62
 uses-permission#android.permission.REQUEST_INSTALL_PACKAGES
-ADDED from /home/leon/TvSama_fixed_v2/TvSama_fixed/app/src/main/AndroidManifest.xml:10:5-103
-REJECTED from [:streamflix] /home/leon/TvSama_fixed_v2/TvSama_fixed/streamflix/app/build/intermediates/merged_manifest/debug/processDebugManifest/AndroidManifest.xml:22:5-83
-	tools:node
-		ADDED from /home/leon/TvSama_fixed_v2/TvSama_fixed/app/src/main/AndroidManifest.xml:10:81-100
+ADDED from /home/leon/TvSama_fixed_v2/TvSama_fixed/app/src/main/AndroidManifest.xml:12:5-83
+MERGED from [:streamflix] /home/leon/TvSama_fixed_v2/TvSama_fixed/streamflix/app/build/intermediates/merged_manifest/debug/processDebugManifest/AndroidManifest.xml:22:5-83
+MERGED from [:streamflix] /home/leon/TvSama_fixed_v2/TvSama_fixed/streamflix/app/build/intermediates/merged_manifest/debug/processDebugManifest/AndroidManifest.xml:22:5-83
 	android:name
-		ADDED from /home/leon/TvSama_fixed_v2/TvSama_fixed/app/src/main/AndroidManifest.xml:10:22-80
+		ADDED from /home/leon/TvSama_fixed_v2/TvSama_fixed/app/src/main/AndroidManifest.xml:12:22-80
 uses-permission#android.permission.UPDATE_PACKAGES_WITHOUT_USER_ACTION
-ADDED from /home/leon/TvSama_fixed_v2/TvSama_fixed/app/src/main/AndroidManifest.xml:11:5-114
+ADDED from /home/leon/TvSama_fixed_v2/TvSama_fixed/app/src/main/AndroidManifest.xml:13:5-114
 REJECTED from [:streamflix] /home/leon/TvSama_fixed_v2/TvSama_fixed/streamflix/app/build/intermediates/merged_manifest/debug/processDebugManifest/AndroidManifest.xml:23:5-94
 	tools:node
-		ADDED from /home/leon/TvSama_fixed_v2/TvSama_fixed/app/src/main/AndroidManifest.xml:11:92-111
+		ADDED from /home/leon/TvSama_fixed_v2/TvSama_fixed/app/src/main/AndroidManifest.xml:13:92-111
 	android:name
-		ADDED from /home/leon/TvSama_fixed_v2/TvSama_fixed/app/src/main/AndroidManifest.xml:11:22-91
+		ADDED from /home/leon/TvSama_fixed_v2/TvSama_fixed/app/src/main/AndroidManifest.xml:13:22-91
+uses-permission#android.permission.RECEIVE_BOOT_COMPLETED
+ADDED from /home/leon/TvSama_fixed_v2/TvSama_fixed/app/src/main/AndroidManifest.xml:14:5-81
+MERGED from [androidx.work:work-runtime:2.10.0] /home/leon/.gradle/caches/8.13/transforms/d56f68dfb65012d214edb207dc9a9373/transformed/work-runtime-2.10.0/AndroidManifest.xml:25:5-81
+MERGED from [androidx.work:work-runtime:2.10.0] /home/leon/.gradle/caches/8.13/transforms/d56f68dfb65012d214edb207dc9a9373/transformed/work-runtime-2.10.0/AndroidManifest.xml:25:5-81
+	android:name
+		ADDED from /home/leon/TvSama_fixed_v2/TvSama_fixed/app/src/main/AndroidManifest.xml:14:22-78
 application
-ADDED from /home/leon/TvSama_fixed_v2/TvSama_fixed/app/src/main/AndroidManifest.xml:12:5-37:19
-INJECTED from /home/leon/TvSama_fixed_v2/TvSama_fixed/app/src/main/AndroidManifest.xml:12:5-37:19
+ADDED from /home/leon/TvSama_fixed_v2/TvSama_fixed/app/src/main/AndroidManifest.xml:15:5-52:19
+INJECTED from /home/leon/TvSama_fixed_v2/TvSama_fixed/app/src/main/AndroidManifest.xml:15:5-52:19
 MERGED from [com.github.bumptech.glide:okhttp3-integration:5.0.0-rc01] /home/leon/.gradle/caches/8.13/transforms/92a0c3a95085bebb9c20f994c9efdbc1/transformed/okhttp3-integration-5.0.0-rc01/AndroidManifest.xml:7:5-11:19
 MERGED from [com.github.bumptech.glide:okhttp3-integration:5.0.0-rc01] /home/leon/.gradle/caches/8.13/transforms/92a0c3a95085bebb9c20f994c9efdbc1/transformed/okhttp3-integration-5.0.0-rc01/AndroidManifest.xml:7:5-11:19
 MERGED from [com.google.android.gms:play-services-cast-framework:21.4.0] /home/leon/.gradle/caches/8.13/transforms/448864f6ad7dfc2c8a9bc8b0ded12149/transformed/play-services-cast-framework-21.4.0/AndroidManifest.xml:18:5-26:19
@@ -316,65 +339,99 @@ MERGED from [org.conscrypt:conscrypt-android:2.5.2] /home/leon/.gradle/caches/8.
 	android:appComponentFactory
 		ADDED from [androidx.core:core:1.18.0] /home/leon/.gradle/caches/8.13/transforms/ba5fb2e9b7f76531c0ccd0f1fb47709f/transformed/core-1.18.0/AndroidManifest.xml:28:18-86
 	android:label
-		ADDED from /home/leon/TvSama_fixed_v2/TvSama_fixed/app/src/main/AndroidManifest.xml:17:9-31
+		ADDED from /home/leon/TvSama_fixed_v2/TvSama_fixed/app/src/main/AndroidManifest.xml:20:9-31
 	android:icon
-		ADDED from /home/leon/TvSama_fixed_v2/TvSama_fixed/app/src/main/AndroidManifest.xml:13:9-45
+		ADDED from /home/leon/TvSama_fixed_v2/TvSama_fixed/app/src/main/AndroidManifest.xml:16:9-45
 	android:banner
-		ADDED from /home/leon/TvSama_fixed_v2/TvSama_fixed/app/src/main/AndroidManifest.xml:14:9-49
+		ADDED from /home/leon/TvSama_fixed_v2/TvSama_fixed/app/src/main/AndroidManifest.xml:17:9-49
 	android:theme
-		ADDED from /home/leon/TvSama_fixed_v2/TvSama_fixed/app/src/main/AndroidManifest.xml:16:9-59
+		ADDED from /home/leon/TvSama_fixed_v2/TvSama_fixed/app/src/main/AndroidManifest.xml:19:9-59
 	android:usesCleartextTraffic
-		ADDED from /home/leon/TvSama_fixed_v2/TvSama_fixed/app/src/main/AndroidManifest.xml:18:9-45
+		ADDED from /home/leon/TvSama_fixed_v2/TvSama_fixed/app/src/main/AndroidManifest.xml:21:9-45
 	android:name
-		ADDED from /home/leon/TvSama_fixed_v2/TvSama_fixed/app/src/main/AndroidManifest.xml:15:9-69
+		ADDED from /home/leon/TvSama_fixed_v2/TvSama_fixed/app/src/main/AndroidManifest.xml:18:9-69
 meta-data#com.google.android.gms.cast.framework.OPTIONS_PROVIDER_CLASS_NAME
-ADDED from /home/leon/TvSama_fixed_v2/TvSama_fixed/app/src/main/AndroidManifest.xml:19:9-20:59
+ADDED from /home/leon/TvSama_fixed_v2/TvSama_fixed/app/src/main/AndroidManifest.xml:22:9-23:59
 	android:value
-		ADDED from /home/leon/TvSama_fixed_v2/TvSama_fixed/app/src/main/AndroidManifest.xml:20:13-56
+		ADDED from /home/leon/TvSama_fixed_v2/TvSama_fixed/app/src/main/AndroidManifest.xml:23:13-56
 	android:name
-		ADDED from /home/leon/TvSama_fixed_v2/TvSama_fixed/app/src/main/AndroidManifest.xml:19:20-100
-activity#fr.nekotv.MainActivity
-ADDED from /home/leon/TvSama_fixed_v2/TvSama_fixed/app/src/main/AndroidManifest.xml:21:9-36:20
+		ADDED from /home/leon/TvSama_fixed_v2/TvSama_fixed/app/src/main/AndroidManifest.xml:22:20-100
+receiver#fr.nekotv.LiveReminderReceiver
+ADDED from /home/leon/TvSama_fixed_v2/TvSama_fixed/app/src/main/AndroidManifest.xml:24:9-30:20
 	android:exported
-		ADDED from /home/leon/TvSama_fixed_v2/TvSama_fixed/app/src/main/AndroidManifest.xml:24:13-36
-	android:configChanges
-		ADDED from /home/leon/TvSama_fixed_v2/TvSama_fixed/app/src/main/AndroidManifest.xml:23:13-83
+		ADDED from /home/leon/TvSama_fixed_v2/TvSama_fixed/app/src/main/AndroidManifest.xml:24:56-80
 	android:name
-		ADDED from /home/leon/TvSama_fixed_v2/TvSama_fixed/app/src/main/AndroidManifest.xml:22:13-41
-intent-filter#action:name:android.intent.action.MAIN+category:name:android.intent.category.LAUNCHER+category:name:android.intent.category.LEANBACK_LAUNCHER
+		ADDED from /home/leon/TvSama_fixed_v2/TvSama_fixed/app/src/main/AndroidManifest.xml:24:19-55
+intent-filter#action:name:android.app.action.SCHEDULE_EXACT_ALARM_PERMISSION_STATE_CHANGED+action:name:android.intent.action.BOOT_COMPLETED+action:name:android.intent.action.MY_PACKAGE_REPLACED
 ADDED from /home/leon/TvSama_fixed_v2/TvSama_fixed/app/src/main/AndroidManifest.xml:25:13-29:29
+action#android.intent.action.BOOT_COMPLETED
+ADDED from /home/leon/TvSama_fixed_v2/TvSama_fixed/app/src/main/AndroidManifest.xml:26:17-79
+	android:name
+		ADDED from /home/leon/TvSama_fixed_v2/TvSama_fixed/app/src/main/AndroidManifest.xml:26:25-76
+action#android.intent.action.MY_PACKAGE_REPLACED
+ADDED from /home/leon/TvSama_fixed_v2/TvSama_fixed/app/src/main/AndroidManifest.xml:27:17-84
+	android:name
+		ADDED from /home/leon/TvSama_fixed_v2/TvSama_fixed/app/src/main/AndroidManifest.xml:27:25-81
+action#android.app.action.SCHEDULE_EXACT_ALARM_PERMISSION_STATE_CHANGED
+ADDED from /home/leon/TvSama_fixed_v2/TvSama_fixed/app/src/main/AndroidManifest.xml:28:17-107
+	android:name
+		ADDED from /home/leon/TvSama_fixed_v2/TvSama_fixed/app/src/main/AndroidManifest.xml:28:25-104
+activity#com.streamflixreborn.streamflix.activities.tools.QrScannerActivity
+ADDED from /home/leon/TvSama_fixed_v2/TvSama_fixed/app/src/main/AndroidManifest.xml:34:9-128
+	android:exported
+		ADDED from /home/leon/TvSama_fixed_v2/TvSama_fixed/app/src/main/AndroidManifest.xml:34:101-125
+	android:name
+		ADDED from /home/leon/TvSama_fixed_v2/TvSama_fixed/app/src/main/AndroidManifest.xml:34:19-100
+activity#fr.nekotv.MainActivity
+ADDED from /home/leon/TvSama_fixed_v2/TvSama_fixed/app/src/main/AndroidManifest.xml:35:9-51:20
+	android:exported
+		ADDED from /home/leon/TvSama_fixed_v2/TvSama_fixed/app/src/main/AndroidManifest.xml:39:13-36
+	android:supportsPictureInPicture
+		ADDED from /home/leon/TvSama_fixed_v2/TvSama_fixed/app/src/main/AndroidManifest.xml:37:13-52
+	android:configChanges
+		ADDED from /home/leon/TvSama_fixed_v2/TvSama_fixed/app/src/main/AndroidManifest.xml:38:13-115
+	android:name
+		ADDED from /home/leon/TvSama_fixed_v2/TvSama_fixed/app/src/main/AndroidManifest.xml:36:13-41
+intent-filter#action:name:android.intent.action.MAIN+category:name:android.intent.category.LAUNCHER+category:name:android.intent.category.LEANBACK_LAUNCHER
+ADDED from /home/leon/TvSama_fixed_v2/TvSama_fixed/app/src/main/AndroidManifest.xml:40:13-44:29
 action#android.intent.action.MAIN
-ADDED from /home/leon/TvSama_fixed_v2/TvSama_fixed/app/src/main/AndroidManifest.xml:26:17-69
+ADDED from /home/leon/TvSama_fixed_v2/TvSama_fixed/app/src/main/AndroidManifest.xml:41:17-69
 	android:name
-		ADDED from /home/leon/TvSama_fixed_v2/TvSama_fixed/app/src/main/AndroidManifest.xml:26:25-66
+		ADDED from /home/leon/TvSama_fixed_v2/TvSama_fixed/app/src/main/AndroidManifest.xml:41:25-66
 category#android.intent.category.LEANBACK_LAUNCHER
-ADDED from /home/leon/TvSama_fixed_v2/TvSama_fixed/app/src/main/AndroidManifest.xml:27:17-86
+ADDED from /home/leon/TvSama_fixed_v2/TvSama_fixed/app/src/main/AndroidManifest.xml:42:17-86
 	android:name
-		ADDED from /home/leon/TvSama_fixed_v2/TvSama_fixed/app/src/main/AndroidManifest.xml:27:27-83
+		ADDED from /home/leon/TvSama_fixed_v2/TvSama_fixed/app/src/main/AndroidManifest.xml:42:27-83
 category#android.intent.category.LAUNCHER
-ADDED from /home/leon/TvSama_fixed_v2/TvSama_fixed/app/src/main/AndroidManifest.xml:28:17-77
+ADDED from /home/leon/TvSama_fixed_v2/TvSama_fixed/app/src/main/AndroidManifest.xml:43:17-77
 	android:name
-		ADDED from /home/leon/TvSama_fixed_v2/TvSama_fixed/app/src/main/AndroidManifest.xml:28:27-74
+		ADDED from /home/leon/TvSama_fixed_v2/TvSama_fixed/app/src/main/AndroidManifest.xml:43:27-74
 intent-filter#action:name:android.intent.action.VIEW+category:name:android.intent.category.BROWSABLE+category:name:android.intent.category.DEFAULT+data:host:pair+data:scheme:tvsama
-ADDED from /home/leon/TvSama_fixed_v2/TvSama_fixed/app/src/main/AndroidManifest.xml:30:13-35:29
+ADDED from /home/leon/TvSama_fixed_v2/TvSama_fixed/app/src/main/AndroidManifest.xml:45:13-50:29
 action#android.intent.action.VIEW
-ADDED from /home/leon/TvSama_fixed_v2/TvSama_fixed/app/src/main/AndroidManifest.xml:31:17-69
+ADDED from /home/leon/TvSama_fixed_v2/TvSama_fixed/app/src/main/AndroidManifest.xml:46:17-69
 	android:name
-		ADDED from /home/leon/TvSama_fixed_v2/TvSama_fixed/app/src/main/AndroidManifest.xml:31:25-66
+		ADDED from /home/leon/TvSama_fixed_v2/TvSama_fixed/app/src/main/AndroidManifest.xml:46:25-66
 category#android.intent.category.DEFAULT
-ADDED from /home/leon/TvSama_fixed_v2/TvSama_fixed/app/src/main/AndroidManifest.xml:32:17-76
+ADDED from /home/leon/TvSama_fixed_v2/TvSama_fixed/app/src/main/AndroidManifest.xml:47:17-76
 	android:name
-		ADDED from /home/leon/TvSama_fixed_v2/TvSama_fixed/app/src/main/AndroidManifest.xml:32:27-73
+		ADDED from /home/leon/TvSama_fixed_v2/TvSama_fixed/app/src/main/AndroidManifest.xml:47:27-73
 category#android.intent.category.BROWSABLE
-ADDED from /home/leon/TvSama_fixed_v2/TvSama_fixed/app/src/main/AndroidManifest.xml:33:17-78
+ADDED from /home/leon/TvSama_fixed_v2/TvSama_fixed/app/src/main/AndroidManifest.xml:48:17-78
 	android:name
-		ADDED from /home/leon/TvSama_fixed_v2/TvSama_fixed/app/src/main/AndroidManifest.xml:33:27-75
+		ADDED from /home/leon/TvSama_fixed_v2/TvSama_fixed/app/src/main/AndroidManifest.xml:48:27-75
 data
-ADDED from /home/leon/TvSama_fixed_v2/TvSama_fixed/app/src/main/AndroidManifest.xml:34:17-69
+ADDED from /home/leon/TvSama_fixed_v2/TvSama_fixed/app/src/main/AndroidManifest.xml:49:17-69
 	android:host
-		ADDED from /home/leon/TvSama_fixed_v2/TvSama_fixed/app/src/main/AndroidManifest.xml:34:47-66
+		ADDED from /home/leon/TvSama_fixed_v2/TvSama_fixed/app/src/main/AndroidManifest.xml:49:47-66
 	android:scheme
-		ADDED from /home/leon/TvSama_fixed_v2/TvSama_fixed/app/src/main/AndroidManifest.xml:34:23-46
+		ADDED from /home/leon/TvSama_fixed_v2/TvSama_fixed/app/src/main/AndroidManifest.xml:49:23-46
+meta-data#android.support.FILE_PROVIDER_PATHS
+ADDED from /home/leon/TvSama_fixed_v2/TvSama_fixed/app/src/main/AndroidManifest.xml:32:13-114
+	android:resource
+		ADDED from /home/leon/TvSama_fixed_v2/TvSama_fixed/app/src/main/AndroidManifest.xml:32:75-111
+	android:name
+		ADDED from /home/leon/TvSama_fixed_v2/TvSama_fixed/app/src/main/AndroidManifest.xml:32:24-74
 uses-sdk
 INJECTED from /home/leon/TvSama_fixed_v2/TvSama_fixed/app/src/main/AndroidManifest.xml reason: use-sdk injection requested
 INJECTED from /home/leon/TvSama_fixed_v2/TvSama_fixed/app/src/main/AndroidManifest.xml
@@ -785,10 +842,6 @@ uses-permission#android.permission.WAKE_LOCK
 ADDED from [androidx.work:work-runtime:2.10.0] /home/leon/.gradle/caches/8.13/transforms/d56f68dfb65012d214edb207dc9a9373/transformed/work-runtime-2.10.0/AndroidManifest.xml:23:5-68
 	android:name
 		ADDED from [androidx.work:work-runtime:2.10.0] /home/leon/.gradle/caches/8.13/transforms/d56f68dfb65012d214edb207dc9a9373/transformed/work-runtime-2.10.0/AndroidManifest.xml:23:22-65
-uses-permission#android.permission.RECEIVE_BOOT_COMPLETED
-ADDED from [androidx.work:work-runtime:2.10.0] /home/leon/.gradle/caches/8.13/transforms/d56f68dfb65012d214edb207dc9a9373/transformed/work-runtime-2.10.0/AndroidManifest.xml:25:5-81
-	android:name
-		ADDED from [androidx.work:work-runtime:2.10.0] /home/leon/.gradle/caches/8.13/transforms/d56f68dfb65012d214edb207dc9a9373/transformed/work-runtime-2.10.0/AndroidManifest.xml:25:22-78
 provider#androidx.startup.InitializationProvider
 ADDED from [androidx.work:work-runtime:2.10.0] /home/leon/.gradle/caches/8.13/transforms/d56f68dfb65012d214edb207dc9a9373/transformed/work-runtime-2.10.0/AndroidManifest.xml:29:9-37:20
 MERGED from [androidx.emoji2:emoji2:1.4.0] /home/leon/.gradle/caches/8.13/transforms/1e21c1b2312d6b5acd3794bd3b396769/transformed/emoji2-1.4.0/AndroidManifest.xml:24:9-32:20
@@ -969,10 +1022,6 @@ ADDED from [androidx.work:work-runtime:2.10.0] /home/leon/.gradle/caches/8.13/tr
 		ADDED from [androidx.work:work-runtime:2.10.0] /home/leon/.gradle/caches/8.13/transforms/d56f68dfb65012d214edb207dc9a9373/transformed/work-runtime-2.10.0/AndroidManifest.xml:111:13-88
 intent-filter#action:name:android.intent.action.BOOT_COMPLETED+action:name:android.intent.action.TIMEZONE_CHANGED+action:name:android.intent.action.TIME_SET
 ADDED from [androidx.work:work-runtime:2.10.0] /home/leon/.gradle/caches/8.13/transforms/d56f68dfb65012d214edb207dc9a9373/transformed/work-runtime-2.10.0/AndroidManifest.xml:116:13-120:29
-action#android.intent.action.BOOT_COMPLETED
-ADDED from [androidx.work:work-runtime:2.10.0] /home/leon/.gradle/caches/8.13/transforms/d56f68dfb65012d214edb207dc9a9373/transformed/work-runtime-2.10.0/AndroidManifest.xml:117:17-79
-	android:name
-		ADDED from [androidx.work:work-runtime:2.10.0] /home/leon/.gradle/caches/8.13/transforms/d56f68dfb65012d214edb207dc9a9373/transformed/work-runtime-2.10.0/AndroidManifest.xml:117:25-76
 action#android.intent.action.TIME_SET
 ADDED from [androidx.work:work-runtime:2.10.0] /home/leon/.gradle/caches/8.13/transforms/d56f68dfb65012d214edb207dc9a9373/transformed/work-runtime-2.10.0/AndroidManifest.xml:118:17-73
 	android:name
