@@ -52,6 +52,7 @@ import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import androidx.lifecycle.lifecycleScope
 
 class MainActivity : FragmentActivity() {
     var inPictureInPicture by mutableStateOf(false)
@@ -73,13 +74,26 @@ class MainActivity : FragmentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        intent?.data?.takeIf { it.scheme == "tvsama" && it.host == "pair" }?.let { pairing ->
-            getSharedPreferences("tvsama_settings", MODE_PRIVATE).edit()
-                .putString("paired_tv_token", pairing.getQueryParameter("token").orEmpty())
-                .putString("paired_tv_device", pairing.getQueryParameter("device").orEmpty())
-                .apply()
-        }
+        RemoteLink.restore(this)
+        handlePairing(intent)
         setContent { SamaTheme { TvSamaApp() } }
+    }
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        setIntent(intent)
+        handlePairing(intent)
+    }
+
+    private fun handlePairing(intent: Intent?) {
+        val uri = intent?.data?.takeIf { it.scheme == "tvsama" && it.host == "pair" } ?: return
+        lifecycleScope.launch {
+            try {
+                RemoteLink.pair(this@MainActivity, uri.toString())
+                Toast.makeText(this@MainActivity, "Télévision liée", Toast.LENGTH_LONG).show()
+            } catch (e: CancellationException) { throw e }
+            catch (e: Exception) { Toast.makeText(this@MainActivity, "Association impossible : ${e.message}", Toast.LENGTH_LONG).show() }
+        }
     }
 
     override fun onUserLeaveHint() {
@@ -203,22 +217,67 @@ private fun TvSamaApp() {
     val voice = rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
         if (result.resultCode == Activity.RESULT_OK) result.data?.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS)?.firstOrNull()?.let { query = it; page = Page.SEARCH }
     }
+    val pairedHost by RemoteLink.target.collectAsState()
+    var receivedPlayback by remember { mutableStateOf(false) }
+    var receivedQuery by remember { mutableStateOf<String?>(null) }
+    var remoteError by remember { mutableStateOf("") }
     LaunchedEffect(Unit) {
-        providerNames = manager.getProviderNames()
-        scope.launch {
-            manager.refreshSources()
-            unavailableSources = manager.sourceHealth().filterValues { it.startsWith("✕") }.keys.toList()
-            providerRevision++
-            generation++
+        providerNames = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) { manager.getProviderNames() }
+        // Health checks are explicitly requested from Sources, not on every startup.
+        runCatching { RemoteLink.start(context) }
+        for (command in RemoteLink.commands) {
+            when (command.action) {
+                "search" -> {
+                    navigate(Page.SEARCH)
+                    receivedQuery = command.query
+                    query = command.query; category = command.category
+                }
+                "play" -> {
+                    detailJob?.cancel(); resolveJob?.cancel()
+                    receivedPlayback = true
+                    selected = command.anime; episode = command.episode
+                    sources = command.sources; source = sources.firstOrNull()
+                    playerError = ""; page = Page.PLAYER
+                }
+            }
         }
     }
+    LaunchedEffect(query, category, pairedHost) {
+        if (pairedHost != null && query.isNotBlank() && query != receivedQuery) {
+            delay(700)
+            try { RemoteLink.send(context, RemoteCommand(action = "search", query = query, category = category)) }
+            catch (e: CancellationException) { throw e }
+            catch (e: Exception) { remoteError = "Recherche non envoyée : vérifiez que la télévision est ouverte sur le même Wi-Fi." }
+        }
+    }
+    LaunchedEffect(page, source, pairedHost) {
+        if (page != Page.PLAYER) receivedPlayback = false
+        if (page == Page.PLAYER && source != null && pairedHost != null && !receivedPlayback) {
+            try {
+                RemoteLink.send(context, RemoteCommand(action = "play", anime = selected, episode = episode,
+                    sources = listOf(source!!) + sources.filter { it.url != source!!.url }))
+                page = if (selected?.tag == "Direct") Page.LIVE else Page.DETAIL
+                Toast.makeText(context, "Lecture lancée sur la télévision", Toast.LENGTH_SHORT).show()
+            } catch (e: CancellationException) { throw e }
+            catch (e: Exception) {
+                page = if (selected?.tag == "Direct") Page.LIVE else Page.DETAIL
+                remoteError = "Lecture non envoyée : vérifiez la connexion de la télévision, puis réessayez."
+            }
+        }
+    }
+    if (remoteError.isNotBlank()) AlertDialog(onDismissRequest = { remoteError = "" },
+        title = { Text("Télécommande") }, text = { Text(remoteError) },
+        confirmButton = { TextButton(onClick = { remoteError = "" }) { Text("Fermer") } },
+        dismissButton = { TextButton(onClick = { RemoteLink.disconnect(context); remoteError = "" }) { Text("Délier") } })
 
     LaunchedEffect(query, category, generation) {
         pageJob?.cancel(); loadingMore = false
         catalogLoading = true; catalogError = ""; catalogPage = 1
         try {
             if (query.isNotBlank()) { delay(700); library.rememberSearch(query); recentSearches = library.searches() }
-            catalog = manager.searchAllProviders(query, category)
+            catalog = manager.searchAllProviders(query, category, onPartial = if (query.isBlank() && category == "Tous") ({ partial ->
+                kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Main) { catalog = partial; catalogLoading = false }
+            }) else null)
             if (catalog.isEmpty()) catalogError = "Aucun résultat disponible. Vérifiez les fournisseurs activés ou essayez une autre recherche."
         } catch (e: CancellationException) { throw e
         } catch (e: Exception) { catalog = emptyList(); catalogError = "Catalogue indisponible. Vérifiez votre connexion puis réessayez."
@@ -241,7 +300,7 @@ private fun TvSamaApp() {
         confirmButton = { TextButton(onClick = { unavailableSources = emptyList(); navigate(Page.SOURCES) }) { Text("Voir les sources") } },
         dismissButton = { TextButton(onClick = { unavailableSources = emptyList() }) { Text("Fermer") } })
     Surface(Modifier.fillMaxSize(), color = Ink) {
-        if (page == Page.PLAYER && source != null) {
+        if (page == Page.PLAYER && source != null && (pairedHost == null || receivedPlayback)) {
             Column(Modifier.fillMaxSize().then(if (inPip) Modifier else Modifier.safeDrawingPadding())) {
                 if (!inPip && !isFullscreen && sources.size > 1) LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp), contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp)) {
                     items(sources) { candidate ->
@@ -254,7 +313,7 @@ private fun TvSamaApp() {
                     Text(playerError, color = Color(0xFFFFB4AB), modifier = Modifier.padding(12.dp))
                     Row(Modifier.horizontalScroll(rememberScrollState()).padding(horizontal = 12.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         sources.filter { it.url != source?.url }.forEach { alternative -> Action("${alternative.provider} · ${alternative.name}") { source = alternative; currentQuality = "Détection…"; playerError = "" } }
-                        Action("Actualiser") { page = Page.DETAIL; resolve(false, true) }
+                        Action("Actualiser") { if (selected?.tag == "Direct") page = Page.LIVE else { page = Page.DETAIL; resolve(false, true) } }
                     }
                 }
                 val playingAnime = selected
@@ -281,7 +340,10 @@ private fun TvSamaApp() {
                     modifier = Modifier.weight(1f).fillMaxWidth(), onError = { message ->
                         playerError = message
                         val failed = source?.url
-                        if (playingAnime?.tag == "Direct") sources.firstOrNull { it.url != failed }?.let { source = it }
+                        if (playingAnime?.tag == "Direct") {
+                            sources = sources.filter { it.url != failed }
+                            sources.firstOrNull()?.let { source = it }
+                        }
                         playingAnime?.takeUnless { it.tag == "Direct" }?.let { animeForRetry -> scope.launch {
                             val refreshed = runCatching { manager.resolveSources(animeForRetry, playingEpisode, language, refresh = true) }.getOrDefault(emptyList())
                             val alternatives = refreshed.filter { it.url != failed }

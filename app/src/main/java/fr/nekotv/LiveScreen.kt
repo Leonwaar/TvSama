@@ -23,6 +23,7 @@ import com.streamflixreborn.streamflix.providers.VolkaMaxProvider
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.withTimeout
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -86,43 +87,25 @@ fun LiveScreen(onPlay: (DirectEvent, List<VideoSource>) -> Unit) {
                         scope.launch {
                             playing = event.id
                             try {
-                                val videos = withTimeout(90_000) {
-                                    VolkaMaxProvider.servers(event.url).mapNotNull { server ->
+                                error = ""
+                                val videos = withTimeout(45_000) {
+                                    val found = mutableListOf<VideoSource>()
+                                    for (server in VolkaMaxProvider.servers(event.url).distinctBy { it.src }.take(6)) {
                                         try {
-                                            val video = withTimeout(15_000) { VolkaMaxProvider.video(server) }
-                                            // Validate that we got a proper video source
-                                            if (video.source.isNotBlank() && video.source.startsWith("http")) {
-                                                VideoSource(server.name, video.source, "UNKNOWN", "Auto", VolkaMaxProvider.NAME, video.headers.orEmpty(), mimeType = video.type)
-                                            } else {
-                                                null
+                                            val video = withTimeout(12_000) { VolkaMaxProvider.video(server) }
+                                            if (Uri.parse(video.source).scheme in listOf("http", "https")) {
+                                                found += VideoSource(server.name, video.source, "UNKNOWN", "Auto", VolkaMaxProvider.NAME, video.headers.orEmpty(), mimeType = video.type)
+                                                break // Start playback as soon as a working extractor returns.
                                             }
-                                        } catch (e: kotlinx.coroutines.TimeoutCancellationException) { null }
-                                        catch (e: CancellationException) { throw e }
-                                        catch (_: Exception) { null }
+                                        } catch (e: kotlinx.coroutines.TimeoutCancellationException) {
+                                            kotlinx.coroutines.currentCoroutineContext().ensureActive()
+                                        } catch (e: CancellationException) { throw e }
+                                        catch (_: Exception) { }
                                     }
+                                    found.toList()
                                 }
-                                if (videos.isEmpty()) {
-                                    // Fallback: try without timeout on video call to see if we get more info
-                                    val fallbackVideos = withTimeout(60_000) {
-                                        VolkaMaxProvider.servers(event.url).mapNotNull { server ->
-                                            try {
-                                                val video = VolkaMaxProvider.video(server) // No timeout for fallback
-                                                if (video.source.isNotBlank() && video.source.startsWith("http")) {
-                                                    VideoSource(server.name, video.source, "UNKNOWN", "Auto", VolkaMaxProvider.NAME, video.headers.orEmpty(), mimeType = video.type)
-                                                } else {
-                                                    null
-                                                }
-                                            } catch (e: Exception) { null }
-                                        }
-                                    }
-                                    if (fallbackVideos.isNotEmpty()) {
-                                        onPlay(event, fallbackVideos)
-                                    } else {
-                                        check(false) { "Aucun lecteur compatible disponible pour ce direct." }
-                                    }
-                                } else {
-                                    onPlay(event, videos)
-                                }
+                                check(videos.isNotEmpty()) { "Aucun lecteur compatible disponible pour ce direct." }
+                                onPlay(event, videos)
                             } catch (e: kotlinx.coroutines.TimeoutCancellationException) { error = "Le lecteur ne répond pas." }
                             catch (e: CancellationException) { throw e }
                             catch (e: Exception) { error = e.message ?: "Lecture indisponible" }

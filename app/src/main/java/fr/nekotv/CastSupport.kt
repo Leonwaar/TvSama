@@ -35,6 +35,8 @@ import com.google.android.gms.cast.framework.SessionProvider
 import com.google.zxing.BarcodeFormat
 import com.google.zxing.qrcode.QRCodeWriter
 import java.util.UUID
+import androidx.compose.runtime.collectAsState
+import kotlinx.coroutines.launch
 
 class TvSamaCastOptions : OptionsProvider {
     override fun getCastOptions(context: Context): CastOptions = CastOptions.Builder()
@@ -64,47 +66,42 @@ fun CastRouteButton(modifier: Modifier = Modifier) {
 @Composable
 private fun PairingDialog(context: Context, onDismiss: () -> Unit) {
     var scanMessage by remember { mutableStateOf("") }
+    var payload by remember { mutableStateOf("") }
+    val scope = androidx.compose.runtime.rememberCoroutineScope()
+    val paired by RemoteLink.target.collectAsState()
+    androidx.compose.runtime.LaunchedEffect(Unit) {
+        try { payload = RemoteLink.start(context) }
+        catch (e: Exception) { scanMessage = e.message.orEmpty() }
+    }
     val scanner = androidx.activity.compose.rememberLauncherForActivityResult(androidx.activity.result.contract.ActivityResultContracts.StartActivityForResult()) { result ->
         val raw = result.data?.getStringExtra(com.streamflixreborn.streamflix.activities.tools.QrScannerActivity.EXTRA_QR_VALUE)
-        if (result.resultCode == android.app.Activity.RESULT_OK && raw != null) {
-            val uri = android.net.Uri.parse(raw)
-            val code = uri.getQueryParameter("token").orEmpty()
-            if (uri.scheme == "tvsama" && uri.host == "pair" && code.matches(Regex("[a-zA-Z0-9]{12,64}"))) {
-                context.getSharedPreferences("tvsama_settings", 0).edit().putString("paired_tv_token", code)
-                    .putString("paired_tv_device", uri.getQueryParameter("device") ?: "TvSama").apply()
-                scanMessage = "Code enregistré. Choisissez maintenant le téléviseur Cast."
-            } else scanMessage = "Ce QR code n’est pas un code d’association TvSama."
+        if (result.resultCode == android.app.Activity.RESULT_OK && raw != null) scope.launch {
+            try { RemoteLink.pair(context, raw); scanMessage = "Télévision liée : vos recherches et lectures sont envoyées à cet écran." }
+            catch (e: kotlinx.coroutines.CancellationException) { throw e }
+            catch (e: Exception) { scanMessage = "Association impossible : ${e.message}" }
         }
     }
-    val token = remember { context.getSharedPreferences("tvsama_settings", Context.MODE_PRIVATE).let { prefs ->
-        prefs.getString("pairing_token", null) ?: UUID.randomUUID().toString().replace("-", "").take(12).also { prefs.edit().putString("pairing_token", it).apply() }
-    } }
-    val payload = "tvsama://pair?device=TvSama&token=$token"
-    val qr = remember(payload) { qrBitmap(payload, 720) }
+    val qr = remember(payload) { if (payload.isBlank()) null else qrBitmap(payload, 360) }
     AlertDialog(onDismissRequest = onDismiss, containerColor = Color(0xFF111111),
         title = { Text("Associer la télécommande", color = Color.White) },
         text = { Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(12.dp)) {
             Text("Scannez ce code avec l’application TvSama sur votre téléphone. Les deux appareils doivent être sur le même Wi‑Fi.", color = Color.LightGray)
-            AndroidView(factory = { android.widget.ImageView(it).apply { setImageBitmap(qr); contentDescription = "QR code de liaison TvSama" } }, modifier = Modifier.size(220.dp))
+            if (qr != null) AndroidView(factory = { android.widget.ImageView(it).apply { setImageBitmap(qr); contentDescription = "QR code de liaison TvSama" } }, modifier = Modifier.size(220.dp))
             if (context.packageManager.hasSystemFeature(android.content.pm.PackageManager.FEATURE_CAMERA_ANY)) Action("Scanner l’écran avec la caméra") {
                 scanner.launch(android.content.Intent(context, com.streamflixreborn.streamflix.activities.tools.QrScannerActivity::class.java))
             }
             if (scanMessage.isNotBlank()) Text(scanMessage, color = Accent)
-            Text("Code ${token.chunked(4).joinToString(" ")}", color = Accent, fontSize = 16.sp)
-            Text("Après l’association, choisissez le téléviseur dans le bouton Cast.", color = Color.LightGray, fontSize = 12.sp)
+            if (paired != null) Action("Délier la télévision ($paired)") { RemoteLink.disconnect(context) }
+            Text("Gardez TvSama ouvert sur l’écran associé.", color = Color.LightGray, fontSize = 12.sp)
         } },
-        confirmButton = {
-            AndroidView(factory = { viewContext -> android.widget.FrameLayout(viewContext).apply {
-                val route = MediaRouteButton(viewContext).apply { contentDescription = "Choisir le téléviseur Cast"; setAlwaysVisible(true); CastButtonFactory.setUpMediaRouteButton(viewContext, this) }
-                addView(route, android.widget.FrameLayout.LayoutParams(190, 56))
-            } }, modifier = Modifier.width(190.dp).height(56.dp))
-        },
+        confirmButton = { TextButton(onClick = onDismiss) { Text("Terminé") } },
         dismissButton = { TextButton(onClick = onDismiss) { Text("Fermer", color = Color.White) } })
 }
 
 private fun qrBitmap(value: String, size: Int): Bitmap {
     val matrix = QRCodeWriter().encode(value, BarcodeFormat.QR_CODE, size, size)
     return Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888).also { bitmap ->
-        for (x in 0 until size) for (y in 0 until size) bitmap.setPixel(x, y, if (matrix[x, y]) AndroidColor.BLACK else AndroidColor.WHITE)
+        val pixels = IntArray(size * size) { i -> if (matrix[i % size, i / size]) AndroidColor.BLACK else AndroidColor.WHITE }
+        bitmap.setPixels(pixels, 0, size, 0, 0, size, size)
     }
 }

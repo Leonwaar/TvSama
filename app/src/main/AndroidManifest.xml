@@ -34,6 +34,7 @@
         <activity android:name="com.streamflixreborn.streamflix.activities.tools.QrScannerActivity" android:exported="false" />
         <activity
             android:name=".MainActivity"
+            android:launchMode="singleTop"
             android:supportsPictureInPicture="true"
             android:configChanges="orientation|screenSize|smallestScreenSize|screenLayout|keyboard|keyboardHidden"
             android:exported="true">

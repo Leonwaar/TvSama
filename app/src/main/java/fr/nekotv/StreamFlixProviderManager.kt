@@ -120,7 +120,10 @@ class StreamFlixProviderManager private constructor() {
         statuses[name] = "Indisponible • ${e.message?.take(70) ?: "erreur réseau"}"; fallback
     }
 
-    suspend fun searchAllProviders(query: String, category: String, page: Int = 1): List<Anime> = withContext(Dispatchers.IO) {
+    suspend fun searchAllProviders(query: String, category: String, page: Int = 1,
+        onPartial: (suspend (List<Anime>) -> Unit)? = null): List<Anime> = withContext(Dispatchers.IO) {
+        val partialMutex = Mutex()
+        val partialItems = mutableListOf<Anime>()
         val cat = category.lowercase()
         val isAnimationCategory = cat.contains("anime") || cat.contains("animé") || cat.contains("animation")
         val selected = providers.filter { isProviderEnabled(it.name) }.filter {
@@ -132,7 +135,7 @@ class StreamFlixProviderManager private constructor() {
             }
         }
         val found = selected.map { provider -> async {
-            requests.withPermit { attempt(provider.name, emptyList<Anime>()) {
+            val result = requests.withPermit { attempt(provider.name, emptyList<Anime>()) {
                 val items = when {
                     query.isNotBlank() -> {
                         val variants = searchQueries(query)
@@ -159,6 +162,11 @@ class StreamFlixProviderManager private constructor() {
                         else -> true }
                 }.distinctBy { identity(it) }
             } }
+            if (onPartial != null && result.isNotEmpty()) partialMutex.withLock {
+                partialItems.addAll(result)
+                onPartial(CatalogIdentity.merge(partialItems.map { it.copy(title = displayTitle(it.title)) }))
+            }
+            result
                 } }.awaitAll().flatten()
         val requestedLanguage = when {
             cat.contains("vost") || cat.contains("vo sous") -> "VOSTFR"
