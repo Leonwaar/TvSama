@@ -111,7 +111,7 @@ L'APK de validation est généré dans `app/build/outputs/apk/debug/app-debug.ap
 Les tests unitaires couvrent notamment la reprise de lecture, le classement des
 sources et l'audit réseau.
 
-La version livrée actuelle est `v1.1.69` avec le `versionCode` `70`. Les compilations
+La version compilée actuelle est `v1.1.76` avec le `versionCode` `76`. Les compilations
 de validation ne constituent pas une livraison et ne doivent pas incrémenter la
 version par elles-mêmes.
 
@@ -136,8 +136,9 @@ l’introduction et dans les limites de la durée du média. Aucun segment inven
 cas d’absence de données. API publique : https://api.introdb.app/openapi.json.
 
 Les mises à jour utilisent les releases publiques de `Leonwaar/TvSama`, sans jeton.
-Publier un APK universel avec une version et un versionCode supérieurs, signé avec
-la même clé que l’app installée. Le téléchargement utilise `browser_download_url` ;
+Une release dont le tag est plus récent que la version installée est proposée sans
+comparer les `versionCode` des APK. Publier un APK universel signé avec la même clé que l’app installée.
+Le téléchargement utilise `browser_download_url` ;
 la taille, l’empreinte SHA-256 lorsqu’elle est fournie, le package et la signature
 sont vérifiés avant de proposer l’installation Android.
 
@@ -158,3 +159,11 @@ regroupés ; leurs références et leurs épisodes restent accessibles.
 L’APK universel inclut les ABI des dépendances, sans séparation par architecture.
 Minimum : Android 6 (API 23). PiP : Android 8+ et prise en charge par l’appareil.
 La compilation universelle ne constitue pas un test matériel de tous les modèles.
+
+### Vérification avant publication d’une mise à jour
+
+Pour chaque release, changer `versionName` dans `app/build.gradle.kts`, puis recompiler.
+Utiliser ce nom comme tag GitHub (actuellement `v1.1.76`) et joindre le nouvel APK
+universel signé avec la même clé que la version installée. Augmenter `versionCode`
+reste recommandé pour que l’installateur Android accepte la mise à jour dans tous
+les cas ; l’application ne l’exige plus avant de proposer l’installation.

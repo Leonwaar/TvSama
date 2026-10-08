@@ -27,10 +27,11 @@ android {
 
     defaultConfig {
         applicationId = "fr.nekotv"
+        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         minSdk = 23
         targetSdk = 36
-        versionCode = 73
-        versionName = "v1.1.72"
+        versionCode = 79
+        versionName = "v1.2.78"
         buildConfigField("String", "UPDATE_REPOSITORY", "\"$updateRepository\"")
         buildConfigField("String", "TMDB_READ_TOKEN", "\"$tmdbReadToken\"")
     }
@@ -44,6 +45,9 @@ android {
 dependencies {
     implementation("com.google.code.gson:gson:2.11.0")
     testImplementation("junit:junit:4.13.2")
+    androidTestImplementation("androidx.test:runner:1.6.1")
+    androidTestImplementation("androidx.test:core:1.6.1")
+    androidTestImplementation("androidx.test.ext:junit:1.2.1")
     testImplementation("org.robolectric:robolectric:4.14.1")
     coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.5")
     implementation(project(":streamflix"))
@@ -59,7 +63,9 @@ dependencies {
     implementation("androidx.media3:media3-exoplayer:1.8.0")
     implementation("androidx.media3:media3-exoplayer-hls:1.8.0")
     implementation("androidx.media3:media3-exoplayer-dash:1.8.0")
+    implementation("androidx.media3:media3-datasource-okhttp:1.8.0")
     implementation("androidx.media3:media3-ui:1.8.0")
+    implementation("androidx.media3:media3-session:1.8.0")
     implementation("com.google.android.gms:play-services-cast-framework:21.4.0")
     implementation("com.google.zxing:core:3.5.1")
     debugImplementation("androidx.compose.ui:ui-tooling")

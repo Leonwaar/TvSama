@@ -35,7 +35,9 @@
   public static j$.time.Duration ofMinutes(long);
   public static j$.time.Duration ofSeconds(long);
   public static j$.time.Duration ofSeconds(long, long);
+  public static j$.time.Duration parse(java.lang.CharSequence);
   public long toMillis();
+  public long toMinutes();
   public long toNanos();
   j$.time.Duration ZERO;
 }

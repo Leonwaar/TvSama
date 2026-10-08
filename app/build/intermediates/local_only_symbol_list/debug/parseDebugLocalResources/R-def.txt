@@ -4,6 +4,7 @@ drawable ic_bell
 drawable ic_kiki_broom
 drawable ic_kiki_play
 drawable ic_pip
+drawable ic_sleep_timer
 drawable tvsama_banner
 drawable tvsama_icon
 drawable tvsama_remote_logo
@@ -60,4 +61,5 @@ navigation nav_main_graph_mobile
 navigation nav_main_graph_tv
 string app_name
 string media_route_menu_title
+xml test_network_security
 xml update_paths

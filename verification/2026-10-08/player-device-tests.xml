@@ -1,0 +1,13 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<testsuite name="fr.nekotv.PlayerDeviceTest" tests="5" failures="0" errors="0" skipped="0" time="48.261" timestamp="2026-10-08T08:51:11" hostname="localhost">
+  <properties>
+    <property name="device" value="tvsama_phone35(AVD) - 15" />
+    <property name="flavor" value="" />
+    <property name="project" value=":app" />
+  </properties>
+  <testcase name="invalidMediaAndHttpErrorsReachAnActionableError" classname="fr.nekotv.PlayerDeviceTest" time="17.451" />
+  <testcase name="expiredTimerPreventsAutoplayAndSourceSwitchFromRestarting" classname="fr.nekotv.PlayerDeviceTest" time="2.826" />
+  <testcase name="remotePauseSeekAndSourceReplacementDoNotLeaveOldPlayerRunning" classname="fr.nekotv.PlayerDeviceTest" time="3.488" />
+  <testcase name="timerExpiresDuringPlaybackAndOnlyExplicitResumeRestartsIt" classname="fr.nekotv.PlayerDeviceTest" time="8.224" />
+  <testcase name="mp4HlsAndDashRenderVideoAndDecodeAudio" classname="fr.nekotv.PlayerDeviceTest" time="15.315" />
+</testsuite>

@@ -28,6 +28,15 @@ class PlaybackLibraryTest {
         assertEquals(40_000L, store.progress(show, episodes[1]))
         assertEquals(1f, store.fraction(show, episodes[0]))
     }
+    @Test fun correctedTitleAndRotatedAddressKeepTheSameMovieProgress() {
+        val original = Anime("French-Stream", "Film", emptyList(), "https://old.example/film/doing-life.html", provider = "FrenchStreaming")
+        val corrected = original.copy(title = "Doing Life", year = 2026, id = "https://new.example/film/doing-life.html")
+        store.save(original, Episode("Film", "", emptyList(), original.id, 1, 1), 249_000, 6_500_000)
+        assertEquals(249_000L, store.progress(corrected, Episode("Film", "", emptyList(), corrected.id, 1, 1)))
+        store.save(corrected, Episode("Film", "", emptyList(), corrected.id, 1, 1), 251_000, 6_500_000)
+        assertEquals(1, store.history().size)
+        assertEquals(251_000L, store.progress(corrected, null))
+    }
     @Test fun thresholdMovesToNextSeasonAndEpisode() {
         store.save(show, episodes[1], 90_000, 120_000)
         assertEquals(episodes[2], store.resumeEpisode(show))
@@ -108,13 +117,15 @@ class PlaybackLibraryTest {
         val addresses = com.streamflixreborn.streamflix.utils.SourceAddresses
         assertTrue(addresses.update("Test", "https://old.example/catalog/", "https://new.example/anime/"))
         assertEquals("https://new.example/anime/show?q=vf#episode=2", addresses.rewrite("https://old.example/catalog/show?q=vf#episode=2"))
-        assertEquals("https://old.example/catalogue/show", addresses.rewrite("https://old.example/catalogue/show"))
+        assertEquals("https://new.example/catalogue/show", addresses.rewrite("https://old.example/catalogue/show"))
         assertTrue(addresses.update("Test", "https://new.example/anime/", "https://third.example/"))
         assertEquals("https://third.example/show?q=vf#episode=2", addresses.rewrite("https://old.example/catalog/show?q=vf#episode=2"))
         assertEquals("https://third.example/show", addresses.rewrite("https://new.example/anime/show"))
         assertEquals("https://cdn.example/image.jpg", addresses.rewrite("https://cdn.example/image.jpg"))
         assertFalse(addresses.update("Test", "https://third.example/", "http://unsafe.example/"))
         assertEquals("https://third.example/", addresses.current("Test", "fallback"))
+        assertTrue(addresses.update("Endpoint", "https://endpoint.example/", "https://endpoint.example/token/home/site/"))
+        assertEquals("https://endpoint.example/token/movie/123", addresses.rewrite("https://endpoint.example/token/movie/123"))
     }
 
     @Test fun favoriteSurvivesDetailsEnrichmentAndCanBeRemovedAfterReload() {
@@ -208,6 +219,47 @@ class PlaybackLibraryTest {
         json.put("intro", JSONObject.NULL)
         assertNull(parseSegments(json, "tt1234567", 1, 1)!!.intro)
         assertNotNull(parseSegments(json, "tt1234567", 1, 1)!!.outro)
+    }
+
+    @Test fun sharedResumeUsesNewestWatchEvenWhenItsTimecodeIsEarlier() {
+        val first = SavedPlayback(show, "1", "Un", 90000, 200000, 1, 1, 100)
+        val rewound = first.copy(position = 20000, updatedAt = 200)
+        store.mergeHistory(listOf(first, rewound))
+        assertEquals(1, store.history().size)
+        assertEquals(20000L, store.progress(show, episodes[0]))
+        store.mergeHistory(listOf(first))
+        assertEquals(20000L, store.progress(show, episodes[0]))
+    }
+    @Test fun exactSearchMatchBeatsPopularUnrelatedTitles() {
+        val unrelated = show.copy(title = "Other", id = "other")
+        val exact = show.copy(title = "Naruto", id = "exact")
+        val partial = show.copy(title = "Naruto Shippuden", id = "partial")
+        val ranked = rankCatalogue(listOf(unrelated, partial, exact), "naruto", mapOf(CatalogIdentity.title("Other") to 9999.0))
+        assertEquals(listOf("exact", "partial", "other"), ranked.map { it.id })
+    }
+    @Test fun homepageUsesPopularityWhenAvailable() {
+        val popular = show.copy(title = "Popular", id = "popular")
+        assertEquals("popular", rankCatalogue(listOf(show, popular), "", mapOf(CatalogIdentity.title("Popular") to 50.0)).first().id)
+    }
+    @Test fun seekStaysPreciseForFirstThreeSeconds() {
+        assertEquals(1000L, seekIncrement(0))
+        assertEquals(1000L, seekIncrement(2999))
+        assertEquals(10000L, seekIncrement(3000))
+        assertEquals(30000L, seekIncrement(6000))
+        assertEquals(60000L, seekIncrement(10000))
+    }
+
+    @Test fun removingSharedResumeSurvivesSyncAndWatchingAgainRestoresIt() {
+        store.save(show, episodes[0], 20000, 200000)
+        val saved = store.history()
+        store.hideResume(show)
+        val hidden = store.hiddenResumeTimes()
+        store.mergeHistory(saved)
+        store.mergeHiddenResume(hidden)
+        assertTrue(store.continuing().isEmpty())
+        store.save(show, episodes[0], 21000, 200000)
+        store.mergeHiddenResume(hidden)
+        assertEquals(1, store.continuing().size)
     }
 
 }

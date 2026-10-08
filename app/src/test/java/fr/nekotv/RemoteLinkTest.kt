@@ -46,4 +46,18 @@ class RemoteLinkTest {
         assertNull(RemoteLink.target.value)
         assertTrue(RemoteLink.commands.tryReceive().isFailure)
     }
+    @Test fun controlsAndSnapshotPreserveTimecodeAndEpisode() = runBlocking {
+        val context = RuntimeEnvironment.getApplication()
+        RemoteLink.pair(context, RemoteLink.start(context))
+        RemoteLink.send(context, RemoteCommand(action = "seek", position = 123456))
+        assertEquals(123456L, withTimeout(2000) { RemoteLink.commands.receive() }.position)
+        RemoteLink.send(context, RemoteCommand(action = "sleep"))
+        assertEquals("sleep", withTimeout(2000) { RemoteLink.commands.receive() }.action)
+        RemoteLink.playback = RemotePlayback(title = "Test", position = 654321, duration = 900000, playing = true, hasNext = true)
+        RemoteLink.sync(context)
+        assertEquals(654321L, RemoteLink.snapshot.value.playback.position)
+        assertTrue(RemoteLink.snapshot.value.playback.hasNext)
+        RemoteLink.playback = RemotePlayback()
+    }
+
 }

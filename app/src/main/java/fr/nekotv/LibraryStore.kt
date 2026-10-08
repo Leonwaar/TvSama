@@ -4,7 +4,7 @@ import android.content.Context
 import org.json.JSONArray
 import org.json.JSONObject
 
-data class SavedPlayback(val anime: Anime, val episodeId: String, val episodeTitle: String, val position: Long, val duration: Long, val season: Int = 0, val number: Int = 0)
+data class SavedPlayback(val anime: Anime, val episodeId: String, val episodeTitle: String, val position: Long, val duration: Long, val season: Int = 0, val number: Int = 0, val updatedAt: Long = 0)
 
 class LibraryStore(context: Context) {
     private val prefs = context.getSharedPreferences("tvsama_library", 0)
@@ -45,10 +45,10 @@ class LibraryStore(context: Context) {
         }
     }
     fun history(): List<SavedPlayback> = readArray("history").mapNotNull { runCatching {
-        SavedPlayback(decodeAnime(it.getJSONObject("anime")), it.optString("episode"), it.optString("episodeTitle"), it.optLong("position"), it.optLong("duration"), it.optInt("season"), it.optInt("number"))
+        SavedPlayback(decodeAnime(it.getJSONObject("anime")), it.optString("episode"), it.optString("episodeTitle"), it.optLong("position"), it.optLong("duration"), it.optInt("season"), it.optInt("number"), it.optLong("updatedAt"))
     }.getOrNull() }
     fun playback(anime: Anime, episode: Episode?) = history().firstOrNull {
-        key(it.anime) == key(anime) && (it.episodeId == episode?.id.orEmpty() ||
+        sameFavorite(it.anime, anime) && (anime.tag == "Film" || it.episodeId == episode?.id.orEmpty() ||
             (episode != null && it.season == episode.seasonNumber && it.number == episode.number))
     }
     fun progress(anime: Anime, episode: Episode?) = playback(anime, episode)?.let { if (finished(it)) 0L else it.position } ?: 0L
@@ -57,14 +57,15 @@ class LibraryStore(context: Context) {
     } ?: 0f
     fun finished(entry: SavedPlayback) = entry.duration > 0 && entry.duration - entry.position <= 30_000
     fun resumeEpisode(anime: Anime): Episode? {
-        val last = history().firstOrNull { key(it.anime) == key(anime) } ?: return anime.episodes.firstOrNull()
+        val last = history().firstOrNull { sameFavorite(it.anime, anime) } ?: return anime.episodes.firstOrNull()
         val ordered = anime.episodes.distinctBy { it.seasonNumber to it.number }
         val index = ordered.indexOfFirst { it.id == last.episodeId || (it.seasonNumber == last.season && it.number == last.number) }
         return if (index < 0) anime.episodes.firstOrNull() else
             ordered.getOrNull(index + if (finished(last)) 1 else 0) ?: ordered[index]
     }
     fun continuing(): List<SavedPlayback> = history().distinctBy { key(it.anime) }
-        .filterNot { key(it.anime) in prefs.getStringSet("hidden_resume", emptySet()).orEmpty() }
+        .filterNot { key(it.anime) in prefs.getStringSet("hidden_resume", emptySet()).orEmpty() ||
+            (hiddenResumeTimes()[key(it.anime)] ?: -1) >= it.updatedAt }
         .map { entry ->
             if (!finished(entry)) entry else {
                 val next = resumeEpisode(entry.anime)
@@ -73,28 +74,52 @@ class LibraryStore(context: Context) {
                 else entry
             }
         }
-    fun hideResume(anime: Anime) { prefs.edit().putStringSet("hidden_resume",
-        prefs.getStringSet("hidden_resume", emptySet()).orEmpty() + key(anime)).apply() }
+    fun hiddenResumeTimes(): Map<String, Long> {
+        val data = runCatching { JSONObject(prefs.getString("hidden_resume_times", "{}") ?: "{}") }.getOrDefault(JSONObject())
+        return data.keys().asSequence().associateWith { data.optLong(it) }
+    }
+    fun mergeHiddenResume(incoming: Map<String, Long>) = synchronized(favoritesLock) {
+        val merged = hiddenResumeTimes().toMutableMap()
+        incoming.forEach { (key, time) -> merged[key] = maxOf(merged[key] ?: 0, time) }
+        prefs.edit().putString("hidden_resume_times", JSONObject(merged.toMap()).toString()).apply()
+    }
+    fun hideResume(anime: Anime) { mergeHiddenResume(mapOf(key(anime) to System.currentTimeMillis())) }
     fun searches() = readArray("searches").map { it.optString("query") }.filter { it.isNotBlank() }
     fun rememberSearch(query: String) {
         if (query.isBlank()) return
         saveArray("searches", (listOf(query.trim()) + searches().filterNot { it.equals(query.trim(), true) }).take(12).map { JSONObject().put("query", it) })
     }
-    fun save(anime: Anime, episode: Episode?, position: Long, duration: Long) {
-        if (position < 1000 || duration <= 0) return
+    fun save(anime: Anime, episode: Episode?, position: Long, duration: Long) = synchronized(favoritesLock) {
+        if (position < 1000 || duration <= 0) return@synchronized
         val catalogue = encodeAnime(anime).getJSONArray("episodes").toString()
         val catalogueKey = "episodes|${key(anime)}"
         if (prefs.getString(catalogueKey, null) != catalogue) prefs.edit().putString(catalogueKey, catalogue).apply()
-        val entry = SavedPlayback(anime, episode?.id.orEmpty(), episode?.title ?: "Film", position.coerceAtMost(duration), duration, episode?.seasonNumber ?: 0, episode?.number ?: 0)
+        val entry = SavedPlayback(anime, episode?.id.orEmpty(), if (anime.tag == "Film") "Film" else episode?.title.orEmpty(), position.coerceAtMost(duration), duration, if (anime.tag == "Film") 0 else episode?.seasonNumber ?: 0, if (anime.tag == "Film") 0 else episode?.number ?: 0, maxOf(System.currentTimeMillis(), (hiddenResumeTimes()[key(anime)] ?: 0) + 1))
         prefs.edit().putStringSet("hidden_resume", prefs.getStringSet("hidden_resume", emptySet()).orEmpty() - key(anime)).apply()
-        val entries = (listOf(entry) + history().filterNot { key(it.anime) == key(anime) && (it.episodeId == entry.episodeId || (it.season == entry.season && it.number == entry.number)) }).take(1000)
-        saveArray("history", entries.map { JSONObject().put("anime", encodeAnime(it.anime.copy(episodes = emptyList()))).put("episode", it.episodeId).put("episodeTitle", it.episodeTitle).put("position", it.position).put("duration", it.duration).put("season", it.season).put("number", it.number) })
+        val entries = (listOf(entry) + history().filterNot { sameFavorite(it.anime, anime) && (anime.tag == "Film" || it.episodeId == entry.episodeId || (it.season == entry.season && it.number == entry.number)) }).take(1000)
+        saveArray("history", entries.map { JSONObject().put("anime", encodeAnime(it.anime.copy(episodes = emptyList()))).put("episode", it.episodeId).put("episodeTitle", it.episodeTitle).put("position", it.position).put("duration", it.duration).put("season", it.season).put("number", it.number).put("updatedAt", it.updatedAt) })
     }
-    fun clearHistory() { prefs.edit().remove("history").remove("hidden_resume").apply() }
+    fun mergeHistory(incoming: List<SavedPlayback>) {
+        synchronized(favoritesLock) {
+            val merged = (incoming + history()).filter { it.position >= 0 && it.duration > 0 }
+                .sortedByDescending { it.updatedAt }.distinctBy { key(it.anime) + "|${it.season}|${it.number}|${it.episodeId}" }.take(200)
+            merged.forEach { entry ->
+                if (entry.anime.episodes.isNotEmpty()) prefs.edit().putString("episodes|${key(entry.anime)}", encodeAnime(entry.anime).getJSONArray("episodes").toString()).apply()
+            }
+            saveArray("history", merged.map { JSONObject().put("anime", encodeAnime(it.anime.copy(episodes = emptyList())))
+                .put("episode", it.episodeId).put("episodeTitle", it.episodeTitle).put("position", it.position)
+                .put("duration", it.duration).put("season", it.season).put("number", it.number).put("updatedAt", it.updatedAt) })
+        }
+    }
+    fun clearHistory() {
+        val now = System.currentTimeMillis()
+        mergeHiddenResume(history().associate { key(it.anime) to now })
+        prefs.edit().remove("history").remove("hidden_resume").apply()
+    }
     fun removeHistory(anime: Anime, episodeId: String) {
         saveArray("history", history().filterNot { key(it.anime) == key(anime) && it.episodeId == episodeId }.map {
             JSONObject().put("anime", encodeAnime(it.anime.copy(episodes = emptyList()))).put("episode", it.episodeId).put("episodeTitle", it.episodeTitle)
-                .put("position", it.position).put("duration", it.duration).put("season", it.season).put("number", it.number)
+                .put("position", it.position).put("duration", it.duration).put("season", it.season).put("number", it.number).put("updatedAt", it.updatedAt)
         })
     }
     fun language(): String = prefs.getString("language", "VF")?.takeIf { it in listOf("VF", "VOSTFR") } ?: "VF"
@@ -109,7 +134,7 @@ class LibraryStore(context: Context) {
     private fun encodeAnime(a: Anime): JSONObject = JSONObject().put("title", a.title).put("tag", a.tag).put("id", a.id)
         .put("poster", a.poster).put("description", a.description).put("year", a.year).put("provider", a.provider).put("banner", a.banner)
         .put("episodes", JSONArray().apply { a.episodes.forEach { put(JSONObject().put("id", it.id).put("title", it.title).put("season", it.seasonNumber).put("number", it.number).put("language", it.language)) } })
-        .put("genres", JSONArray(a.genres)).put("imdbId", a.imdbId).put("references", JSONArray().apply {
+        .put("genres", JSONArray(a.genres)).put("aliases", JSONArray(a.aliases)).put("imdbId", a.imdbId).put("references", JSONArray().apply {
             a.references.forEach { put(JSONObject().put("provider", it.provider).put("id", it.id).put("tag", it.tag)) }
         })
     private fun decodeAnime(o: JSONObject): Anime {
@@ -126,6 +151,7 @@ class LibraryStore(context: Context) {
             } }.orEmpty(), id = o.optString("id"),
             poster = o.optString("poster"), description = o.optString("description"), year = o.optInt("year").takeIf { it > 0 },
             genres = genres, provider = o.optString("provider"), banner = o.optString("banner"), references = refs,
-            imdbId = o.optString("imdbId").takeIf { it.isNotBlank() })
+            aliases = o.optJSONArray("aliases")?.let { array -> (0 until array.length()).map { array.getString(it) } }.orEmpty(),
+            imdbId = o.optString("imdbId").takeIf { it.startsWith("tt") })
     }
 }

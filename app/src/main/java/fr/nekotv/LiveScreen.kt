@@ -35,6 +35,7 @@ fun LiveScreen(onPlay: (DirectEvent, List<VideoSource>) -> Unit) {
     val scope = rememberCoroutineScope()
     var events by remember { mutableStateOf<List<DirectEvent>>(emptyList()) }
     var error by remember { mutableStateOf("") }
+    var calendarError by remember { mutableStateOf("") }
     var loading by remember { mutableStateOf(false) }
     var playing by remember { mutableStateOf<String?>(null) }
     var revision by remember { mutableIntStateOf(0) }
@@ -61,10 +62,10 @@ fun LiveScreen(onPlay: (DirectEvent, List<VideoSource>) -> Unit) {
     LaunchedEffect(revision) {
         while (true) {
             loading = true
-            try { events = withTimeout(25_000) { VolkaMaxProvider.events() }; error = "" }
-            catch (e: kotlinx.coroutines.TimeoutCancellationException) { error = "Le calendrier ne répond pas." }
+            try { events = withTimeout(25_000) { VolkaMaxProvider.events() }; calendarError = "" }
+            catch (e: kotlinx.coroutines.TimeoutCancellationException) { calendarError = "Le calendrier ne répond pas." }
             catch (e: CancellationException) { throw e }
-            catch (e: Exception) { error = e.message ?: "Calendrier indisponible" }
+            catch (e: Exception) { calendarError = e.message ?: "Calendrier indisponible" }
             finally { loading = false }
             delay(60_000)
         }
@@ -74,6 +75,7 @@ fun LiveScreen(onPlay: (DirectEvent, List<VideoSource>) -> Unit) {
         Action("Actualiser", enabled = !loading) { revision++ }
         if (loading) LinearProgressIndicator(Modifier.fillMaxWidth())
         if (error.isNotBlank()) Text(error, color = Muted)
+        if (calendarError.isNotBlank()) Text(calendarError, color = Muted)
         LazyColumn(verticalArrangement = Arrangement.spacedBy(12.dp), contentPadding = PaddingValues(bottom = 24.dp)) {
             val now = System.currentTimeMillis()
             val live = events.filter { it.isLive }
@@ -88,23 +90,7 @@ fun LiveScreen(onPlay: (DirectEvent, List<VideoSource>) -> Unit) {
                             playing = event.id
                             try {
                                 error = ""
-                                val videos = withTimeout(45_000) {
-                                    val found = mutableListOf<VideoSource>()
-                                    for (server in VolkaMaxProvider.servers(event.url).distinctBy { it.src }.take(6)) {
-                                        try {
-                                            val video = withTimeout(12_000) { VolkaMaxProvider.video(server) }
-                                            if (Uri.parse(video.source).scheme in listOf("http", "https")) {
-                                                found += VideoSource(server.name, video.source, "UNKNOWN", "Auto", VolkaMaxProvider.NAME, video.headers.orEmpty(), mimeType = video.type)
-                                                break // Start playback as soon as a working extractor returns.
-                                            }
-                                        } catch (e: kotlinx.coroutines.TimeoutCancellationException) {
-                                            kotlinx.coroutines.currentCoroutineContext().ensureActive()
-                                        } catch (e: CancellationException) { throw e }
-                                        catch (_: Exception) { }
-                                    }
-                                    found.toList()
-                                }
-                                check(videos.isNotEmpty()) { "Aucun lecteur compatible disponible pour ce direct." }
+                                val videos = listOf(resolveLiveEvent(context, event.url))
                                 onPlay(event, videos)
                             } catch (e: kotlinx.coroutines.TimeoutCancellationException) { error = "Le lecteur ne répond pas." }
                             catch (e: CancellationException) { throw e }

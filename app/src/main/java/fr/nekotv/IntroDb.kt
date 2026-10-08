@@ -15,7 +15,7 @@ data class EpisodeSegments(val intro: IntroSegment? = null, val outro: IntroSegm
 suspend fun fetchIntro(imdb: String?, season: Int, episode: Int): IntroSegment? = fetchSegments(imdb, season, episode)?.intro
 
 suspend fun fetchSegments(imdb: String?, season: Int, episode: Int, isMovie: Boolean = false): EpisodeSegments? = withContext(Dispatchers.IO) {
-    if (imdb == null || !Regex("tt[0-9]{7,8}").matches(imdb) || (!isMovie && (season < 1 || episode < 1))) return@withContext null
+    if (imdb == null || !Regex("tt[0-9]{7,10}").matches(imdb) || (!isMovie && (season < 1 || episode < 1))) return@withContext null
     val key = "$imdb/$isMovie/$season/$episode"
     introCache[key]?.takeIf { System.currentTimeMillis() - it.first < 3_600_000 }?.let { return@withContext it.second }
     val query = if (isMovie) "imdb_id=$imdb&is_movie=true" else "imdb_id=$imdb&season=$season&episode=$episode"

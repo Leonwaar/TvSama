@@ -5048,6 +5048,7 @@ drawable ic_search_white
 drawable ic_settings_about
 drawable ic_settings_close
 drawable ic_settings_help
+drawable ic_sleep_timer
 drawable ic_sort
 drawable ic_star
 drawable ic_switch_off
@@ -9872,4 +9873,5 @@ xml settings_about_mobile
 xml settings_about_tv
 xml settings_mobile
 xml settings_tv
+xml test_network_security
 xml update_paths

@@ -30,7 +30,7 @@ fun SourceDirectoryUi() {
     if (error.isNotBlank()) Text(error)
     if (entries.isNotEmpty()) {
         OutlinedTextField(query, { query = it }, label = { Text("Rechercher une adresse") }, singleLine = true)
-        Text("${entries.size} adresses françaises · état annoncé par l’annuaire", color = Muted)
+        Text("${entries.size} adresses françaises et multilingues · état annoncé par l’annuaire", color = Muted)
         entries.filter { it.name.contains(query, true) }.take(20).forEach { entry ->
             Column(Modifier.fillMaxWidth().padding(vertical = 6.dp)) {
                 Text("${entry.name} · ${entry.status}")

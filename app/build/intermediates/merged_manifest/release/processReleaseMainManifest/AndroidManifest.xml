@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="fr.nekotv"
-    android:versionCode="73"
-    android:versionName="v1.1.72" >
+    android:versionCode="79"
+    android:versionName="v1.2.78" >
 
     <uses-sdk
         android:minSdkVersion="23"
@@ -134,6 +134,7 @@
             android:name="fr.nekotv.MainActivity"
             android:configChanges="orientation|screenSize|smallestScreenSize|screenLayout|keyboard|keyboardHidden"
             android:exported="true"
+            android:launchMode="singleTop"
             android:supportsPictureInPicture="true" >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />

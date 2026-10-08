@@ -11,8 +11,8 @@
       "type": "SINGLE",
       "filters": [],
       "attributes": [],
-      "versionCode": 73,
-      "versionName": "v1.1.72",
+      "versionCode": 79,
+      "versionName": "v1.2.78",
       "outputFile": "app-release-unsigned.apk"
     }
   ],

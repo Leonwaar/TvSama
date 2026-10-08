@@ -28,12 +28,48 @@ accessibles dans TvSama.
 - Vérifier affiches, taille des textes et contraste sur un écran TV à distance
   normale et sur un téléphone en portrait.
 
+## Critères de finition des sources et du lecteur
+
+Le produit est prêt lorsque chaque parcours ci-dessous est vérifié et que les
+échecs restent compréhensibles et récupérables :
+
+- Chaque source intégrée activée expose son état réel ; recherche, fiche,
+  épisodes et serveurs ne doivent ni se bloquer ni afficher de faux résultats.
+- Chaque source de lecture proposée pointe vers un média détecté et joignable,
+  ou vers un lecteur navigateur explicitement signalé. Un lien de page web ne
+  doit pas être présenté comme un flux direct.
+- Les cas d’URL mal formée, de délai dépassé, de source hors ligne et de réponse
+  HTML sont filtrés ou expliqués ; choisir un autre serveur reste possible.
+- Sur appareil, décoder au moins un flux de chaque format pris en charge
+  (HLS, DASH et MP4), puis vérifier démarrage, pause, recherche, reprise et fin
+  de lecture. Les sources live sont vérifiées séparément.
+- Confirmer l’épisode, la langue, les pistes audio/sous-titres, la qualité
+  détectée, la reprise, l’autoplay, la rotation serveur et les contrôles TV.
+- Les tests locaux passent ; chaque audit réseau exécuté indique clairement
+  les sources accessibles, indisponibles ou protégées. Un audit réussi ne vaut
+  pas preuve de décodage.
+
+La disponibilité d’un service tiers ne peut pas être garantie par TvSama. Un
+captcha, une validation humaine, une connexion requise ou une panne externe
+doivent être signalés et ne sont pas contournés. Ces sources ne comptent comme
+opérationnelles que si leur parcours autorisé fonctionne après l’action
+utilisateur prévue.
+
+## Commandes de vérification
+
+```bash
+rtk ./gradlew :app:assembleDebug :app:testDebugUnitTest --offline
+rtk ./gradlew :app:testDebugUnitTest --tests fr.nekotv.SourceNetworkAuditTest.allFrenchSources -PnetworkAudit=true
+```
+
+Les audits réseau sont ignorés par défaut. Utiliser `-PnetworkAudit=true` : `-Dtvsama.networkAudit=true` n'est pas transmis au processus de test. Vérifier `skipped="0"` dans les résultats XML avant de citer un audit comme réussi. Les rapports HTTP ne prouvent pas le décodage Android.
+
 ## Limites de validation dans cet environnement
 
-ADB est installé. Aucun appareil n’était connecté lors de l’audit initial et
-aucun émulateur ni image système n’était installé dans le SDK. Un build réussi
-ne constitue donc pas une validation de lecture réseau, de télécommande ou de
-Cast sur matériel réel.
+Un émulateur Android 35 est disponible dans `../android-test-sdk`. Il permet de
+vérifier la première image et les décodeurs Media3 ; il ne remplace pas les
+essais Android TV, la télécommande physique, le son écouté ni Google Cast.
+Un build réussi ne constitue pas une validation de lecture.
 
 Les services tiers peuvent modifier leurs domaines, catalogues et formats.
 Une validation doit distinguer erreur de l’application et indisponibilité de

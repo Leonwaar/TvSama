@@ -1,29 +1,35 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<testsuite name="fr.nekotv.PlaybackLibraryTest" tests="23" skipped="0" failures="0" errors="0" timestamp="2026-09-29T19:38:52.512Z" hostname="leon-Victus-by-HP-Laptop-15-fb0xxx" time="2.775">
+<testsuite name="fr.nekotv.PlaybackLibraryTest" tests="29" skipped="0" failures="0" errors="0" timestamp="2026-10-08T10:49:25.576Z" hostname="leon-Victus-by-HP-Laptop-15-fb0xxx" time="0.682">
   <properties/>
-  <testcase name="latestEngagementWinsEvenWhenRewatchingEarlierEpisode" classname="fr.nekotv.PlaybackLibraryTest" time="2.096"/>
-  <testcase name="beforeThresholdKeepsTimecode" classname="fr.nekotv.PlaybackLibraryTest" time="0.042"/>
-  <testcase name="numberedSeasonsKeepEveryReferenceAndDoNotRenameUnrelatedNumbers" classname="fr.nekotv.PlaybackLibraryTest" time="0.044"/>
-  <testcase name="favoritesKeepRemakesAndDifferentMediaSeparate" classname="fr.nekotv.PlaybackLibraryTest" time="0.037"/>
-  <testcase name="introAndOutroAreIndependentAndIdentityChecked" classname="fr.nekotv.PlaybackLibraryTest" time="0.031"/>
-  <testcase name="searchHistoryIsUniqueAndBounded" classname="fr.nekotv.PlaybackLibraryTest" time="0.042"/>
-  <testcase name="introDbParsesMilliseconds" classname="fr.nekotv.PlaybackLibraryTest" time="0.03"/>
-  <testcase name="favoriteMatchesAlternateProviderReferencesAndRotatedDomains" classname="fr.nekotv.PlaybackLibraryTest" time="0.033"/>
-  <testcase name="oneResumeCardButProgressRetainedForEachEpisode" classname="fr.nekotv.PlaybackLibraryTest" time="0.029"/>
-  <testcase name="classroomAliasesAndSeasonsMergeWithoutLosingSources" classname="fr.nekotv.PlaybackLibraryTest" time="0.028"/>
-  <testcase name="introDbRejectsWrongIdentityAndInvalidRange" classname="fr.nekotv.PlaybackLibraryTest" time="0.025"/>
-  <testcase name="repeatedFavoriteActionsAreIdempotentAndRefreshMetadata" classname="fr.nekotv.PlaybackLibraryTest" time="0.025"/>
-  <testcase name="semanticVersionComparison" classname="fr.nekotv.PlaybackLibraryTest" time="0.024"/>
-  <testcase name="languageVariantsAndMissingYearMergeReferences" classname="fr.nekotv.PlaybackLibraryTest" time="0.02"/>
-  <testcase name="introDbPreservesFractionalSecondsAndRejectsNullTimes" classname="fr.nekotv.PlaybackLibraryTest" time="0.022"/>
-  <testcase name="nextEpisodeSkipsLanguageVariants" classname="fr.nekotv.PlaybackLibraryTest" time="0.045"/>
-  <testcase name="removalPreservesWatchedStateAndNewViewingRestoresCard" classname="fr.nekotv.PlaybackLibraryTest" time="0.025"/>
+  <testcase name="latestEngagementWinsEvenWhenRewatchingEarlierEpisode" classname="fr.nekotv.PlaybackLibraryTest" time="0.029"/>
+  <testcase name="seekStaysPreciseForFirstThreeSeconds" classname="fr.nekotv.PlaybackLibraryTest" time="0.029"/>
+  <testcase name="beforeThresholdKeepsTimecode" classname="fr.nekotv.PlaybackLibraryTest" time="0.024"/>
+  <testcase name="sharedResumeUsesNewestWatchEvenWhenItsTimecodeIsEarlier" classname="fr.nekotv.PlaybackLibraryTest" time="0.027"/>
+  <testcase name="numberedSeasonsKeepEveryReferenceAndDoNotRenameUnrelatedNumbers" classname="fr.nekotv.PlaybackLibraryTest" time="0.038"/>
+  <testcase name="exactSearchMatchBeatsPopularUnrelatedTitles" classname="fr.nekotv.PlaybackLibraryTest" time="0.022"/>
+  <testcase name="correctedTitleAndRotatedAddressKeepTheSameMovieProgress" classname="fr.nekotv.PlaybackLibraryTest" time="0.023"/>
+  <testcase name="favoritesKeepRemakesAndDifferentMediaSeparate" classname="fr.nekotv.PlaybackLibraryTest" time="0.022"/>
+  <testcase name="introAndOutroAreIndependentAndIdentityChecked" classname="fr.nekotv.PlaybackLibraryTest" time="0.025"/>
+  <testcase name="searchHistoryIsUniqueAndBounded" classname="fr.nekotv.PlaybackLibraryTest" time="0.027"/>
+  <testcase name="introDbParsesMilliseconds" classname="fr.nekotv.PlaybackLibraryTest" time="0.019"/>
+  <testcase name="favoriteMatchesAlternateProviderReferencesAndRotatedDomains" classname="fr.nekotv.PlaybackLibraryTest" time="0.018"/>
+  <testcase name="oneResumeCardButProgressRetainedForEachEpisode" classname="fr.nekotv.PlaybackLibraryTest" time="0.019"/>
+  <testcase name="classroomAliasesAndSeasonsMergeWithoutLosingSources" classname="fr.nekotv.PlaybackLibraryTest" time="0.017"/>
+  <testcase name="introDbRejectsWrongIdentityAndInvalidRange" classname="fr.nekotv.PlaybackLibraryTest" time="0.018"/>
+  <testcase name="repeatedFavoriteActionsAreIdempotentAndRefreshMetadata" classname="fr.nekotv.PlaybackLibraryTest" time="0.02"/>
+  <testcase name="removingSharedResumeSurvivesSyncAndWatchingAgainRestoresIt" classname="fr.nekotv.PlaybackLibraryTest" time="0.024"/>
+  <testcase name="homepageUsesPopularityWhenAvailable" classname="fr.nekotv.PlaybackLibraryTest" time="0.017"/>
+  <testcase name="semanticVersionComparison" classname="fr.nekotv.PlaybackLibraryTest" time="0.03"/>
+  <testcase name="languageVariantsAndMissingYearMergeReferences" classname="fr.nekotv.PlaybackLibraryTest" time="0.018"/>
+  <testcase name="introDbPreservesFractionalSecondsAndRejectsNullTimes" classname="fr.nekotv.PlaybackLibraryTest" time="0.017"/>
+  <testcase name="nextEpisodeSkipsLanguageVariants" classname="fr.nekotv.PlaybackLibraryTest" time="0.019"/>
+  <testcase name="removalPreservesWatchedStateAndNewViewingRestoresCard" classname="fr.nekotv.PlaybackLibraryTest" time="0.022"/>
   <testcase name="introDbFallsBackToSeconds" classname="fr.nekotv.PlaybackLibraryTest" time="0.02"/>
-  <testcase name="addressRotationsPreserveSavedPathsQueriesAndFragments" classname="fr.nekotv.PlaybackLibraryTest" time="0.066"/>
-  <testcase name="favoriteSurvivesDetailsEnrichmentAndCanBeRemovedAfterReload" classname="fr.nekotv.PlaybackLibraryTest" time="0.019"/>
-  <testcase name="removingLegacyFavoriteRemovesItsDuplicateEntries" classname="fr.nekotv.PlaybackLibraryTest" time="0.021"/>
-  <testcase name="remakesRemainSeparate" classname="fr.nekotv.PlaybackLibraryTest" time="0.021"/>
-  <testcase name="thresholdMovesToNextSeasonAndEpisode" classname="fr.nekotv.PlaybackLibraryTest" time="0.026"/>
+  <testcase name="addressRotationsPreserveSavedPathsQueriesAndFragments" classname="fr.nekotv.PlaybackLibraryTest" time="0.061"/>
+  <testcase name="favoriteSurvivesDetailsEnrichmentAndCanBeRemovedAfterReload" classname="fr.nekotv.PlaybackLibraryTest" time="0.02"/>
+  <testcase name="removingLegacyFavoriteRemovesItsDuplicateEntries" classname="fr.nekotv.PlaybackLibraryTest" time="0.019"/>
+  <testcase name="remakesRemainSeparate" classname="fr.nekotv.PlaybackLibraryTest" time="0.017"/>
+  <testcase name="thresholdMovesToNextSeasonAndEpisode" classname="fr.nekotv.PlaybackLibraryTest" time="0.019"/>
   <system-out><![CDATA[]]></system-out>
   <system-err><![CDATA[]]></system-err>
 </testsuite>

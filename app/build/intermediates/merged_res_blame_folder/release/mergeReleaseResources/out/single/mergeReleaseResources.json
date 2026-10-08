@@ -8,6 +8,10 @@
         "source": "fr.nekotv.app-main-88:/menu/menu_cast.xml"
     },
     {
+        "merged": "fr.nekotv.app-release-87:/drawable_ic_sleep_timer.xml.flat",
+        "source": "fr.nekotv.app-main-88:/drawable/ic_sleep_timer.xml"
+    },
+    {
         "merged": "fr.nekotv.app-release-87:/drawable_tvsama_icon.xml.flat",
         "source": "fr.nekotv.app-main-88:/drawable/tvsama_icon.xml"
     },

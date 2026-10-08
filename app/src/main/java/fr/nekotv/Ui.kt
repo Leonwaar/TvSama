@@ -16,6 +16,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
@@ -77,7 +78,7 @@ fun Action(label: String, modifier: Modifier = Modifier, selected: Boolean = fal
         animationSpec = tween(120), label = "actionBackground")
     val foreground by animateColorAsState(if (!enabled) Muted.copy(alpha = .45f) else if (white) Color.Black else Color.White,
         animationSpec = tween(120), label = "actionForeground")
-    Box(modifier.onFocusChanged { focused = it.isFocused }.focusable()
+    Box(modifier.onFocusChanged { focused = it.isFocused }
         .clip(RoundedCornerShape(4.dp))
         .background(background)
         .border(if (focused || selected || primary) 2.dp else 1.dp, if (focused || selected || primary) Color.White else Line, RoundedCornerShape(4.dp))
@@ -107,7 +108,7 @@ fun Artwork(url: String, title: String, modifier: Modifier = Modifier, crop: Boo
 fun PosterCard(anime: Anime, modifier: Modifier = Modifier, onClick: () -> Unit) {
     var focused by remember { mutableStateOf(false) }
     val scale by animateFloatAsState(if (focused) 1.015f else 1f, tween(140), label = "posterFocus")
-    Column(modifier.graphicsLayer { scaleX = scale; scaleY = scale }.onFocusChanged { focused = it.isFocused }.focusable().clip(RoundedCornerShape(4.dp))
+    Column(modifier.graphicsLayer { scaleX = scale; scaleY = scale }.onFocusChanged { focused = it.isFocused }.clip(RoundedCornerShape(4.dp))
         .border(if (focused) 3.dp else 0.dp, if (focused) Color.White else Color.Transparent, RoundedCornerShape(4.dp))
         .clickable(onClick = onClick).padding(5.dp)) {
         Artwork(anime.poster, anime.title, Modifier.fillMaxWidth().aspectRatio(2f / 3f).clip(RoundedCornerShape(3.dp)))
@@ -125,12 +126,12 @@ fun ResumeCard(entry: SavedPlayback, onRemove: () -> Unit, onClick: () -> Unit) 
         confirmButton = { TextButton(onClick = { onRemove(); menu = false }) { Text("Retirer") } },
         dismissButton = { TextButton(onClick = { menu = false }) { Text("Annuler") } })
     var focused by remember { mutableStateOf(false) }
-    Column(Modifier.width(190.dp).onFocusChanged { focused = it.isFocused }.focusable().clip(RoundedCornerShape(5.dp))
+    Column(Modifier.width(190.dp).onFocusChanged { focused = it.isFocused }.clip(RoundedCornerShape(5.dp))
         .border(if (focused) 3.dp else 1.dp, if (focused) Color.White else Line, RoundedCornerShape(5.dp))
         .combinedClickable(onClick = onClick, onLongClick = { menu = true }).padding(6.dp)) {
         Artwork(entry.anime.poster, entry.anime.title, Modifier.fillMaxWidth().height(92.dp).clip(RoundedCornerShape(3.dp)))
         Text(entry.anime.title, color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.SemiBold, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.padding(top = 7.dp))
-        Text(if (entry.season > 0) "S${entry.season} · E${entry.number} — ${entry.episodeTitle}" else entry.episodeTitle, color = Muted, fontSize = 12.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
+        Text(if (entry.anime.tag == "Film") "Film" else if (entry.season > 0) "S${entry.season} · E${entry.number} — ${entry.episodeTitle}" else entry.episodeTitle, color = Muted, fontSize = 12.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
         androidx.compose.material3.LinearProgressIndicator(progress = { (entry.position.toFloat() / entry.duration.coerceAtLeast(1)).coerceIn(0f, 1f) }, modifier = Modifier.fillMaxWidth().padding(top = 7.dp), color = Accent, trackColor = Line)
     }
 }
@@ -192,11 +193,26 @@ fun TvSettings(language: String, onLanguage: (String) -> Unit, autoplay: Boolean
     var density by remember { mutableStateOf(prefs.getString("density", "Confort") ?: "Confort") }
     var motion by remember { mutableStateOf(prefs.getBoolean("motion", true)) }
     var subtitles by remember { mutableStateOf(prefs.getBoolean("subtitles", true)) }
+    val timer = remember { SleepTimer(context) }
+    var sleepMinutes by remember { mutableIntStateOf(timer.minutes()) }
+    var autoDim by remember { mutableStateOf(prefs.getBoolean("pause_dimming", true)) }
     Column(Modifier.fillMaxWidth().verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(14.dp)) {
         SectionTitle("Réglages TV", "Personnalisez votre expérience TvSama depuis le canapé.")
         Text("Lecture", style = MaterialTheme.typography.titleLarge)
+        PreferenceCard("Minuterie automatique", "Met la lecture en pause après la durée choisie. Le chrono continue au changement d’épisode, de film ou de serveur.", Gold) {
+            Row(Modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                (listOf(0) + SleepTimer.options).forEach { minutes ->
+                    Action(if (minutes == 0) "Désactivée" else SleepTimer.label(minutes), selected = sleepMinutes == minutes) {
+                        sleepMinutes = minutes; timer.configure(minutes)
+                    }
+                }
+            }
+        }
         PreferenceCard("Épisode suivant", "Lance automatiquement l’épisode suivant quand il existe.", Accent) {
             Action(if (autoplay) "Activé" else "Manuel", selected = autoplay) { onAutoplay(!autoplay) }
+        }
+        PreferenceCard("Assombrissement automatique", "Assombrit fortement l’écran après 30 secondes en pause. Un toucher, un mouvement ou une touche rétablit l’image.", Gold) {
+            Action(if (autoDim) "Activé" else "Désactivé", selected = autoDim) { autoDim = !autoDim; prefs.edit().putBoolean("pause_dimming", autoDim).apply() }
         }
         PreferenceCard("Sous-titres français", "Active la piste française par défaut en VOSTFR.", Violet) {
             Action(if (subtitles) "Activés" else "Désactivés", selected = subtitles) { subtitles = !subtitles; prefs.edit().putBoolean("subtitles", subtitles).apply() }
@@ -217,14 +233,15 @@ fun TvSettings(language: String, onLanguage: (String) -> Unit, autoplay: Boolean
             Action(if (motion) "Activées" else "Réduites", selected = motion) { motion = !motion; prefs.edit().putBoolean("motion", motion).apply() }
         }
         Text("Télécommande et Cast", style = MaterialTheme.typography.titleLarge)
-        Text("Associez un téléphone en scannant le QR code, puis choisissez le téléviseur Cast sur le téléphone.", color = Muted)
+        Text("Scannez le QR de la TV avec votre téléphone : recherches, lecture et progression sont partagées sur le même Wi-Fi.", color = Muted)
         Row(horizontalArrangement = Arrangement.spacedBy(10.dp), verticalAlignment = Alignment.CenterVertically) { CastRouteButton(Modifier.width(190.dp).height(48.dp)); Text("Le bouton télécommande ouvre l’association QR.", color = Muted, fontSize = 12.sp) }
         if (!pairedDevice.isNullOrBlank()) Text("Téléviseur associé : $pairedDevice", color = Accent, fontSize = 13.sp)
         HorizontalDivider(color = Line)
         Text("Bibliothèque", style = MaterialTheme.typography.titleLarge)
         Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) { Action("Effacer l’historique") { onClearHistory() }; Action("Réinitialiser les préférences") { prefs.edit().clear().apply() } }
         var tmdbKey by remember { mutableStateOf("") }
-        Text("Accès catalogue Movix (TMDB)", style = MaterialTheme.typography.titleLarge)
+        Text("Métadonnées TMDB", style = MaterialTheme.typography.titleLarge)
+        Text("Movix utilise les pages publiques TMDB sans clé. Une clé personnelle reste facultative pour l’API de métadonnées.", color = Muted, fontSize = 13.sp)
         OutlinedTextField(tmdbKey, { tmdbKey = it }, label = { Text("Clé API TMDB personnelle") }, singleLine = true,
             visualTransformation = androidx.compose.ui.text.input.PasswordVisualTransformation())
         Action("Enregistrer la clé TMDB") {

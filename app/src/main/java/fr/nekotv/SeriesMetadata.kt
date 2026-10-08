@@ -21,7 +21,7 @@ suspend fun enrichSeries(anime: Anime): Anime = withContext(Dispatchers.IO) {
         } finally { conn.disconnect() }
     }
     try {
-        val info = if (anime.imdbId?.matches(Regex("tt[0-9]{7,8}")) == true) JSONObject(get("lookup/shows?imdb=${anime.imdbId}"))
+        val info = if (anime.imdbId?.matches(Regex("tt[0-9]{7,10}")) == true) JSONObject(get("lookup/shows?imdb=${anime.imdbId}"))
         else {
             val results = JSONArray(get("search/shows?q=${URLEncoder.encode(anime.title, "UTF-8")}"))
             (0 until results.length()).map { results.getJSONObject(it).getJSONObject("show") }.filter {

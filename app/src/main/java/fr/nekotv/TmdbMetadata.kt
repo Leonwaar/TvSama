@@ -11,7 +11,7 @@ import java.net.URL
 
 /** Optional TMDB enrichment. Missing or invalid credentials leave provider data unchanged. */
 suspend fun enrichWithTmdb(anime: Anime): Anime = withContext(Dispatchers.IO) {
-    val token = BuildConfig.TMDB_READ_TOKEN.trim()
+    val token = tmdbToken()
     if (token.isBlank() || anime.title.isBlank()) return@withContext anime
     try {
         val kind = if (anime.tag == "Film") "movie" else "tv"
@@ -24,7 +24,7 @@ suspend fun enrichWithTmdb(anime: Anime): Anime = withContext(Dispatchers.IO) {
             }
         } ?: return@withContext anime
         val id = result.optInt("id").takeIf { it > 0 } ?: return@withContext anime
-        val details = getJson("/3/$kind/$id?language=fr-FR", token)
+        val details = getJson("/3/$kind/$id?language=fr-FR&append_to_response=external_ids,alternative_titles,translations", token)
         val dateKey = if (kind == "movie") "release_date" else "first_air_date"
         val firstAired = details.optString(dateKey).takeIf { it.isNotBlank() }
         val lastAired = details.optString("last_air_date").takeIf { it.isNotBlank() }
@@ -34,11 +34,18 @@ suspend fun enrichWithTmdb(anime: Anime): Anime = withContext(Dispatchers.IO) {
             description = anime.description.ifBlank { details.optString("overview") },
             year = anime.year ?: firstAired?.take(4)?.toIntOrNull(),
             genres = if (anime.genres.isEmpty()) details.optJSONArray("genres")?.orEmptyStrings().orEmpty() else anime.genres,
-            imdbId = anime.imdbId ?: details.optString("imdb_id").takeIf { it.startsWith("tt") },
+            imdbId = anime.imdbId ?: (details.optJSONObject("external_ids")?.optString("imdb_id") ?: details.optString("imdb_id")).takeIf { it.startsWith("tt") },
             firstAired = anime.firstAired ?: firstAired,
             lastAired = anime.lastAired ?: lastAired,
             seriesStatus = anime.seriesStatus ?: status(details.optString("status")),
             metadataUrl = anime.metadataUrl ?: "https://www.themoviedb.org/$kind/$id"
+            ,aliases = (anime.aliases + listOf("title", "name", "original_title", "original_name").map { details.optString(it) } +
+                details.optJSONObject("alternative_titles")?.let { root -> root.optJSONArray("titles") ?: root.optJSONArray("results") }?.let { array ->
+                    (0 until array.length()).map { array.getJSONObject(it).optString("title") }
+                }.orEmpty() + details.optJSONObject("translations")?.optJSONArray("translations")?.let { array ->
+                    (0 until array.length()).map { array.getJSONObject(it) }.filter { it.optString("iso_639_1") in listOf("fr", "en", "ja") }
+                        .mapNotNull { it.optJSONObject("data") }.map { it.optString(if (kind == "movie") "title" else "name") }
+                }.orEmpty()).filter { it.isNotBlank() }.distinct()
         )
     } catch (e: CancellationException) {
         throw e
@@ -48,11 +55,11 @@ suspend fun enrichWithTmdb(anime: Anime): Anime = withContext(Dispatchers.IO) {
 }
 
 private fun getJson(path: String, token: String): JSONObject {
-    val connection = (URL("https://api.themoviedb.org$path").openConnection() as HttpURLConnection).apply {
+    val connection = (URL("https://api.themoviedb.org$path" + if (token.count { it == '.' } < 2) "&api_key=${Uri.encode(token)}" else "").openConnection() as HttpURLConnection).apply {
         connectTimeout = 5000
         readTimeout = 7000
         setRequestProperty("Accept", "application/json")
-        setRequestProperty("Authorization", "Bearer $token")
+        if (token.count { it == '.' } >= 2) setRequestProperty("Authorization", "Bearer $token")
     }
     return try {
         check(connection.responseCode == HttpURLConnection.HTTP_OK)
@@ -75,4 +82,46 @@ private fun status(value: String): String? = when (value) {
     "Ended", "Canceled" -> "Terminée"
     "Planned", "In Production", "Pilot" -> "À venir"
     else -> null
+}
+private fun tmdbToken(): String = BuildConfig.TMDB_READ_TOKEN.trim().ifBlank {
+    runCatching { com.streamflixreborn.streamflix.utils.UserPreferences.tmdbApiKey.orEmpty().trim() }.getOrDefault("")
+}
+
+internal suspend fun cataloguePopularity(query: String): Map<String, Double> = withContext(Dispatchers.IO) {
+    val token = tmdbToken()
+    if (token.isBlank()) return@withContext emptyMap()
+    try {
+        val paths = if (query.isNotBlank()) listOf("/3/search/multi?query=${Uri.encode(query)}&language=fr-FR&include_adult=false")
+            else listOf("/3/trending/all/week?language=fr-FR")
+        val scores = mutableMapOf<String, Double>()
+        for (path in paths) {
+            val results = getJson(path, token).optJSONArray("results") ?: continue
+            for (i in 0 until results.length()) {
+                val item = results.getJSONObject(i)
+                for (field in listOf("title", "name", "original_title", "original_name")) {
+                    val title = CatalogIdentity.title(item.optString(field))
+                    if (title.isNotBlank()) scores[title] = item.optDouble("popularity", 0.0)
+                }
+            }
+        }
+        scores
+    } catch (e: CancellationException) { throw e }
+    catch (_: Exception) { emptyMap() }
+}
+
+internal fun rankCatalogue(items: List<Anime>, query: String, popularity: Map<String, Double> = emptyMap()): List<Anime> {
+    val wanted = CatalogIdentity.title(query)
+    fun relevance(item: Anime): Int {
+        val titles = (listOf(item.title) + item.aliases).map(CatalogIdentity::title)
+        return when {
+            wanted.isBlank() -> 0
+            titles.any { it == wanted } -> 4
+            titles.any { it.startsWith(wanted) } -> 3
+            titles.any { it.contains(wanted) } -> 2
+            else -> 0
+        }
+    }
+    return items.sortedWith(compareByDescending<Anime> { relevance(it) }
+        .thenByDescending { popularity[CatalogIdentity.title(it.title)] ?: 0.0 }
+        .thenByDescending { it.references.map { r -> r.provider }.distinct().size })
 }

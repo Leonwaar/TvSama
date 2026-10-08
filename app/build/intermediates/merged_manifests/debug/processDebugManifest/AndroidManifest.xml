@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="fr.nekotv"
-    android:versionCode="73"
-    android:versionName="v1.1.72" >
+    android:versionCode="79"
+    android:versionName="v1.2.78" >
 
     <uses-sdk
         android:minSdkVersion="23"
@@ -102,8 +102,13 @@
         android:extractNativeLibs="false"
         android:icon="@drawable/tvsama_icon"
         android:label="TvSama"
+        android:networkSecurityConfig="@xml/test_network_security"
         android:theme="@style/Theme.AppCompat.NoActionBar"
         android:usesCleartextTraffic="false" >
+        <activity
+            android:name="fr.nekotv.PlaybackTestActivity"
+            android:exported="false" />
+
         <meta-data
             android:name="com.google.android.gms.cast.framework.OPTIONS_PROVIDER_CLASS_NAME"
             android:value="fr.nekotv.TvSamaCastOptions" />

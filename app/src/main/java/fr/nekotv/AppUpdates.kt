@@ -92,16 +92,13 @@ object AppUpdates {
         val flags = PackageManager.GET_SIGNATURES
         @Suppress("DEPRECATION")
         val archive = context.packageManager.getPackageArchiveInfo(file.path, flags) ?: error("APK invalide")
-        @Suppress("DEPRECATION")
-        val installed = context.packageManager.getPackageInfo(context.packageName, flags)
         check(archive.packageName == context.packageName) { "Cet APK ne correspond pas à TvSama" }
         @Suppress("DEPRECATION")
-        check(archive.longVersion() > installed.longVersion()) { "Le versionCode de la release doit être supérieur" }
+        val installed = context.packageManager.getPackageInfo(context.packageName, flags)
         @Suppress("DEPRECATION")
         check(archive.signatures?.toSet() == installed.signatures?.toSet() && !archive.signatures.isNullOrEmpty()) { "Signature incompatible avec la version installée" }
         file
     }
-    private fun android.content.pm.PackageInfo.longVersion(): Long = if (Build.VERSION.SDK_INT >= 28) longVersionCode else @Suppress("DEPRECATION") versionCode.toLong()
     fun install(context: Context, file: File) {
         if (Build.VERSION.SDK_INT >= 26 && !context.packageManager.canRequestPackageInstalls()) {
             context.startActivity(Intent(android.provider.Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES, Uri.parse("package:${context.packageName}")))

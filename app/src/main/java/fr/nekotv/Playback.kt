@@ -1,8 +1,11 @@
 package fr.nekotv
 
 import android.net.Uri
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -20,7 +23,6 @@ import androidx.media3.common.MediaItem
 import androidx.media3.common.MimeTypes
 import androidx.media3.common.PlaybackException
 import androidx.media3.common.Player
-import androidx.media3.datasource.DefaultHttpDataSource
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
 import androidx.media3.ui.PlayerView
@@ -35,6 +37,8 @@ import com.google.android.gms.cast.framework.CastSession
 import com.google.android.gms.cast.framework.SessionManagerListener
 import com.google.android.gms.common.images.WebImage
 import kotlinx.coroutines.delay
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 
 private fun VideoSource.contentType(): String? = mimeType ?: when {
     Uri.parse(url).path.orEmpty().endsWith(".m3u8", true) -> MimeTypes.APPLICATION_M3U8
@@ -47,11 +51,14 @@ private fun VideoSource.contentType(): String? = mimeType ?: when {
 @Composable
 fun TvSamaPlayer(
     source: VideoSource,
+    anime: Anime? = null,
+    episode: Episode? = null,
     title: String,
     poster: String = "",
     resumeAt: Long = 0,
     subtitlesEnabled: Boolean = true,
     isFullscreen: Boolean = false,
+    onControlsVisibleChange: (Boolean) -> Unit = {},
     onToggleFullscreen: () -> Unit = {},
     onBack: () -> Unit = {},
     onPrevious: (() -> Unit)? = null,
@@ -74,6 +81,7 @@ fun TvSamaPlayer(
     val previousCallback by rememberUpdatedState(onPrevious)
     val nextCallback by rememberUpdatedState(onNext)
     val qualityCallback by rememberUpdatedState(onActualQuality)
+    val controlsCallback by rememberUpdatedState(onControlsVisibleChange)
     var casting by remember(source) { mutableStateOf(false) }
     var playing by remember(source) { mutableStateOf(false) }
     var controlsVisible by remember { mutableStateOf(true) }
@@ -83,10 +91,20 @@ fun TvSamaPlayer(
     LaunchedEffect(imdbId, seasonNumber, episodeNumber, isMovie) { segments = fetchSegments(imdbId, seasonNumber, episodeNumber, isMovie) }
     var castMessage by remember(source) { mutableStateOf<String?>(null) }
     val castContext = remember(context) { castContextOrNull(context) }
+    val loadStartedAt = remember(source) { android.os.SystemClock.elapsedRealtime() }
+    val timer = remember(context) { SleepTimer(context) }
+    // A new lecture starts a fresh countdown using the choice saved in Settings.
+    // This also clears an expired deadline when the timer was left enabled.
+    val initialSleepDeadline = remember(source) { timer.restart() }
+    var sleepDeadline by remember(source) { mutableLongStateOf(initialSleepDeadline) }
     val player = remember(source) {
-        val http = DefaultHttpDataSource.Factory().setDefaultRequestProperties(source.headers)
-            .setConnectTimeoutMs(15000).setReadTimeoutMs(20000)
-        ExoPlayer.Builder(context).setMediaSourceFactory(DefaultMediaSourceFactory(http)).build().apply {
+        val dataSource = if (anime?.tag == "Direct") MediaNetwork.factory(source)
+            else PlaybackCache.factory(context, source)
+        ExoPlayer.Builder(context).setMediaSourceFactory(DefaultMediaSourceFactory(dataSource)).apply {
+            if (anime?.tag == "Direct") setLoadControl(androidx.media3.exoplayer.DefaultLoadControl.Builder()
+                .setBufferDurationsMs(2_000, 10_000, 500, 1_000)
+                .setPrioritizeTimeOverSizeThresholds(true).build())
+        }.build().apply {
             trackSelectionParameters = trackSelectionParameters.buildUpon()
                 .setPreferredAudioLanguages(*(if (source.language == "VOSTFR") arrayOf("ja", "en") else arrayOf("fr", "fra")))
                 .setPreferredTextLanguage("fr")
@@ -94,6 +112,8 @@ fun TvSamaPlayer(
             setAudioAttributes(androidx.media3.common.AudioAttributes.DEFAULT, true)
             setHandleAudioBecomingNoisy(true)
             setMediaItem(MediaItem.Builder().setUri(source.url).apply {
+                setMediaMetadata(androidx.media3.common.MediaMetadata.Builder().setTitle(title)
+                    .apply { if (poster.startsWith("https://")) setArtworkUri(Uri.parse(poster)) }.build())
                 source.contentType()?.let { setMimeType(it) }
                 setSubtitleConfigurations(source.subtitles.map { subtitle ->
                     MediaItem.SubtitleConfiguration.Builder(Uri.parse(subtitle.url))
@@ -101,13 +121,99 @@ fun TvSamaPlayer(
                         .setSelectionFlags(if (source.language == "VOSTFR") C.SELECTION_FLAG_DEFAULT else 0).build()
                 })
             }.build())
-            seekTo(resumeAt.coerceAtLeast(0))
+            if (anime?.tag == "Direct") seekToDefaultPosition() else seekTo(resumeAt.coerceAtLeast(0))
             prepare()
-            playWhenReady = true
+            playWhenReady = initialSleepDeadline == 0L || initialSleepDeadline > System.currentTimeMillis()
         }
     }
     SideEffect { (context as? MainActivity)?.pictureInPictureEligible = playing && !casting }
     val progressCallback = remember(player) { onProgress }
+    var sleepRemaining by remember { mutableLongStateOf(0L) }
+    var sleepExpired by remember { mutableStateOf(false) }
+    var sleepMenu by remember { mutableStateOf(false) }
+    var dimmed by remember { mutableStateOf(false) }
+    val dimPreferences = remember(context) { context.getSharedPreferences("tvsama_settings", 0) }
+    var autoDim by remember { mutableStateOf(dimPreferences.getBoolean("pause_dimming", true)) }
+    var playerView by remember(player) { mutableStateOf<PlayerView?>(null) }
+    BackHandler(!inPip && (sleepMenu || controlsVisible)) {
+        when {
+            sleepMenu -> sleepMenu = false
+            else -> playerView?.hideController()
+        }
+    }
+    SideEffect { playerView?.controllerShowTimeoutMs = if (sleepMenu) 0 else 5_000 }
+    var pauseDimmed by remember(player) { mutableStateOf(false) }
+    val pauseDimming = remember(player) { PauseDimming() }
+    val activity = context as? MainActivity
+    val lastInteraction = activity?.lastInteraction ?: 0L
+    DisposableEffect(activity, player) {
+        val wake: () -> Boolean = { pauseDimmed.also { if (it) pauseDimmed = false } }
+        activity?.wakePausedScreen = wake
+        onDispose { activity?.let { if (it.wakePausedScreen === wake) it.wakePausedScreen = null } }
+    }
+    LaunchedEffect(player, autoDim, lastInteraction, inPip) {
+        pauseDimmed = false
+        while (true) {
+            val remote = castContext?.sessionManager?.currentCastSession?.remoteMediaClient
+            val paused = if (casting) remote?.isPaused == true else !player.playWhenReady && player.playbackState == Player.STATE_READY
+            pauseDimmed = pauseDimming.shouldDim(paused, autoDim && !inPip, activity?.lastInteraction ?: lastInteraction)
+            delay(250)
+        }
+    }
+    fun setSleep(minutes: Int) {
+        timer.configure(minutes)
+        sleepDeadline = timer.begin()
+        sleepExpired = false
+        dimmed = false
+        sleepMenu = false
+    }
+    LaunchedEffect(player) {
+        for (command in RemoteLink.playerCommands) {
+            if (activity?.notifyPlayerInteraction() == true) continue
+            val remote = castContext?.sessionManager?.currentCastSession?.remoteMediaClient
+                ?.takeIf { casting && it.mediaInfo?.contentId == source.url }
+            // A disconnected Cast session must not start a second, local audio stream.
+            if (casting && remote == null) continue
+            when (command.action) {
+                "toggle" -> {
+                    val isPlaying = remote?.isPlaying ?: player.playWhenReady
+                    if (isPlaying) {
+                        if (remote != null) remote.pause() else player.pause()
+                    } else {
+                        if (timer.expired()) { sleepDeadline = timer.restart(); sleepExpired = false; dimmed = false }
+                        if (remote != null) remote.play() else player.play()
+                    }
+                }
+                "seek" -> {
+                    val duration = remote?.streamDuration ?: player.duration
+                    val target = command.position.coerceIn(0, duration.takeIf { it > 0 } ?: Long.MAX_VALUE)
+                    if (remote != null) remote.seek(MediaSeekOptions.Builder().setPosition(target).build())
+                    else player.seekTo(target)
+                }
+                "sleep" -> { setSleep(180); if (remote != null) remote.play() else player.play() }
+            }
+        }
+    }
+    LaunchedEffect(player, sleepDeadline) {
+        if (sleepDeadline == 0L) return@LaunchedEffect
+        while (System.currentTimeMillis() < sleepDeadline) {
+            sleepRemaining = sleepDeadline - System.currentTimeMillis()
+            delay(minOf(1_000L, sleepRemaining.coerceAtLeast(1)))
+        }
+        sleepRemaining = 0
+        player.pause()
+        castContext?.sessionManager?.currentCastSession?.remoteMediaClient?.pause()
+        sleepExpired = true
+        dimmed = true
+    }
+    val darkened = dimmed || pauseDimmed
+    DisposableEffect(darkened, context) {
+        val window = (context as? android.app.Activity)?.window
+        val previous = window?.attributes?.screenBrightness ?: -1f
+        // Force the lowest brightness supported by the window while dimmed.
+        if (darkened && window != null) window.attributes = window.attributes.apply { screenBrightness = 0f }
+        onDispose { if (darkened && window != null) window.attributes = window.attributes.apply { screenBrightness = previous } }
+    }
     LaunchedEffect(player, subtitlesEnabled) {
         player.trackSelectionParameters = player.trackSelectionParameters.buildUpon()
             .setTrackTypeDisabled(C.TRACK_TYPE_TEXT, !subtitlesEnabled).build()
@@ -122,17 +228,60 @@ fun TvSamaPlayer(
                 position = player.currentPosition
                 playbackDuration = player.duration
             }
-            delay(500)
+            RemoteLink.playback = RemotePlayback(title, position.coerceAtLeast(0), playbackDuration.coerceAtLeast(0),
+                if (casting) remote?.isPlaying == true else playing, previousCallback != null, nextCallback != null, anime, episode)
+            delay(250)
         }
     }
     DisposableEffect(player, lifecycle) {
+        val mediaSession = androidx.media3.session.MediaSession.Builder(context, player)
+            .setCallback(object : androidx.media3.session.MediaSession.Callback {
+                override fun onPlayerCommandRequest(session: androidx.media3.session.MediaSession,
+                    controller: androidx.media3.session.MediaSession.ControllerInfo, command: Int): Int {
+                    if (command in setOf(Player.COMMAND_PLAY_PAUSE, Player.COMMAND_SEEK_IN_CURRENT_MEDIA_ITEM,
+                            Player.COMMAND_SEEK_BACK, Player.COMMAND_SEEK_FORWARD)) {
+                        if (activity?.notifyPlayerInteraction() == true) return androidx.media3.session.SessionResult.RESULT_ERROR_INVALID_STATE
+                        if (command == Player.COMMAND_PLAY_PAUSE && sleepExpired) {
+                            sleepDeadline = timer.restart(); sleepExpired = false; dimmed = false
+                        }
+                    }
+                    return androidx.media3.session.SessionResult.RESULT_SUCCESS
+                }
+            }).build()
+        var liveWindowRecoveries = 0
+        var lastLiveWindowRecovery = 0L
         val listener = object : Player.Listener {
+            override fun onRenderedFirstFrame() {
+                if (BuildConfig.DEBUG) android.util.Log.d("TvSamaPlayer", "Première image ${source.provider} : ${android.os.SystemClock.elapsedRealtime() - loadStartedAt} ms ; ${player.videoFormat?.width}x${player.videoFormat?.height} ; audio ${player.audioFormat?.sampleMimeType.orEmpty()}")
+            }
+            override fun onTracksChanged(tracks: androidx.media3.common.Tracks) {
+                if (BuildConfig.DEBUG) {
+                    val selected = tracks.groups.flatMap { group -> (0 until group.length).filter(group::isTrackSelected).map { group.getTrackFormat(it) } }
+                    android.util.Log.d("TvSamaPlayer", "Pistes actives ${source.provider} : ${selected.joinToString { "${it.sampleMimeType} ${it.language.orEmpty()} ${it.width}x${it.height}" }}")
+                }
+            }
             override fun onPlayerError(error: PlaybackException) {
+                if (BuildConfig.DEBUG) android.util.Log.w("TvSamaPlayer", "Lecture ${source.provider} : ${error.errorCodeName} (${error.cause?.javaClass?.simpleName.orEmpty()})")
+                if (anime?.tag == "Direct" && error.errorCode == PlaybackException.ERROR_CODE_BEHIND_LIVE_WINDOW) {
+                    val now = android.os.SystemClock.elapsedRealtime()
+                    if (now - lastLiveWindowRecovery > 60_000) liveWindowRecoveries = 0
+                    if (liveWindowRecoveries++ < 2) {
+                        lastLiveWindowRecovery = now
+                        val resume = player.playWhenReady && !casting && !timer.expired()
+                        player.seekToDefaultPosition()
+                        player.prepare()
+                        player.playWhenReady = resume
+                        return
+                    }
+                }
                 errorCallback("Ce serveur ne peut pas être lu (${error.errorCodeName}). Essayez un autre serveur.")
             }
             override fun onPlaybackStateChanged(state: Int) {
                 playing = player.isPlaying
-                if (state == Player.STATE_ENDED && !casting) { progressCallback(player.duration.coerceAtLeast(0), player.duration.coerceAtLeast(0)); endedCallback() }
+                if (state == Player.STATE_ENDED && !casting && !timer.expired()) {
+                    if (anime?.tag == "Direct") castMessage = "La diffusion est terminée."
+                    else { progressCallback(player.duration.coerceAtLeast(0), player.duration.coerceAtLeast(0)); endedCallback() }
+                }
             }
             override fun onIsPlayingChanged(isPlaying: Boolean) { playing = isPlaying }
             override fun onVideoSizeChanged(videoSize: androidx.media3.common.VideoSize) {
@@ -147,7 +296,7 @@ fun TvSamaPlayer(
                 progressCallback(player.currentPosition.coerceAtLeast(0), player.duration.coerceAtLeast(0))
                 // A visible PiP activity remains STARTED; STOP means it was hidden or dismissed.
                 player.pause()
-            } else if (event == Lifecycle.Event.ON_START && resumeOnStart && !casting) player.play()
+            } else if (event == Lifecycle.Event.ON_START && resumeOnStart && !casting && !timer.expired()) player.play()
         }
         lifecycle.addObserver(observer)
         onDispose {
@@ -155,6 +304,8 @@ fun TvSamaPlayer(
             lifecycle.removeObserver(observer)
             player.removeListener(listener)
             (context as? MainActivity)?.pictureInPictureEligible = false
+            RemoteLink.playback = RemotePlayback()
+            mediaSession.release()
             player.release()
         }
     }
@@ -164,11 +315,17 @@ fun TvSamaPlayer(
         var lastRemotePosition = resumeAt.coerceAtLeast(0)
         var lastRemoteDuration = 0L
         var remoteFinished = false
+        var remoteWantedPlayback = player.playWhenReady
         fun saveRemote() {
             trackedRemote?.let { remote ->
                 if (remote.mediaInfo?.contentId == source.url) {
                     lastRemotePosition = remote.approximateStreamPosition.coerceAtLeast(0)
                     lastRemoteDuration = remote.streamDuration.coerceAtLeast(0)
+                    when (remote.playerState) {
+                        MediaStatus.PLAYER_STATE_PLAYING, MediaStatus.PLAYER_STATE_BUFFERING -> remoteWantedPlayback = true
+                        MediaStatus.PLAYER_STATE_PAUSED -> remoteWantedPlayback = false
+                        MediaStatus.PLAYER_STATE_IDLE -> if (remote.mediaStatus?.idleReason == MediaStatus.IDLE_REASON_FINISHED) remoteWantedPlayback = false
+                    }
                     progressCallback(lastRemotePosition, lastRemoteDuration)
                 }
             }
@@ -182,7 +339,7 @@ fun TvSamaPlayer(
                 saveRemote()
                 if (status.playerState == MediaStatus.PLAYER_STATE_IDLE && status.idleReason == MediaStatus.IDLE_REASON_FINISHED && !remoteFinished) {
                     remoteFinished = true
-                    endedCallback()
+                    if (!timer.expired()) endedCallback()
                 } else if (status.playerState == MediaStatus.PLAYER_STATE_IDLE && status.idleReason == MediaStatus.IDLE_REASON_ERROR) {
                     castMessage = "La télévision ne peut pas lire ce serveur. Choisissez une autre source."
                 }
@@ -199,7 +356,7 @@ fun TvSamaPlayer(
             saveRemote()
             casting = false
             player.seekTo(lastRemotePosition)
-            if (lifecycle.currentState.isAtLeast(Lifecycle.State.STARTED)) player.play()
+            if (lifecycle.currentState.isAtLeast(Lifecycle.State.STARTED) && remoteWantedPlayback && !timer.expired()) player.play()
         }
         fun sendTo(session: CastSession) {
             // The default receiver cannot attach arbitrary Referer/Cookie headers to requests.
@@ -212,6 +369,7 @@ fun TvSamaPlayer(
             if (remote.mediaInfo?.contentId == source.url && remote.playerState != MediaStatus.PLAYER_STATE_IDLE) {
                 casting = true
                 player.pause()
+                if (timer.expired()) remote.pause()
                 saveRemote()
                 player.seekTo(lastRemotePosition)
                 return
@@ -222,14 +380,14 @@ fun TvSamaPlayer(
             }
             val info = MediaInfo.Builder(source.url)
                 .setContentType(source.contentType() ?: "video/mp4")
-                .setStreamType(MediaInfo.STREAM_TYPE_BUFFERED).setMetadata(metadata)
+                .setStreamType(if (anime?.tag == "Direct") MediaInfo.STREAM_TYPE_LIVE else MediaInfo.STREAM_TYPE_BUFFERED).setMetadata(metadata)
                 .setMediaTracks(source.subtitles.mapIndexed { index, subtitle ->
                     MediaTrack.Builder(index.toLong() + 1, MediaTrack.TYPE_TEXT)
                         .setSubtype(MediaTrack.SUBTYPE_SUBTITLES).setContentId(subtitle.url)
                         .setContentType(subtitle.mimeType).setLanguage(subtitle.language).setName(subtitle.label).build()
                 }).build()
             val request = MediaLoadRequestData.Builder().setMediaInfo(info)
-                .setCurrentTime(player.currentPosition.coerceAtLeast(0)).setAutoplay(true)
+                .setCurrentTime(player.currentPosition.coerceAtLeast(0)).setAutoplay(player.playWhenReady && !timer.expired())
             if (source.language == "VOSTFR" && source.subtitles.isNotEmpty()) request.setActiveTrackIds(longArrayOf(1))
             remote.load(request.build()).setResultCallback { result ->
                 if (!active) return@setResultCallback
@@ -238,6 +396,7 @@ fun TvSamaPlayer(
                     remoteFinished = false
                     castMessage = null
                     player.pause()
+                    if (timer.expired()) remote.pause()
                 } else {
                     castMessage = "La télévision n'a pas pu lire ce serveur. Essayez une autre source."
                 }
@@ -251,6 +410,7 @@ fun TvSamaPlayer(
                     track(remote)
                     casting = true
                     player.pause()
+                    if (timer.expired()) remote.pause()
                     saveRemote()
                     player.seekTo(lastRemotePosition)
                 }
@@ -287,7 +447,20 @@ fun TvSamaPlayer(
     }
     Box(modifier.background(Color.Black)) {
         AndroidView(modifier = Modifier.fillMaxSize(), factory = {
-            PlayerView(it).apply {
+            object : PlayerView(it) {
+                override fun dispatchKeyEvent(event: android.view.KeyEvent): Boolean {
+                    if (event.keyCode in listOf(android.view.KeyEvent.KEYCODE_DPAD_CENTER, android.view.KeyEvent.KEYCODE_ENTER) &&
+                        (!isControllerFullyVisible || findFocus() === this)) {
+                        if (event.action == android.view.KeyEvent.ACTION_DOWN && event.repeatCount == 0) {
+                            showController()
+                            findViewById<android.view.View>(androidx.media3.ui.R.id.exo_play_pause)?.requestFocus()
+                        }
+                        return true
+                    }
+                    return super.dispatchKeyEvent(event)
+                }
+            }.apply {
+                playerView = this
                 this.player = player
                 useController = true
                 addOnLayoutChangeListener { view, _, _, _, _, _, _, _, _ ->
@@ -302,6 +475,7 @@ fun TvSamaPlayer(
                 setShowSubtitleButton(true)
                 setControllerVisibilityListener(PlayerView.ControllerVisibilityListener { visibility ->
                     controlsVisible = visibility == android.view.View.VISIBLE
+                    controlsCallback(controlsVisible)
                 })
                 setShowPreviousButton(false)
                 setShowNextButton(false)
@@ -324,7 +498,7 @@ fun TvSamaPlayer(
                     setKeyTimeIncrement(5_000)
                     setOnKeyListener { _, code, event ->
                         if (code == android.view.KeyEvent.KEYCODE_DPAD_LEFT || code == android.view.KeyEvent.KEYCODE_DPAD_RIGHT) {
-                            setKeyTimeIncrement(when { event.repeatCount > 20 -> 60_000; event.repeatCount > 8 -> 30_000; event.repeatCount > 3 -> 15_000; else -> 5_000 })
+                            setKeyTimeIncrement(seekIncrement(event.eventTime - event.downTime))
                         }
                         false
                     }
@@ -332,13 +506,17 @@ fun TvSamaPlayer(
                 var lastTap = 0L
                 var seekTarget = 0L
                 var tapDirection = 0
+                var lastSeekPlayer: Player? = null
                 fun seekTap(event: android.view.MotionEvent) {
+                    // AndroidView survives a server change; use the player currently attached to it.
+                    val activePlayer = this.player ?: return
                     val now = android.os.SystemClock.elapsedRealtime()
                     val direction = if (event.x < width / 2) -1 else 1
-                    val base = if (now - lastTap < 900 && direction == tapDirection) seekTarget else player.currentPosition
-                    seekTarget = (base + direction * 15_000L).coerceIn(0, player.duration.takeIf { it > 0 } ?: Long.MAX_VALUE)
+                    val base = if (lastSeekPlayer === activePlayer && now - lastTap < 900 && direction == tapDirection) seekTarget else activePlayer.currentPosition
+                    seekTarget = (base + direction * 15_000L).coerceIn(0, activePlayer.duration.takeIf { it > 0 } ?: Long.MAX_VALUE)
                     lastTap = now; tapDirection = direction
-                    player.seekTo(seekTarget)
+                    lastSeekPlayer = activePlayer
+                    activePlayer.seekTo(seekTarget)
                 }
                 val gestures = android.view.GestureDetector(context, object : android.view.GestureDetector.SimpleOnGestureListener() {
                     override fun onDown(event: android.view.MotionEvent) = true
@@ -358,6 +536,7 @@ fun TvSamaPlayer(
                 requestFocus()
             }
         }, update = { view ->
+            if (playerView !== view) playerView = view
             view.player = player; view.keepScreenOn = playing && !casting
             view.useController = !inPip
             if (inPip) view.hideController()
@@ -368,8 +547,25 @@ fun TvSamaPlayer(
                 isEnabled = onNext != null; alpha = if (isEnabled) 1f else .35f
             }
         })
-        if (controlsVisible && !inPip) Row(Modifier.align(Alignment.TopEnd).padding(14.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        if (controlsVisible && !inPip) Row(Modifier.align(Alignment.TopEnd).fillMaxWidth().padding(14.dp)
+            .horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.End)) {
             Action("Retour", onClick = onBack)
+            Box {
+                Action("Minuterie") { sleepMenu = true }
+                androidx.compose.material3.DropdownMenu(expanded = sleepMenu, onDismissRequest = { sleepMenu = false }) {
+                    SleepTimer.options.forEach { minutes ->
+                        androidx.compose.material3.DropdownMenuItem(text = { Text(if (minutes < 60) "$minutes min" else "${minutes / 60} h${if (minutes % 60 != 0) " ${minutes % 60} min" else ""}") }, onClick = { setSleep(minutes) })
+                    }
+                    androidx.compose.material3.DropdownMenuItem(text = { Text("Désactiver") }, onClick = { setSleep(0) })
+                }
+            }
+            if (sleepDeadline > 0L && sleepRemaining > 0L) {
+                Text(
+                    text = "${(sleepRemaining / 60_000L) + 1} min",
+                    color = Color.White,
+                    modifier = Modifier.align(Alignment.CenterVertically)
+                )
+            }
             CastRouteButton(Modifier.size(48.dp))
             if (android.os.Build.VERSION.SDK_INT >= 26 && context.packageManager.hasSystemFeature(android.content.pm.PackageManager.FEATURE_PICTURE_IN_PICTURE)) {
                 androidx.compose.material3.IconButton(onClick = { (context as? android.app.Activity)?.enterPictureInPictureMode(android.app.PictureInPictureParams.Builder().setAspectRatio(android.util.Rational(16, 9)).build()) }) {
@@ -400,10 +596,12 @@ fun TvSamaPlayer(
             }
         }
         val activeSegment = listOf("Passer l’intro" to segments?.intro, "Passer l’outro" to segments?.outro)
-            .firstOrNull { (_, segment) -> segment != null && position >= segment.start && position < segment.end && segment.end <= playbackDuration }
+            .firstOrNull { (_, segment) -> segment != null && position >= segment.start && position < segment.end && (playbackDuration <= 0 || segment.start < playbackDuration) }
         if (!inPip && activeSegment != null) {
             val segment = activeSegment.second!!
-            Action(activeSegment.first, Modifier.align(Alignment.BottomStart)
+            val skipFocus = remember { FocusRequester() }
+            LaunchedEffect(activeSegment.first, segment.start) { if (context.isTelevision()) skipFocus.requestFocus() }
+            Action(activeSegment.first, Modifier.focusRequester(skipFocus).align(Alignment.BottomStart)
                 .padding(start = 16.dp, bottom = if (controlsVisible && !casting) 88.dp else 20.dp)
                 .background(Color.Black.copy(alpha = .6f))) {
                 if (casting) castContext?.sessionManager?.currentCastSession?.remoteMediaClient?.seek(
@@ -411,15 +609,30 @@ fun TvSamaPlayer(
                 else player.seekTo(segment.end)
             }
         }
+        // Opaque veil: the paused video and source controls must not remain visible.
+        if (pauseDimmed && !dimmed && !inPip) Box(Modifier.fillMaxSize().background(Color.Black))
+        if (dimmed && !inPip) Column(
+            Modifier.fillMaxSize().background(Color.Black),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
+        ) {
+            Text("Minuteur terminé", color = Color.White)
+            Action("Reprendre la lecture") {
+                val remote = castContext?.sessionManager?.currentCastSession?.remoteMediaClient
+                    ?.takeIf { casting && it.mediaInfo?.contentId == source.url }
+                if (!casting || remote != null) {
+                    sleepDeadline = timer.restart(); sleepExpired = false; dimmed = false
+                    if (remote != null) remote.play() else player.play()
+                }
+            }
+        }
         castMessage?.let { Text(it, color = Color.White, modifier = Modifier.align(Alignment.TopCenter).background(Color.Black).padding(16.dp)) }
     }
 }
 
-private fun actualQuality(width: Int, height: Int): String = when {
-    width >= 3840 || height >= 2160 -> "4K"
-    width >= 1920 || height >= 1080 -> "1080p"
-    width >= 1280 || height >= 720 -> "720p"
-    width >= 854 || height >= 480 -> "480p"
-    width > 0 || height > 0 -> "${height}p"
-    else -> "Détection…"
+internal fun seekIncrement(heldMillis: Long): Long = when {
+    heldMillis < 3000 -> 1000L
+    heldMillis < 6000 -> 10000L
+    heldMillis < 10000 -> 30000L
+    else -> 60000L
 }

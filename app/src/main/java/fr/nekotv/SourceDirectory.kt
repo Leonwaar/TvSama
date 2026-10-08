@@ -32,7 +32,7 @@ object SourceDirectory {
             val items = data.getJSONArray("data")
             for (i in 0 until items.length()) {
                 val item = items.getJSONObject(i)
-                if (item.optString("language") != "fr" || item.optString("category") !in setOf("films", "series", "anime", "iptv")) continue
+                if (item.optString("language") !in setOf("fr", "multi") || item.optString("category") !in setOf("films", "series", "anime", "iptv", "sport")) continue
                 val url = item.optJSONObject("current_url")?.optString("url").orEmpty()
                 if (!url.startsWith("https://")) continue
                 entries += DirectorySource(item.getString("name"), item.getString("slug"), url, item.optString("status"))

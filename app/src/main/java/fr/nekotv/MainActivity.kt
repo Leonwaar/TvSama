@@ -21,6 +21,7 @@ import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.foundation.focusGroup
 import androidx.compose.foundation.background
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
@@ -31,14 +32,17 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -50,11 +54,34 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withTimeoutOrNull
 import androidx.lifecycle.lifecycleScope
 
 class MainActivity : FragmentActivity() {
+    var lastInteraction by mutableLongStateOf(android.os.SystemClock.uptimeMillis())
+        private set
+    var wakePausedScreen: (() -> Boolean)? = null
+    private fun recordInteraction() { lastInteraction = android.os.SystemClock.uptimeMillis() }
+    fun notifyPlayerInteraction(): Boolean { recordInteraction(); return wakePausedScreen?.invoke() == true }
+    override fun dispatchTouchEvent(event: android.view.MotionEvent): Boolean {
+        if (event.actionMasked in listOf(android.view.MotionEvent.ACTION_DOWN, android.view.MotionEvent.ACTION_MOVE)) {
+            recordInteraction()
+            if (event.actionMasked == android.view.MotionEvent.ACTION_DOWN && wakePausedScreen?.invoke() == true) return true
+        }
+        return super.dispatchTouchEvent(event)
+    }
+    override fun dispatchGenericMotionEvent(event: android.view.MotionEvent): Boolean {
+        recordInteraction()
+        if (wakePausedScreen?.invoke() == true) return true
+        return super.dispatchGenericMotionEvent(event)
+    }
+    override fun dispatchKeyEvent(event: android.view.KeyEvent): Boolean {
+        if (event.action == android.view.KeyEvent.ACTION_DOWN && notifyPlayerInteraction()) return true
+        return super.dispatchKeyEvent(event)
+    }
     var inPictureInPicture by mutableStateOf(false)
         private set
 
@@ -74,6 +101,7 @@ class MainActivity : FragmentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        com.streamflixreborn.streamflix.utils.SourceWebSession.attach(this)
         RemoteLink.restore(this)
         handlePairing(intent)
         setContent { SamaTheme { TvSamaApp() } }
@@ -136,6 +164,36 @@ private fun TvSamaApp() {
     var category by rememberSaveable { mutableStateOf("Tous") }
     var language by rememberSaveable { mutableStateOf(library.language().takeIf { it in listOf("VF", "VOSTFR") } ?: "VF") }
     var catalog by remember { mutableStateOf<List<Anime>>(emptyList()) }
+    var catalogKey by remember { mutableStateOf("Tous|") }
+    val homeGridState = rememberLazyGridState()
+    val searchGridState = rememberLazyGridState()
+    val discoveryRowState = rememberLazyListState()
+    val resumeRowState = rememberLazyListState()
+    val catalogueFocus = remember { FocusRequester() }
+    var lastHomeFocus by remember { mutableStateOf<String?>(null) }
+    var lastSearchFocus by remember { mutableStateOf<String?>(null) }
+    fun cardKey(anime: Anime) = "${anime.provider}|${anime.tag}|${anime.id}"
+    fun cardModifier(anime: Anime): Modifier {
+        val key = cardKey(anime)
+        val previous = if (page == Page.HOME) lastHomeFocus else lastSearchFocus
+        return (if (key == previous) Modifier.focusRequester(catalogueFocus) else Modifier)
+            .onFocusChanged { if (it.isFocused) {
+                if (page == Page.HOME) lastHomeFocus = key else if (page == Page.SEARCH) lastSearchFocus = key
+            } }
+    }
+    LaunchedEffect(page) {
+        val key = if (page == Page.HOME) lastHomeFocus else if (page == Page.SEARCH) lastSearchFocus else null
+        if (context.isTelevision() && key != null && catalog.any { cardKey(it) == key }) {
+            withFrameNanos { }
+            runCatching { catalogueFocus.requestFocus() }
+        }
+    }
+    val catalogUpdates = remember { kotlinx.coroutines.sync.Mutex() }
+    suspend fun appendCatalogue(incoming: List<Anime>) = catalogUpdates.withLock {
+        val existing = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Main) { catalog }
+        val updated = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Default) { CatalogIdentity.appendStable(existing, incoming) }
+        kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Main) { catalog = updated }
+    }
     var catalogLoading by remember { mutableStateOf(false) }
     var catalogError by remember { mutableStateOf("") }
     var generation by remember { mutableIntStateOf(0) }
@@ -149,12 +207,19 @@ private fun TvSamaApp() {
     var streamLoading by remember { mutableStateOf(false) }
     var detailError by remember { mutableStateOf("") }
     var playerError by remember { mutableStateOf("") }
+    val failedLiveServers = remember(selected?.id) { mutableSetOf<String>() }
+    val refreshedLiveServers = remember(selected?.id) { mutableSetOf<String>() }
+    var livePlaybackRevision by remember(selected?.id) { mutableIntStateOf(0) }
+    val failedVideos = remember(selected?.id, episode?.id, language) { mutableSetOf<String>() }
+    var retryUsed by remember(selected?.id, episode?.id, language) { mutableStateOf(false) }
+    var prefetchJob by remember { mutableStateOf<kotlinx.coroutines.Job?>(null) }
     var favorites by remember { mutableStateOf(library.favorites()) }
     var history by remember { mutableStateOf(library.continuing()) }
     var autoplay by remember { mutableStateOf(library.autoplay()) }
     var subtitlesEnabled by remember { mutableStateOf(context.getSharedPreferences("tvsama_settings", 0).getBoolean("subtitles", true)) }
     var currentQuality by remember { mutableStateOf("Détection…") }
     var isFullscreen by remember { mutableStateOf(false) }
+    var playerControlsVisible by remember { mutableStateOf(true) }
     val hostActivity = context as? Activity
     val inPip = (hostActivity as? MainActivity)?.inPictureInPicture == true
     var providerNames by remember { mutableStateOf<List<String>>(emptyList()) }
@@ -163,7 +228,11 @@ private fun TvSamaApp() {
     var resolveJob by remember { mutableStateOf<kotlinx.coroutines.Job?>(null) }
     var pageJob by remember { mutableStateOf<kotlinx.coroutines.Job?>(null) }
     var recentSearches by remember { mutableStateOf(library.searches()) }
+    var menuExpanded by remember { mutableStateOf(false) }
+    var menuHadFocus by remember { mutableStateOf(false) }
     var detailJob by remember { mutableStateOf<kotlinx.coroutines.Job?>(null) }
+    var sourceAccess by remember { mutableStateOf<Pair<String, String>?>(null) }
+    sourceAccess?.let { (name, url) -> SourceAccess(name, url, { sourceAccess = null }, { scope.launch { manager.refreshSources(); providerRevision++; generation++ } }) }
 
     fun refreshSources() {
         scope.launch {
@@ -171,6 +240,14 @@ private fun TvSamaApp() {
             unavailableSources = manager.sourceHealth().filterValues { it.startsWith("✕") }.keys.toList()
             providerRevision++
             generation++
+        }
+    }
+    LaunchedEffect(Unit) {
+        while (true) {
+            val refreshed = try { manager.refreshDirectory(); providerRevision++; true }
+            catch (e: CancellationException) { throw e }
+            catch (_: Exception) { false }
+            kotlinx.coroutines.delay(if (refreshed) 6 * 60 * 60 * 1000L else 30 * 60 * 1000L)
         }
     }
 
@@ -191,9 +268,25 @@ private fun TvSamaApp() {
         page = Page.DETAIL; detailLoading = true; streamLoading = false
         detailJob = scope.launch {
             try {
-                val loaded = manager.loadDetails(anime)
-                selected = loaded
-                episode = loaded.episodes.firstOrNull { it.id == requestedEpisode } ?: library.resumeEpisode(loaded)
+                val loaded = manager.loadDetails(anime, onPartial = { partial ->
+                    kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Main) {
+                        if (page == Page.DETAIL) {
+                            val current = episode
+                            selected = partial
+                            episode = partial.episodes.firstOrNull { it.id == current?.id }
+                                ?: partial.episodes.firstOrNull { it.id == requestedEpisode }
+                                ?: library.resumeEpisode(partial)
+                            detailLoading = false
+                        }
+                    }
+                })
+                if (page == Page.DETAIL) {
+                    val current = episode
+                    selected = loaded
+                    episode = loaded.episodes.firstOrNull { it.id == current?.id }
+                        ?: loaded.episodes.firstOrNull { it.id == requestedEpisode }
+                        ?: library.resumeEpisode(loaded)
+                }
             } catch (e: CancellationException) { throw e
             } catch (e: Exception) { detailError = "Impossible de charger cette fiche. ${e.message.orEmpty()}"
             } finally { detailLoading = false }
@@ -202,12 +295,23 @@ private fun TvSamaApp() {
 
     fun resolve(play: Boolean, refresh: Boolean = false, target: Episode? = episode, chosenLanguage: String = language) {
         val anime = selected ?: return
+        prefetchJob?.cancel()
+        failedVideos.clear(); retryUsed = false
         resolveJob?.cancel(); streamLoading = true; sources = emptyList(); detailError = ""; playerError = ""
         resolveJob = scope.launch {
             try {
-                sources = manager.resolveSources(anime, target, chosenLanguage, refresh)
+                var started = false
+                val resolved = withTimeoutOrNull(60_000) { manager.resolveSources(anime, target, chosenLanguage, refresh, onPartial = { partial ->
+                    kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Main) {
+                        sources = partial
+                        if (play && !started) {
+                            started = true; episode = target; source = partial.first(); currentQuality = "Détection…"; page = Page.PLAYER
+                        }
+                    }
+                }) }
+                if (resolved != null) sources = resolved
                 if (sources.isEmpty()) detailError = "Aucun serveur disponible en ${if (language == "Toutes") "VF ou VOSTFR" else language}. Actualisez les sources ou choisissez un autre épisode."
-                else if (play) { episode = target; source = sources.first(); currentQuality = "Détection…"; page = Page.PLAYER }
+                else if (play && !started) { episode = target; source = sources.first(); currentQuality = "Détection…"; page = Page.PLAYER }
             } catch (e: CancellationException) { throw e
             } catch (e: Exception) { detailError = "La source ne répond pas. ${e.message.orEmpty()}"
             } finally { streamLoading = false }
@@ -222,25 +326,82 @@ private fun TvSamaApp() {
     var receivedQuery by remember { mutableStateOf<String?>(null) }
     var remoteError by remember { mutableStateOf("") }
     LaunchedEffect(Unit) {
-        providerNames = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) { manager.getProviderNames() }
         // Health checks are explicitly requested from Sources, not on every startup.
         runCatching { RemoteLink.start(context) }
         for (command in RemoteLink.commands) {
             when (command.action) {
                 "search" -> {
-                    navigate(Page.SEARCH)
+                    if (page != Page.PLAYER) navigate(Page.SEARCH)
                     receivedQuery = command.query
                     query = command.query; category = command.category
+                }
+                "toggle", "seek", "sleep" -> if (page == Page.PLAYER) { RemoteLink.playerCommands.trySend(command); Unit } else Unit
+                "previous", "next", "episode" -> {
+                    val entries = selected?.episodes.orEmpty().distinctBy { it.seasonNumber to it.number }
+                    val index = entries.indexOfFirst { it.id == episode?.id }
+                    val target = if (command.action == "episode") entries.firstOrNull { it.id == command.episode?.id }
+                        else entries.getOrNull(index + if (command.action == "next") 1 else -1)
+                    target?.let { resolve(true, target = it) }
+                }
+                "preload" -> {
+                    val media = command.anime
+                    if (media != null && page == Page.PLAYER && media.id == selected?.id) {
+                        manager.rememberSources(media, command.episode, command.language, command.sources)
+                        scope.launch {
+                            try { command.sources.firstOrNull()?.let { PlaybackCache.prefetch(context, it) } }
+                            catch (e: CancellationException) { throw e }
+                            catch (_: Exception) { }
+                        }
+                    }
                 }
                 "play" -> {
                     detailJob?.cancel(); resolveJob?.cancel()
                     receivedPlayback = true
                     selected = command.anime; episode = command.episode
+                    language = command.language
+                    command.anime?.let { manager.rememberSources(it, command.episode, command.language, command.sources) }
                     sources = command.sources; source = sources.firstOrNull()
                     playerError = ""; page = Page.PLAYER
                 }
             }
         }
+    }
+    LaunchedEffect(page) {
+        if (page == Page.SOURCES && providerNames.isEmpty()) providerNames = manager.getProviderNames()
+    }
+    DisposableEffect(library) {
+        val prefs = context.getSharedPreferences("tvsama_library", 0)
+        val listener = android.content.SharedPreferences.OnSharedPreferenceChangeListener { _, key ->
+            if (key == "history" || key == "hidden_resume" || key == "hidden_resume_times") history = library.continuing()
+        }
+        prefs.registerOnSharedPreferenceChangeListener(listener)
+        onDispose { prefs.unregisterOnSharedPreferenceChangeListener(listener) }
+    }
+    LaunchedEffect(pairedHost) {
+        if (pairedHost != null) while (true) {
+            try { RemoteLink.sync(context); history = library.continuing() }
+            catch (e: CancellationException) { throw e }
+            catch (_: Exception) { }
+            delay(3000)
+        }
+    }
+    // Resolve adjacent episodes while playback is running; cancel when selection changes.
+    LaunchedEffect(page, selected?.id, episode?.id, language) {
+        if (page == Page.PLAYER && selected?.tag == "Série" && !receivedPlayback) {
+            prefetchJob = kotlinx.coroutines.currentCoroutineContext()[kotlinx.coroutines.Job]
+            delay(5000)
+            val anime = selected ?: return@LaunchedEffect
+            val entries = anime.episodes.distinctBy { it.seasonNumber to it.number }
+            val index = entries.indexOfFirst { it.id == episode?.id }
+            for (next in listOfNotNull(entries.getOrNull(index + 1))) {
+                try { kotlinx.coroutines.withTimeoutOrNull(12_000) { manager.resolveSources(anime, next, language).firstOrNull()?.let { PlaybackCache.prefetch(context, it) } } }
+                catch (e: CancellationException) { throw e }
+                catch (_: Exception) { }
+            }
+        }
+    }
+    LaunchedEffect(page, detailLoading, selected?.id, episode?.id, language) {
+        if (page == Page.DETAIL && !detailLoading && selected != null && sources.isEmpty() && !streamLoading) resolve(false)
     }
     LaunchedEffect(query, category, pairedHost) {
         if (pairedHost != null && query.isNotBlank() && query != receivedQuery) {
@@ -255,7 +416,7 @@ private fun TvSamaApp() {
         if (page == Page.PLAYER && source != null && pairedHost != null && !receivedPlayback) {
             try {
                 RemoteLink.send(context, RemoteCommand(action = "play", anime = selected, episode = episode,
-                    sources = listOf(source!!) + sources.filter { it.url != source!!.url }))
+                    sources = listOf(source!!) + sources.filter { it.url != source!!.url }, language = language))
                 page = if (selected?.tag == "Direct") Page.LIVE else Page.DETAIL
                 Toast.makeText(context, "Lecture lancée sur la télévision", Toast.LENGTH_SHORT).show()
             } catch (e: CancellationException) { throw e }
@@ -270,14 +431,26 @@ private fun TvSamaApp() {
         confirmButton = { TextButton(onClick = { remoteError = "" }) { Text("Fermer") } },
         dismissButton = { TextButton(onClick = { RemoteLink.disconnect(context); remoteError = "" }) { Text("Délier") } })
 
-    LaunchedEffect(query, category, generation) {
+    LaunchedEffect(query, category, generation, page == Page.HOME || page == Page.SEARCH) {
+        if (page != Page.HOME && page != Page.SEARCH) return@LaunchedEffect
+        if (context.isTelevision() && query.isBlank() && generation == 0 && category == "Tous") return@LaunchedEffect
         pageJob?.cancel(); loadingMore = false
         catalogLoading = true; catalogError = ""; catalogPage = 1
         try {
-            if (query.isNotBlank()) { delay(700); library.rememberSearch(query); recentSearches = library.searches() }
-            catalog = manager.searchAllProviders(query, category, onPartial = if (query.isBlank() && category == "Tous") ({ partial ->
-                kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Main) { catalog = partial; catalogLoading = false }
-            }) else null)
+            if (query.isNotBlank()) { delay(250); library.rememberSearch(query); recentSearches = library.searches() }
+            val key = "$category|$query"
+            if (catalogKey != key) { catalog = emptyList(); catalogKey = key }
+            val discoveries = query.isBlank() && category == "Tous"
+            val result = manager.searchAllProviders(query, category, onPartial = { partial ->
+                // Search results are rendered as soon as each provider answers;
+                // the final merge below keeps the same ordering and identity rules.
+                kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Main) {
+                    if (discoveries) appendCatalogue(partial) else catalog = partial
+                    catalogLoading = false
+                    catalogError = ""
+                }
+            })
+            if (discoveries) appendCatalogue(result) else catalog = result
             if (catalog.isEmpty()) catalogError = "Aucun résultat disponible. Vérifiez les fournisseurs activés ou essayez une autre recherche."
         } catch (e: CancellationException) { throw e
         } catch (e: Exception) { catalog = emptyList(); catalogError = "Catalogue indisponible. Vérifiez votre connexion puis réessayez."
@@ -288,7 +461,7 @@ private fun TvSamaApp() {
             isFullscreen = false
             setPlayerFullscreen(hostActivity, false)
         } else when (page) {
-            Page.PLAYER -> { page = if (selected?.tag == "Direct") Page.LIVE else Page.DETAIL; history = library.continuing() }
+            Page.PLAYER -> { resolveJob?.cancel(); page = if (selected?.tag == "Direct") Page.LIVE else Page.DETAIL; history = library.continuing() }
             Page.DETAIL -> { detailJob?.cancel(); resolveJob?.cancel(); page = returnPage }
             else -> navigate(Page.HOME)
         }
@@ -302,9 +475,10 @@ private fun TvSamaApp() {
     Surface(Modifier.fillMaxSize(), color = Ink) {
         if (page == Page.PLAYER && source != null && (pairedHost == null || receivedPlayback)) {
             Column(Modifier.fillMaxSize().then(if (inPip) Modifier else Modifier.safeDrawingPadding())) {
-                if (!inPip && !isFullscreen && sources.size > 1) LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp), contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp)) {
+                if (!inPip && !isFullscreen && playerControlsVisible && sources.size > 1) LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp), contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp)) {
                     items(sources) { candidate ->
-                        Action("${candidate.provider} · ${candidate.quality} · ${candidate.latencyMs.takeIf { it > 0 } ?: "?"} ms", selected = candidate.url == source?.url) {
+                        val selectedQuality = if (candidate.url == source?.url && currentQuality != "Détection…") currentQuality else candidate.quality
+                        Action("${candidate.provider} · $selectedQuality · ${candidate.latencyMs.takeIf { it > 0 } ?: "?"} ms", selected = candidate.url == source?.url) {
                             source = candidate; currentQuality = "Détection…"; playerError = ""
                         }
                     }
@@ -314,24 +488,26 @@ private fun TvSamaApp() {
                     Row(Modifier.horizontalScroll(rememberScrollState()).padding(horizontal = 12.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         sources.filter { it.url != source?.url }.forEach { alternative -> Action("${alternative.provider} · ${alternative.name}") { source = alternative; currentQuality = "Détection…"; playerError = "" } }
                         Action("Actualiser") { if (selected?.tag == "Direct") page = Page.LIVE else { page = Page.DETAIL; resolve(false, true) } }
+                        Action("Fermer") { playerError = "" }
                     }
                 }
                 val playingAnime = selected
                 val playingEpisode = episode
                 val entries = playingAnime?.episodes.orEmpty().distinctBy { it.seasonNumber to it.number }
                 val episodeIndex = entries.indexOfFirst { it.number == playingEpisode?.number && it.seasonNumber == playingEpisode?.seasonNumber }
-                TvSamaPlayer(source = source!!, title = "${playingAnime?.title.orEmpty()}${playingEpisode?.title?.let { " · $it" }.orEmpty()}", poster = playingAnime?.poster.orEmpty(),
-                    onBack = { page = if (playingAnime?.tag == "Direct") Page.LIVE else Page.DETAIL; history = library.continuing() },
+                key(livePlaybackRevision) { TvSamaPlayer(source = source!!, anime = playingAnime, episode = playingEpisode, title = "${playingAnime?.title.orEmpty()}${playingEpisode?.title?.let { " · $it" }.orEmpty()}", poster = playingAnime?.poster.orEmpty(),
+                    onBack = { resolveJob?.cancel(); page = if (playingAnime?.tag == "Direct") Page.LIVE else Page.DETAIL; history = library.continuing() },
                     imdbId = playingAnime?.imdbId,
                     isMovie = playingAnime?.tag == "Film",
                     seasonNumber = if (playingAnime?.tag == "Film") 0 else playingEpisode?.introSeason ?: playingEpisode?.seasonNumber ?: 0,
-                    episodeNumber = playingEpisode?.introNumber ?: playingEpisode?.number ?: 0,
-                    onPrevious = if (playingAnime?.tag != "Film" && episodeIndex > 0 && !streamLoading) ({ resolve(true, target = entries[episodeIndex - 1]) }) else null,
-                    onNext = if (playingAnime?.tag != "Film" && episodeIndex >= 0 && episodeIndex + 1 < entries.size && !streamLoading) ({ resolve(true, target = entries[episodeIndex + 1]) }) else null,
+                    episodeNumber = if (playingAnime?.tag == "Film") 0 else playingEpisode?.introNumber ?: playingEpisode?.number ?: 0,
+                    onPrevious = if (playingAnime?.tag != "Film" && episodeIndex > 0) ({ resolve(true, target = entries[episodeIndex - 1]) }) else null,
+                    onNext = if (playingAnime?.tag != "Film" && episodeIndex >= 0 && episodeIndex + 1 < entries.size) ({ resolve(true, target = entries[episodeIndex + 1]) }) else null,
                     resumeAt = playingAnime?.let { library.progress(it, playingEpisode) } ?: 0,
                     subtitlesEnabled = subtitlesEnabled,
                     onActualQuality = { currentQuality = it },
                     isFullscreen = isFullscreen,
+                    onControlsVisibleChange = { playerControlsVisible = it },
                     onToggleFullscreen = {
                         isFullscreen = !isFullscreen
                         setPlayerFullscreen(hostActivity, isFullscreen)
@@ -341,27 +517,53 @@ private fun TvSamaApp() {
                         playerError = message
                         val failed = source?.url
                         if (playingAnime?.tag == "Direct") {
+                            val serverId = source?.serverId?.takeIf { it.isNotBlank() }
+                            val refreshCurrentServer = serverId != null && refreshedLiveServers.add(serverId)
+                            if (!refreshCurrentServer) serverId?.let { failedLiveServers.add(it) }
                             sources = sources.filter { it.url != failed }
-                            sources.firstOrNull()?.let { source = it }
+                            val alternative = sources.firstOrNull()
+                            if (alternative != null) { source = alternative; playerError = "" } else {
+                                resolveJob?.cancel()
+                                resolveJob = scope.launch {
+                                    try {
+                                        val next = resolveLiveEvent(context, playingAnime.id, failedLiveServers.toSet())
+                                        sources = listOf(next); source = next; livePlaybackRevision++; playerError = ""
+                                    } catch (e: CancellationException) { throw e }
+                                    catch (_: Exception) { playerError = "Les lecteurs de ce direct sont indisponibles. Actualisez pour réessayer." }
+                                }
+                            }
                         }
-                        playingAnime?.takeUnless { it.tag == "Direct" }?.let { animeForRetry -> scope.launch {
-                            val refreshed = runCatching { manager.resolveSources(animeForRetry, playingEpisode, language, refresh = true) }.getOrDefault(emptyList())
-                            val alternatives = refreshed.filter { it.url != failed }
-                            if (alternatives.isNotEmpty()) { sources = refreshed; source = alternatives.first(); currentQuality = "Détection…"; playerError = "" }
-                        } }
+                        playingAnime?.takeUnless { it.tag == "Direct" }?.let { animeForRetry ->
+                            failed?.let { failedVideos.add(it) }
+                            val alternative = sources.firstOrNull { it.url !in failedVideos }
+                            if (alternative != null) {
+                                source = alternative; currentQuality = "Détection…"; playerError = ""
+                            } else if (!retryUsed) {
+                                retryUsed = true; prefetchJob?.cancel(); resolveJob?.cancel()
+                                resolveJob = scope.launch {
+                                    try {
+                                        val refreshed = manager.resolveSources(animeForRetry, playingEpisode, language, refresh = true)
+                                        sources = refreshed.filter { it.url !in failedVideos }
+                                        if (sources.isNotEmpty()) { source = sources.first(); currentQuality = "Détection…"; playerError = "" }
+                                        else playerError = "Aucun autre serveur lisible pour cet épisode. Choisissez une autre version ou réessayez plus tard."
+                                    } catch (e: CancellationException) { throw e }
+                                    catch (_: Exception) { playerError = "Les serveurs ne répondent pas. Réessayez plus tard." }
+                                }
+                            }
+                        }
                     },
                     onEnded = {
                         val entries = selected?.episodes.orEmpty().distinctBy { it.seasonNumber to it.number }
                         val index = entries.indexOfFirst { it.number == episode?.number && it.seasonNumber == episode?.seasonNumber }
-                        if (autoplay && index >= 0 && index + 1 < entries.size) {
+                        if (playingAnime?.tag != "Direct" && autoplay && index >= 0 && index + 1 < entries.size) {
                             resolve(true, target = entries[index + 1])
                         }
-                    })
+                    }) }
             }
         } else BoxWithConstraints(Modifier.fillMaxSize()) {
             val wide = maxWidth >= 840.dp
             Row(Modifier.fillMaxSize()) {
-                if (wide) Column(Modifier.width(190.dp).fillMaxHeight().padding(start = 24.dp, end = 18.dp, top = 32.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                if (wide && menuExpanded) Column(Modifier.onFocusChanged { if (it.hasFocus) menuHadFocus = true else if (menuHadFocus) { menuExpanded = false; menuHadFocus = false } }.focusGroup().width(190.dp).fillMaxHeight().padding(start = 24.dp, end = 18.dp, top = 32.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
                     Brand()
                     Spacer(Modifier.height(26.dp))
                     Page.entries.filter { it != Page.DETAIL && it != Page.PLAYER && it != Page.SEARCH }.forEach { destination ->
@@ -374,22 +576,25 @@ private fun TvSamaApp() {
                 }
                 Column(Modifier.weight(1f).fillMaxHeight().padding(horizontal = if (wide) 24.dp else 16.dp)) {
                     Row(Modifier.fillMaxWidth().padding(vertical = 16.dp), verticalAlignment = Alignment.CenterVertically) {
+                        Action("☰", Modifier.onFocusChanged { if (it.isFocused && wide) menuExpanded = true }) { menuExpanded = !menuExpanded }
                         if (!wide) Brand() else Text("COLLECTION FRANÇAISE", color = Muted, fontSize = 11.sp, letterSpacing = 2.sp)
                         Spacer(Modifier.weight(1f))
                         Text("Leon Made <3", color = Color(0xFFFF79B9), fontWeight = FontWeight.SemiBold, fontSize = 12.sp)
                         Spacer(Modifier.width(12.dp)); Action("Recherche", Modifier.heightIn(min = 44.dp)) { navigate(Page.SEARCH) }
                         Spacer(Modifier.width(8.dp)); CastRouteButton(Modifier.size(44.dp))
                     }
-                    if (!wide) LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp), contentPadding = PaddingValues(bottom = 16.dp)) {
+                    if (!wide && menuExpanded) LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp), contentPadding = PaddingValues(bottom = 16.dp)) {
                         items(Page.entries.filter { it != Page.DETAIL && it != Page.PLAYER && it != Page.SEARCH }) { destination ->
                             Action(destination.label, selected = page == destination) { navigate(destination) }
                         }
                     }
+                    if (pairedHost != null) RemoteControls()
                     when (page) {
                         Page.HOME, Page.SEARCH -> {
+                            val keyboard = LocalSoftwareKeyboardController.current
+                            val focusManager = LocalFocusManager.current
                             if (page == Page.SEARCH) {
                                 val searchFocus = remember { FocusRequester() }
-                                val keyboard = LocalSoftwareKeyboardController.current
                                 LaunchedEffect(Unit) { searchFocus.requestFocus(); keyboard?.show() }
                                 SectionTitle("Qu’allez-vous regarder ?", "Une recherche dans vos catalogues français.")
                                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -404,24 +609,29 @@ private fun TvSamaApp() {
                                 Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
                                     recentSearches.chunked(6).take(2).forEach { row ->
                                         LazyRow(horizontalArrangement = Arrangement.spacedBy(6.dp)) { items(row) { text ->
-                                            TextButton(onClick = { query = text }) { Text(text, maxLines = 1) }
+                                            TextButton(onClick = { query = text; keyboard?.hide(); focusManager.clearFocus() }) { Text(text, maxLines = 1) }
                                         } }
                                     }
                                 }
+                            }
+                            if (context.isTelevision() && catalog.isEmpty() && query.isBlank()) {
+                                Text("Scannez le QR avec votre téléphone pour rechercher et lancer un média.", color = Muted)
+                                Action("Parcourir le catalogue sur la TV") { generation++ }
                             }
                             CategoryRail(category) { if (it == "Diffusions en direct") navigate(Page.LIVE) else category = it }
                             Row(Modifier.fillMaxWidth().padding(bottom = 8.dp), horizontalArrangement = Arrangement.End) { Action("↻ Actualiser") { refreshSources() } }
                             if (catalogLoading) LinearProgressIndicator(Modifier.fillMaxWidth(), color = Color.White)
                             if (catalogError.isNotBlank()) Text(catalogError, color = Muted, modifier = Modifier.padding(vertical = 14.dp))
-                            LazyVerticalGrid(columns = GridCells.Adaptive(if (wide) 145.dp else 125.dp), modifier = Modifier.weight(1f), horizontalArrangement = Arrangement.spacedBy(14.dp), verticalArrangement = Arrangement.spacedBy(18.dp), contentPadding = PaddingValues(bottom = 32.dp)) {
+                            LazyVerticalGrid(columns = GridCells.Adaptive(if (wide) 145.dp else 125.dp), state = if (page == Page.HOME) homeGridState else searchGridState,
+                                modifier = Modifier.weight(1f), horizontalArrangement = Arrangement.spacedBy(14.dp), verticalArrangement = Arrangement.spacedBy(18.dp), contentPadding = PaddingValues(bottom = 32.dp)) {
                                 if (page == Page.HOME && catalog.isNotEmpty()) item(span = { androidx.compose.foundation.lazy.grid.GridItemSpan(maxLineSpan) }) {
                                     FeaturedCarousel(catalog.take(8), wide) { openDetails(it) }
                                 }
                                 if (page == Page.HOME && history.isNotEmpty()) item(span = { androidx.compose.foundation.lazy.grid.GridItemSpan(maxLineSpan) }) {
                                     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                                         Text("Reprendre", style = MaterialTheme.typography.titleLarge)
-                                        LazyRow(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                                            items(history) { entry -> ResumeCard(entry, onRemove = { library.hideResume(entry.anime); history = library.continuing() }) { openDetails(entry.anime, entry.episodeId) } }
+                                        LazyRow(state = resumeRowState, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                                            items(history, key = { cardKey(it.anime) }) { entry -> ResumeCard(entry, onRemove = { library.hideResume(entry.anime); history = library.continuing() }) { openDetails(entry.anime, entry.episodeId) } }
                                         }
                                     }
                                 }
@@ -429,10 +639,12 @@ private fun TvSamaApp() {
                                     Text(if (page == Page.SEARCH) "${catalog.size} titres" else "À découvrir", style = MaterialTheme.typography.titleLarge, modifier = Modifier.padding(top = 12.dp))
                                 }
                                 if (page == Page.HOME) item(span = { androidx.compose.foundation.lazy.grid.GridItemSpan(maxLineSpan) }) {
-                                    LazyRow(horizontalArrangement = Arrangement.spacedBy(14.dp)) {
-                                        items(catalog.drop(1)) { anime -> PosterCard(anime, Modifier.width(155.dp)) { openDetails(anime) } }
+                                    LazyRow(state = discoveryRowState, horizontalArrangement = Arrangement.spacedBy(14.dp)) {
+                                        items(catalog.drop(1), key = ::cardKey) { anime -> PosterCard(anime, cardModifier(anime).width(155.dp)) { openDetails(anime) } }
                                     }
-                                } else items(catalog) { anime -> PosterCard(anime) { openDetails(anime) } }
+                                } else items(catalog, key = ::cardKey) { anime -> PosterCard(anime, cardModifier(anime)) {
+                                    keyboard?.hide(); focusManager.clearFocus(); openDetails(anime)
+                                } }
                                 if (catalog.isNotEmpty()) item(span = { androidx.compose.foundation.lazy.grid.GridItemSpan(maxLineSpan) }) {
                                     Action(if (loadingMore) "Chargement…" else "Afficher davantage", enabled = !loadingMore) {
                                         pageJob = scope.launch {
@@ -440,7 +652,7 @@ private fun TvSamaApp() {
                                             try {
                                                 val next = manager.searchAllProviders(query, category, catalogPage + 1)
                                                 if (next.isEmpty()) catalogError = "Vous avez atteint la fin des résultats disponibles."
-                                                else { catalog = CatalogIdentity.merge(catalog + next); catalogPage++ }
+                                                else { appendCatalogue(next); catalogPage++ }
                                             } catch (e: CancellationException) { throw e } catch (_: Exception) { catalogError = "Impossible de charger la suite." } finally { loadingMore = false }
                                         }
                                     }
@@ -479,7 +691,10 @@ private fun TvSamaApp() {
                                                 }
                                             }
                                             Row(Modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                                                Action(if (streamLoading) "Recherche des serveurs…" else if (library.progress(anime, episode) > 0) "▶ Reprendre" else "▶ Regarder", primary = true, enabled = !detailLoading && !streamLoading) { resolve(true, target = episode ?: library.resumeEpisode(anime)) }
+                                                Action(if (streamLoading && sources.isEmpty()) "Recherche des serveurs…" else if (library.progress(anime, episode) > 0) "▶ Reprendre" else "▶ Regarder", primary = true, enabled = !detailLoading && (!streamLoading || sources.isNotEmpty())) {
+                                                    if (sources.isNotEmpty()) { source = sources.first(); page = Page.PLAYER }
+                                                    else resolve(true, target = episode ?: library.resumeEpisode(anime))
+                                                }
                                                 val inMyList = favorites.any { LibraryStore.sameFavorite(it, anime) }
                                                 Action(if (inMyList) "✓ Retirer de ma liste" else "+ Ma liste") {
                                                     library.setFavorite(anime, !inMyList)
@@ -533,22 +748,30 @@ private fun TvSamaApp() {
                             episode = null; sources = videos; source = videos.first(); returnPage = Page.LIVE; page = Page.PLAYER
                         }
                         Page.SOURCES -> Column(Modifier.weight(1f).verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(14.dp)) {
-                            SectionTitle("Vos sources", "Catalogues français regroupés dans une seule recherche.")
+                            SectionTitle("Vos sources", "Catalogues intégrés et accès aux sites encore non intégrés.")
                             Action("↻ Actualiser les catalogues") { refreshSources() }
                             providerNames.forEach { name ->
+                                val external = manager.externalSource(name)
                                 val enabled = remember(name, providerRevision) { manager.isProviderEnabled(name) }
                                 Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                                     Column(Modifier.weight(1f)) {
                                         Text(name, fontWeight = FontWeight.SemiBold)
                                         val state = manager.sourceHealth()[name]
-                                        Text("${state?.take(1) ?: "○"} $name", color = if (state?.startsWith("✕") == true) Coral else if (state?.startsWith("✓") == true) Accent else Muted, fontWeight = FontWeight.SemiBold)
-                                        Text(manager.externalSource(name)?.url ?: (state ?: "Non vérifié"), color = Muted, fontSize = 12.sp, maxLines = 2)
-                                        manager.externalSource(name)?.let { external ->
-                                            Text(external.limitation, color = Muted, fontSize = 12.sp, maxLines = 2)
+                                        Text(if (external != null) "Lien externe · non intégré" else state ?: "○ Intégré · non vérifié",
+                                            color = when {
+                                                state?.startsWith("✕") == true -> Coral
+                                                state?.startsWith("⚠") == true -> Color(0xFFFFC857)
+                                                state?.startsWith("✓") == true -> Accent
+                                                else -> Muted
+                                            },
+                                            fontWeight = FontWeight.SemiBold)
+                                        Text(external?.url ?: (state ?: "Vérification au prochain actualiser"), color = Muted, fontSize = 12.sp, maxLines = 2)
+                                        external?.let {
+                                            Text(it.limitation, color = Muted, fontSize = 12.sp, maxLines = 2)
                                         }
-                                        Text(state ?: "Vérification au prochain actualiser", color = Muted, fontSize = 11.sp, maxLines = 2)
                                     }
-                                    Action(if (enabled) "Activé" else "Désactivé", selected = enabled) { manager.setProviderEnabled(name, !enabled); unavailableSources = unavailableSources.filter(manager::isProviderEnabled); providerRevision++; generation++ }
+                                    if (external == null) Action(if (enabled) "Activé" else "Désactivé", selected = enabled) { manager.setProviderEnabled(name, !enabled); unavailableSources = unavailableSources.filter(manager::isProviderEnabled); providerRevision++; generation++ }
+                                    manager.sourceUrl(name)?.let { url -> Action("Accès") { sourceAccess = name to url } }
                                 }
                                 HorizontalDivider(color = Line)
                             }

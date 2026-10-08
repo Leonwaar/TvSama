@@ -3,11 +3,11 @@
 3    package="fr.nekotv" >
 4
 5    <uses-sdk
-5-->/home/leon/TvSama_fixed_v2/TvSama_fixed/app/build/intermediates/tmp/manifest/test/debug/tempFile1ProcessTestManifest11905972738438917619.xml:5:5-74
+5-->/home/leon/TvSama_fixed_v2/TvSama_fixed/app/build/intermediates/tmp/manifest/test/debug/tempFile1ProcessTestManifest11492485427520486214.xml:5:5-74
 6        android:minSdkVersion="23"
-6-->/home/leon/TvSama_fixed_v2/TvSama_fixed/app/build/intermediates/tmp/manifest/test/debug/tempFile1ProcessTestManifest11905972738438917619.xml:5:15-41
+6-->/home/leon/TvSama_fixed_v2/TvSama_fixed/app/build/intermediates/tmp/manifest/test/debug/tempFile1ProcessTestManifest11492485427520486214.xml:5:15-41
 7        android:targetSdkVersion="36" />
-7-->/home/leon/TvSama_fixed_v2/TvSama_fixed/app/build/intermediates/tmp/manifest/test/debug/tempFile1ProcessTestManifest11905972738438917619.xml:5:42-71
+7-->/home/leon/TvSama_fixed_v2/TvSama_fixed/app/build/intermediates/tmp/manifest/test/debug/tempFile1ProcessTestManifest11492485427520486214.xml:5:42-71
 8
 9    <uses-feature
 9-->[:streamflix] /home/leon/TvSama_fixed_v2/TvSama_fixed/streamflix/app/build/intermediates/merged_manifest/debug/processDebugManifest/AndroidManifest.xml:7:5-9:36

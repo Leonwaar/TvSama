@@ -37,18 +37,28 @@ class StreamFlixProviderManager private constructor() {
         ExternalSource("TFX73", "https://tfx73.lol/"),
         ExternalSource("WarFlix", "https://warflix.im/film/1423191")
     )
-    private val externalSources get() = defaultExternalSources.map { it.copy(url = com.streamflixreborn.streamflix.utils.SourceAddresses.current(it.name, it.url)) }
+    private val externalSources get() = defaultExternalSources.filterNot { external -> providers.any { it.name.equals(external.name, true) } }
+        .map { it.copy(url = com.streamflixreborn.streamflix.utils.SourceAddresses.current(it.name, it.url)) }
     private val providers by lazy { Provider.providers.keys.filter { it.language == "fr" } }
     private val preferences by lazy { StreamFlixApp.instance.getSharedPreferences("tvsama_settings", Context.MODE_PRIVATE) }
     private val statuses = ConcurrentHashMap<String, String>()
     private val health = ConcurrentHashMap<String, String>()
+    private val addressWarnings = ConcurrentHashMap<String, String>()
+    private val addressChecks = Semaphore(3)
     private val details = ConcurrentHashMap<String, Anime>()
     private val streamCache = ConcurrentHashMap<String, Pair<Long, List<VideoSource>>>()
-    private val requests = Semaphore(4)
+    private val titleAliases = ConcurrentHashMap<String, List<String>>()
+    // Search is I/O bound. Keep enough concurrent slots for the first results to
+    // arrive quickly while still bounding provider pressure.
+    private val requests = Semaphore(8)
     private val extractors = Semaphore(4)
     private val detailRequests = Semaphore(3)
     private val extractionContext = Mutex()
     private var currentName: String? = null
+
+    private fun protectedAccess(message: String?): Boolean = message.orEmpty().matches(
+        Regex("(?i).*(captcha|cloudflare|validation de sécurité|accès protégé|protection antibot|http\\s*(401|403|429)).*")
+    )
 
     companion object {
         private val singleton by lazy { StreamFlixProviderManager() }
@@ -57,6 +67,7 @@ class StreamFlixProviderManager private constructor() {
     suspend fun getProviders() = providers.toList()
     suspend fun getProviderNames() = providers.map { it.name } + externalSources.map { it.name }
     fun externalSource(name: String) = externalSources.firstOrNull { it.name == name }
+    fun sourceUrl(name: String) = providers.firstOrNull { it.name == name }?.baseUrl ?: externalSource(name)?.url
     fun isProviderEnabled(name: String) = name !in preferences.getStringSet("disabled_providers", emptySet()).orEmpty()
     @Synchronized
     fun setProviderEnabled(name: String, enabled: Boolean) {
@@ -68,7 +79,9 @@ class StreamFlixProviderManager private constructor() {
         if (!enabled) { health.remove(name); statuses.remove(name) }
     }
     fun providerStatuses(): Map<String, String> = statuses.toMap()
-    fun sourceHealth(): Map<String, String> = health.filterKeys(::isProviderEnabled)
+    fun sourceHealth(): Map<String, String> = (health.keys + addressWarnings.keys).filter(::isProviderEnabled).associateWith { name ->
+        listOfNotNull(health[name], addressWarnings[name]).joinToString(" • ")
+    }
     suspend fun setCurrentProviderByName(name: String): Boolean {
         if (providers.none { it.name == name }) return false
         currentName = name
@@ -94,7 +107,7 @@ class StreamFlixProviderManager private constructor() {
 
     private fun languageHint(value: String): String? {
         val marker = languageMarker.find(value)?.value?.lowercase() ?: return null
-        return if (marker == "vo" || marker.startsWith("vost")) "VOSTFR" else "VF"
+        return when (marker) { "vostfr" -> "VOSTFR"; "vo", "vost" -> null; else -> "VF" }
     }
 
     private fun searchQueries(query: String): List<String> {
@@ -105,7 +118,7 @@ class StreamFlixProviderManager private constructor() {
             .replace(Regex("\\s+"), " ")
             .trim()
         val words = folded.split(' ').filter { it.isNotBlank() }
-        return listOf(trimmed, folded, folded.replace(" ", ""), words.joinToString("-"))
+        return (listOf(trimmed) + TitleAliases.variants(trimmed) + titleAliases[CatalogIdentity.title(trimmed)].orEmpty() + listOf(folded, folded.replace(" ", ""), words.joinToString("-")))
             .filter { it.isNotBlank() }
             .distinct()
     }
@@ -134,11 +147,19 @@ class StreamFlixProviderManager private constructor() {
                 else -> it !is IptvProvider
             }
         }
+        val popularity = async { cataloguePopularity(query) }
         val found = selected.map { provider -> async {
-            val result = requests.withPermit { attempt(provider.name, emptyList<Anime>()) {
+            val result = requests.withPermit { attempt(
+                provider.name,
+                emptyList<Anime>(),
+                timeoutMillis = if (query.isNotBlank()) 12_000L else 25_000L
+            ) {
                 val items = when {
                     query.isNotBlank() -> {
-                        val variants = searchQueries(query)
+                        // Exact title and the first canonical alias cover the normal
+                        // path. The folded variants remain available as the third
+                        // fallback without multiplying the latency on every source.
+                        val variants = searchQueries(query).take(3)
                         var result = provider.search(variants.first(), page)
                         for (variant in variants.drop(1)) {
                             if (result.isNotEmpty()) break
@@ -156,7 +177,11 @@ class StreamFlixProviderManager private constructor() {
                     is TvShow -> show(item, provider.name)
                     is com.streamflixreborn.streamflix.models.Episode -> item.tvShow?.let { show(it, provider.name) }
                     else -> null
-                } }.filter { a -> a.id !in setOf("creador-info", "apoyo-nando") }.filter { a ->
+                } }.map { card ->
+                    val aliases = (provider as? com.streamflixreborn.streamflix.providers.MediaAliasesProvider)?.aliases(card.id).orEmpty()
+                    if (aliases.isNotEmpty()) (aliases + card.title).forEach { titleAliases[CatalogIdentity.title(it)] = aliases }
+                    card.copy(aliases = aliases)
+                }.filter { a -> a.id !in setOf("creador-info", "apoyo-nando") }.filter { a ->
                     when { cat.contains("film") -> a.tag == "Film"
                         cat.contains("série") || cat.contains("serie") -> a.tag != "Film"
                         else -> true }
@@ -164,10 +189,12 @@ class StreamFlixProviderManager private constructor() {
             } }
             if (onPartial != null && result.isNotEmpty()) partialMutex.withLock {
                 partialItems.addAll(result)
-                onPartial(CatalogIdentity.merge(partialItems.map { it.copy(title = displayTitle(it.title)) }))
+                onPartial(rankCatalogue(CatalogIdentity.merge(partialItems.map { it.copy(title = displayTitle(it.title)) }), query))
             }
             result
-                } }.awaitAll().flatten()
+                } }.awaitAll().let { buckets ->
+                    (0 until (buckets.maxOfOrNull { it.size } ?: 0)).flatMap { index -> buckets.mapNotNull { it.getOrNull(index) } }
+                }
         val requestedLanguage = when {
             cat.contains("vost") || cat.contains("vo sous") -> "VOSTFR"
             cat == "vf" || cat.contains("version française") -> "VF"
@@ -176,38 +203,65 @@ class StreamFlixProviderManager private constructor() {
         val languageFiltered = found.filter { item ->
             requestedLanguage == null || languageHint(item.title) == null || languageHint(item.title) == requestedLanguage
         }
-        CatalogIdentity.merge(languageFiltered.map { it.copy(title = displayTitle(it.title)) })
+        rankCatalogue(CatalogIdentity.merge(languageFiltered.map { it.copy(title = displayTitle(it.title)) }), query, popularity.await())
     }
 
-    suspend fun loadDetails(anime: Anime): Anime = withContext(Dispatchers.IO) {
-        val relatedCards = if (anime.tag == "Série") searchAllProviders(CatalogIdentity.numberedBase(anime.title), "Séries")
+    suspend fun loadDetails(anime: Anime, onPartial: (suspend (Anime) -> Unit)? = null): Anime = withContext(Dispatchers.IO) {
+        val primaryRef = MediaReference(anime.provider, anime.id, anime.tag)
+        val primary = if (isProviderEnabled(anime.provider)) async {
+            val item = try { loadProviderDetails(anime.copy(references = listOf(primaryRef))).takeIf { it.episodes.isNotEmpty() } }
+            catch (e: CancellationException) { throw e }
+            catch (e: Exception) { statuses[anime.provider] = "Fiche indisponible • ${e.message?.take(60).orEmpty()}"; null }
+            if (item != null) onPartial?.invoke(item.copy(references = (listOf(primaryRef) + anime.references)
+                .distinct().filter { isProviderEnabled(it.provider) }))
+            item
+        } else null
+        var partialRelated = emptyList<Anime>()
+        val relatedCards = if (anime.tag == "Série" && anime.references.size <= 1) (withTimeoutOrNull(8_000) {
+            searchAllProviders(CatalogIdentity.numberedBase(anime.title), "Séries", onPartial = { partialRelated = it })
+        } ?: partialRelated)
             .filter { CatalogIdentity.title(it.title) == CatalogIdentity.title(CatalogIdentity.seriesTitle(anime.title)) ||
                 (it.references.any { ref -> ref.id == anime.id && ref.provider == anime.provider }) }
             .filter { card -> anime.year == null || card.year == null || anime.year == card.year ||
                 card.references.any { it.id == anime.id && it.provider == anime.provider } } else emptyList()
         val seriesTitle = relatedCards.firstOrNull { card -> card.references.any { it.id == anime.id && it.provider == anime.provider } }?.title ?: anime.title
         val related = relatedCards.flatMap { it.references }
-        val references = (listOf(MediaReference(anime.provider, anime.id, anime.tag)) + anime.references + related)
+        val references = (listOf(primaryRef) + anime.references + related)
             .distinct().filter { isProviderEnabled(it.provider) }
-        val loaded = references.map { ref -> async {
-            detailRequests.withPermit {
-                try {
-                    loadProviderDetails(anime.copy(title = seriesTitle, provider = ref.provider, id = ref.id, tag = ref.tag,
-                        references = listOf(ref))).takeIf { it.episodes.isNotEmpty() }
-                } catch (e: TimeoutCancellationException) {
-                    currentCoroutineContext().ensureActive(); statuses[ref.provider] = "Délai dépassé"; null
-                } catch (e: CancellationException) { throw e
-                } catch (e: Exception) {
-                    statuses[ref.provider] = "Fiche indisponible • ${e.message?.take(60).orEmpty()}"; null
+        fun combine(items: List<Anime>): Anime {
+            val loaded = items.sortedBy { item -> references.indexOfFirst { it.provider == item.provider && it.id == item.id } }
+            val first = loaded.first()
+            return first.copy(title = if (first.tag == "Série") CatalogIdentity.seriesTitle(seriesTitle) else first.title,
+                references = references,
+                episodes = loaded.flatMap { it.episodes }.distinctBy { "${it.seasonNumber}|${it.number}|${it.language}" }
+                    .sortedWith(compareBy<Episode> { it.seasonNumber }.thenBy { it.number }),
+                aliases = (anime.aliases + loaded.flatMap { it.aliases }).distinct(),
+                imdbId = loaded.firstNotNullOfOrNull { it.imdbId })
+        }
+        val completed = mutableListOf<Anime>()
+        val completedLock = Mutex()
+        withTimeoutOrNull(45_000) { coroutineScope {
+            references.map { ref -> launch {
+                val item = if (ref == primaryRef && primary != null) primary.await() else detailRequests.withPermit {
+                    try {
+                        loadProviderDetails(anime.copy(title = seriesTitle, provider = ref.provider, id = ref.id, tag = ref.tag,
+                            references = listOf(ref))).takeIf { it.episodes.isNotEmpty() }
+                    } catch (e: TimeoutCancellationException) {
+                        currentCoroutineContext().ensureActive(); statuses[ref.provider] = "Délai dépassé"; null
+                    } catch (e: CancellationException) { throw e
+                    } catch (e: Exception) {
+                        statuses[ref.provider] = "Fiche indisponible • ${e.message?.take(60).orEmpty()}"; null
+                    }
                 }
-            }
-        } }.awaitAll().filterNotNull()
-        val first = loaded.firstOrNull() ?: error("Aucune fiche disponible sur les sources activées. Réessayez ou actualisez les sources.")
-        first.copy(title = if (first.tag == "Série") CatalogIdentity.seriesTitle(seriesTitle) else first.title,
-            references = references,
-            episodes = loaded.flatMap { it.episodes }.distinctBy { "${it.seasonNumber}|${it.number}|${it.language}" }
-                .sortedWith(compareBy<Episode> { it.seasonNumber }.thenBy { it.number }),
-            imdbId = loaded.firstNotNullOfOrNull { it.imdbId })
+                if (item != null) {
+                    val partial = completedLock.withLock { completed += item; combine(completed) }
+                    if (ref != primaryRef) onPartial?.invoke(partial)
+                }
+            } }.joinAll()
+        } }
+        val combined = completedLock.withLock { completed.takeIf { it.isNotEmpty() }?.let(::combine) }
+            ?: error("Aucune fiche disponible sur les sources activées. Réessayez ou actualisez les sources.")
+        withTimeoutOrNull(3_000) { enrichWithTmdb(enrichSeries(combined)) } ?: combined
     }
 
     private suspend fun loadProviderDetails(anime: Anime): Anime {
@@ -243,8 +297,9 @@ class StreamFlixProviderManager private constructor() {
             show(tv, provider.name).copy(episodes = episodes)
         }
         statuses[provider.name] = if (partial) "Disponible • certaines saisons n’ont pas répondu" else "Disponible"
-        val result = enrichWithTmdb(enrichSeries(loaded.copy(references = anime.references,
-            poster = loaded.poster.ifBlank { anime.poster }, banner = loaded.banner.ifBlank { anime.banner })))
+        val result = loaded.copy(references = anime.references, imdbId = loaded.imdbId ?: anime.imdbId,
+            aliases = (anime.aliases + (provider as? com.streamflixreborn.streamflix.providers.MediaAliasesProvider)?.aliases(anime.id).orEmpty()).distinct(),
+            poster = loaded.poster.ifBlank { anime.poster }, banner = loaded.banner.ifBlank { anime.banner })
         // A partial response remains retryable instead of poisoning the detail cache.
         if (!partial && result.episodes.isNotEmpty()) details[identity(anime) + "|" + anime.title] = result
         return result
@@ -253,22 +308,49 @@ class StreamFlixProviderManager private constructor() {
 
     suspend fun refreshDirectory(): List<DirectorySource> {
         val entries = SourceDirectory.loadFrench()
-        val aliases = mapOf("Wiflix" to "flemmix", "MyFluneo" to "fluneo",
-            "FrenchStream" to "french-stream.one", "FrenchManga" to "french-stream-manga", "AnimeOVF" to "animeo")
+        val aliases = mapOf("Wiflix" to "wiflix", "MyFluneo" to "fluneo",
+            "FrenchStream" to "french-stream.one", "FrenchManga" to "french-stream-manga", "AnimeOVF" to "animeo",
+            "Papadustream" to "papadustream", "Anime-Sama" to "anime-sama", "Animes-Sama" to "animes-sama",
+            "Anime-Ultime" to "animeultime", "FRAnime" to "franime", "Voiranime" to "voiranime")
         fun key(value: String) = value.lowercase().filter { it.isLetterOrDigit() }
         val historicalBases = mapOf("AnimeKO" to "https://animeko.ws/", "Wiflix" to "https://flemmix.team/")
-        val sources = providers.map { it.name to it.baseUrl } + externalSources.map { it.name to it.url }
-        for ((name, previous) in sources) {
+        val sources = providers.map { it.name to it.baseUrl } + defaultExternalSources.map { it.name to it.url } +
+            listOf("VolkaMax" to com.streamflixreborn.streamflix.providers.VolkaMaxProvider.BASE_URL)
+        coroutineScope { sources.distinctBy { it.first.lowercase() }.map { (name, previous) -> async {
+            addressChecks.withPermit {
             val entry = entries.singleOrNull { key(it.slug) == key(aliases[name] ?: name) }
-                ?: entries.singleOrNull { key(it.name) == key(name) } ?: continue
-            historicalBases[name]?.let { com.streamflixreborn.streamflix.utils.SourceAddresses.update(name, it, entry.url) }
-            if (com.streamflixreborn.streamflix.utils.SourceAddresses.update(name, previous, entry.url)) {
-                providers.firstOrNull { it.name == name }?.let { provider ->
-                    UserPreferences.setProviderCache(provider, UserPreferences.PROVIDER_URL, entry.url.trimEnd('/') + "/")
-                }
+                ?: entries.singleOrNull { key(it.name) == key(name) } ?: return@withPermit
+            if (entry.status !in setOf("active", "redirected")) return@withPermit
+            val provider = providers.firstOrNull { it.name == name }
+            val compatibleAddress = if (name == "Anime-Ultime" && URL(entry.url).host.endsWith("anime-ultime.net"))
+                "https://v5.anime-ultime.net/" else entry.url
+            val replacement = if (provider != null) URL(compatibleAddress).let { target ->
+                // Some adapters use a full catalogue endpoint rather than the site's home page.
+                val path = URL(previous).path.takeUnless { it.isBlank() || it == "/" }
+                    ?: (provider as? ProviderConfigUrl)?.defaultBaseUrl?.let { URL(it).path }
+                    ?: "/"
+                "${target.protocol}://${target.authority}${path.ifBlank { "/" }}"
+            } else compatibleAddress
+            if (previous.trimEnd('/') == replacement.trimEnd('/')) return@withPermit
+            val compatible = try {
+                withTimeout(13_000) { com.streamflixreborn.streamflix.providers.SourceAddressValidation.verify(name, replacement) }
+            } catch (e: TimeoutCancellationException) { currentCoroutineContext().ensureActive(); false }
+            catch (e: CancellationException) { throw e }
+            catch (_: Exception) { false }
+            if (!compatible) {
+                addressWarnings[name] = "Nouvelle adresse non validée ; adresse précédente conservée"
+                return@withPermit
             }
-        }
-        details.clear(); streamCache.clear()
+            addressWarnings.remove(name)
+            historicalBases[name]?.let { com.streamflixreborn.streamflix.utils.SourceAddresses.update(name, it, replacement) }
+            if (com.streamflixreborn.streamflix.utils.SourceAddresses.update(name, previous, replacement)) {
+                providers.firstOrNull { it.name == name }?.let { provider ->
+                    UserPreferences.setProviderCache(provider, UserPreferences.PROVIDER_URL, replacement)
+                }
+                details.entries.removeIf { it.value.provider == name }
+                streamCache.clear()
+            }
+        } } }.awaitAll() }
         return entries
     }
 
@@ -285,13 +367,14 @@ class StreamFlixProviderManager private constructor() {
                         if (p is ProviderConfigUrl) p.onChangeUrl(false)
                         check(p.getHome().any { it.list.isNotEmpty() }) { "Catalogue vide" }
                     }
-                    health[p.name] = "✓ Catalogue disponible · lecture à vérifier"
+                    health[p.name] = "○ Catalogue disponible · lecture non vérifiée"
                 } catch (e: TimeoutCancellationException) {
                     currentCoroutineContext().ensureActive()
-                    health[p.name] = "✕ Délai dépassé"
-                } catch (e: CancellationException) { throw e
-                } catch (e: Exception) {
-                    health[p.name] = "✕ ${e.message?.take(100) ?: "Indisponible"}"
+                health[p.name] = "⚠ Réponse lente · réessayable"
+            } catch (e: CancellationException) { throw e
+            } catch (e: Exception) {
+                    val message = e.message?.take(100) ?: "Indisponible"
+                    health[p.name] = if (protectedAccess(message)) "⚠ Accès protégé · ${message}" else "✕ $message"
                 }
             }
         } }
@@ -317,18 +400,26 @@ class StreamFlixProviderManager private constructor() {
                     check(connection.responseCode in 200..399) { "HTTP ${connection.responseCode}" }
                 } finally { connection.disconnect() }
             }
-            health[source.name] = "✓ Site joignable · lecture non vérifiée"
+            health[source.name] = "○ Lien externe uniquement · catalogue et lecture non intégrés"
         } catch (e: TimeoutCancellationException) {
             currentCoroutineContext().ensureActive()
-            health[source.name] = "✕ Délai dépassé"
+            health[source.name] = "⚠ Réponse lente · réessayable"
         } catch (e: CancellationException) { throw e
         } catch (e: Exception) {
-            health[source.name] = "✕ ${e.message?.take(100) ?: "Site indisponible"}"
+            val message = e.message?.take(100) ?: "Site indisponible"
+            health[source.name] = if (protectedAccess(message)) "⚠ Accès protégé · $message" else "✕ $message"
         }
     }
 
-    suspend fun resolveSources(anime: Anime, episode: Episode? = null, language: String = "Toutes", refresh: Boolean = false): List<VideoSource> = withContext(Dispatchers.IO) {
-        if (anime.episodes.isEmpty()) return@withContext resolveSources(loadDetails(anime), episode, language, refresh)
+    fun rememberSources(anime: Anime, episode: Episode?, language: String, sources: List<VideoSource>) {
+        val selected = episode ?: anime.episodes.firstOrNull() ?: return
+        val key = "${identity(anime)}|${selected.seasonNumber}|${selected.number}|${selected.id}|$language"
+        if (sources.isNotEmpty()) streamCache[key] = System.currentTimeMillis() to sources
+    }
+
+    suspend fun resolveSources(anime: Anime, episode: Episode? = null, language: String = "Toutes", refresh: Boolean = false,
+        onPartial: (suspend (List<VideoSource>) -> Unit)? = null): List<VideoSource> = withContext(Dispatchers.IO) {
+        if (anime.episodes.isEmpty()) return@withContext resolveSources(loadDetails(anime), episode, language, refresh, onPartial)
         val selected = episode ?: anime.episodes.firstOrNull() ?: return@withContext emptyList()
         val cacheKey = "${identity(anime)}|${selected.seasonNumber}|${selected.number}|${selected.id}|$language"
         if (!refresh) streamCache[cacheKey]?.takeIf { System.currentTimeMillis() - it.first < 120_000 }?.let { return@withContext it.second }
@@ -336,15 +427,18 @@ class StreamFlixProviderManager private constructor() {
         // Old favourites and provider-specific cards also need newly added language sources.
         val discovered = if (language == "VF" && anime.tag == "Série" &&
             known.none { it.provider == "Animes-Sama" } && isProviderEnabled("Animes-Sama")) {
-            attempt("Animes-Sama", emptyList<MediaReference>()) {
+            attempt("Animes-Sama", emptyList<MediaReference>(), 6_000) {
                 com.streamflixreborn.streamflix.providers.AnimesSamaProvider.search(anime.title).filterIsInstance<TvShow>()
                     .filter { CatalogIdentity.title(it.title) == CatalogIdentity.title(anime.title) }
                     .map { MediaReference("Animes-Sama", it.id, "Série") }
             }
         } else emptyList()
         val refs = (known + discovered).distinct()
-        val sources = refs.filter { isProviderEnabled(it.provider) }.map { ref -> async {
-            extractionContext.withLock { attempt(ref.provider, emptyList<VideoSource>(), 120_000) {
+        val partialLock = Mutex()
+        val available = mutableListOf<VideoSource>()
+        val sources = (withTimeoutOrNull(if (refresh) 30_000L else 45_000L) {
+            refs.filter { isProviderEnabled(it.provider) }.map { ref -> async {
+            extractionContext.withLock { attempt(ref.provider, emptyList<VideoSource>(), 35_000) {
                 val p = owner(ref.provider)
                 if (UserPreferences.currentProvider?.name != p.name) UserPreferences.currentProvider = p
                 val matching = loadProviderDetails(anime.copy(id = ref.id, provider = ref.provider,
@@ -357,7 +451,7 @@ class StreamFlixProviderManager private constructor() {
                         Video.Type.Episode.TvShow(matching.id, matching.title, matching.poster, matching.banner, matching.year?.toString(), matching.imdbId),
                         Video.Type.Episode.Season(ep.seasonNumber, "Saison ${ep.seasonNumber}"))
                 val servers = p.getServers(if (matching.tag == "Film") matching.id else ep.id, type)
-                coroutineScope { servers.map { server -> async {
+                val extracted = coroutineScope { servers.map { server -> async {
                     extractors.withPermit {
                         try {
                             withTimeout(18_000) {
@@ -370,25 +464,65 @@ class StreamFlixProviderManager private constructor() {
                         }
                         if (language != "Toutes" && lang != language) return@withTimeout null
                                 if (!video.source.startsWith("http")) return@withTimeout null
-                                val raw = VideoSource(server.name.ifBlank { p.name }, video.source, lang, quality(server.name + " " + video.source), p.name,
+                                val raw = VideoSource(server.name.ifBlank { p.name }, video.source, lang, declaredQuality(server.name), p.name,
                                     video.headers.orEmpty(), video.subtitles.filter { french(it.label) }.map {
                                         VideoSubtitle(it.file, "fr", it.label, if (it.file.substringBefore('?').endsWith(".srt")) "application/x-subrip" else "text/vtt")
                                     }, video.type, serverId = server.id)
-                                probe(raw)
+                                probe(raw).takeIf { it.reachable }?.also { usable ->
+                                    partialLock.withLock {
+                                        available += usable
+                                        val partial = available.distinctBy { it.url }
+                                        streamCache[cacheKey] = System.currentTimeMillis() to partial
+                                        health[p.name] = "✓ Média accessible · échantillon vérifié"
+                                        onPartial?.invoke(partial)
+                                    }
+                                }
                             }
                         } catch (e: TimeoutCancellationException) { currentCoroutineContext().ensureActive(); null }
                         catch (e: CancellationException) { throw e }
                         catch (e: Exception) { null }
                     }
                 } }.awaitAll().filterNotNull() }
+                if (extracted.isNotEmpty()) return@attempt extracted
+                // Run the published player when its native extractor has become obsolete.
+                val activity = com.streamflixreborn.streamflix.utils.SourceWebSession.currentActivity()
+                    ?: return@attempt emptyList()
+                for (server in servers.filter { it.src.startsWith("https://") && !it.src.contains("/api/") }.take(2)) {
+                    val lang = languageHint(server.name) ?: ep.language
+                    if (language != "Toutes" && lang != language) continue
+                    try {
+                        val candidate = withTimeout(8_000) { resolveLiveWebPlayer(activity, server.src, p.baseUrl) }
+                            .copy(name = server.name, provider = p.name, language = lang, serverId = server.id)
+                        val validated = probe(candidate).takeIf { it.reachable } ?: continue
+                        partialLock.withLock {
+                            available += validated
+                            val partial = available.distinctBy { it.url }
+                            streamCache[cacheKey] = System.currentTimeMillis() to partial
+                            health[p.name] = "✓ Média accessible · échantillon vérifié"
+                            onPartial?.invoke(partial)
+                        }
+                        return@attempt listOf(validated)
+                    } catch (e: TimeoutCancellationException) { currentCoroutineContext().ensureActive() }
+                    catch (e: CancellationException) { throw e }
+                    catch (_: Exception) { }
+                }
+                emptyList()
             } }
-        } }.awaitAll().flatten().distinctBy { "${it.url}|${it.headers}|${it.language}" }
+        } }.awaitAll().flatten()
+        } ?: partialLock.withLock { available.toList() }).distinctBy { "${it.url}|${it.headers}|${it.language}" }
             .sortedWith(compareByDescending<VideoSource> { qualityScore(it.quality) }.thenBy { it.headers.isNotEmpty() }.thenBy { it.provider })
         if (sources.isEmpty() && !refresh) {
             // Providers such as Frembed/Kidraz publish rotating domains from GitHub.
             // Refresh those adapters once, then resolve every provider again.
-            refreshSources()
-            return@withContext resolveSources(anime, selected, language, refresh = true)
+            try { withTimeout(8_000) { refreshDirectory() } }
+            catch (e: CancellationException) { currentCoroutineContext().ensureActive() }
+            catch (_: Exception) { }
+            refs.mapNotNull { owner(it.provider) as? ProviderConfigUrl }.distinct().forEach {
+                try { withTimeout(5_000) { it.onChangeUrl(false) } }
+                catch (e: CancellationException) { currentCoroutineContext().ensureActive() }
+                catch (_: Exception) { }
+            }
+            return@withContext resolveSources(anime, selected, language, refresh = true, onPartial = onPartial)
         }
         streamCache[cacheKey] = System.currentTimeMillis() to sources
         sources.sortedWith(compareByDescending<VideoSource> { qualityScore(it.quality) }
@@ -407,44 +541,32 @@ class StreamFlixProviderManager private constructor() {
             else -> "UNKNOWN"
         }
     }
-    private fun detectLanguage(label: String, video: Video, provider: Provider): String = when {
-        Regex("(?i)\\b(vostfr|vost|vo|original|japanese|english)\\b").containsMatchIn(label) -> "VOSTFR"
-        Regex("(?i)\\b(vf|vff|vfq|truefrench|french|fr)\\b").containsMatchIn(label) -> "VF"
-        video.subtitles.any { french(it.label) } &&
-            !Regex("(?i)\\b(vf|vff|vfq|french|fr)\\b").containsMatchIn(label) -> "VOSTFR"
-        else -> "UNKNOWN"
-    }
-    private fun quality(label: String) = when {
-        Regex("(?i)2160|4k|uhd").containsMatchIn(label) -> "4K"
-        Regex("(?i)1080|fhd").containsMatchIn(label) -> "1080p"
-        label.contains("720") -> "720p"
-        label.contains("480") -> "480p"
-        else -> "Auto"
-    }
+    private fun detectLanguage(label: String, video: Video, provider: Provider): String = mediaLanguage(label, video.subtitles.map { it.label })
     private fun qualityScore(q: String) = when(q) { "4K" -> 4; "1080p" -> 3; "720p" -> 2; "480p" -> 1; else -> 0 }
     private suspend fun probe(source: VideoSource): VideoSource = withContext(Dispatchers.IO) {
         val started = System.nanoTime()
-        val connection = runCatching {
-            (URL(source.url).openConnection() as HttpURLConnection).apply {
-                requestMethod = "GET"
-                setRequestProperty("Range", "bytes=0-1023")
-                connectTimeout = 5_000
-                readTimeout = 5_000
-                instanceFollowRedirects = true
-                setRequestProperty("User-Agent", "TvSama/1.0 AndroidTV")
-                source.headers.forEach { (key, value) -> setRequestProperty(key, value) }
-                connect()
-            }
-        }.getOrNull() ?: return@withContext source.copy(latencyMs = -1, reachable = false)
         return@withContext try {
-            val code = connection.responseCode
+            val request = okhttp3.Request.Builder().url(source.url)
+                .header("User-Agent", TvSamaAnimeProvider.USER_AGENT).apply { source.headers.forEach { (key, value) -> header(key, value) } }
+                .header("Range", "bytes=0-1023").build()
+            MediaNetwork.probeClient.newCall(request).execute().use { response ->
             val latency = ((System.nanoTime() - started) / 1_000_000L).coerceAtLeast(1L)
-            val readable = code in 200..299 && !connection.contentType.orEmpty().contains("text/html", true) &&
-                connection.inputStream.use { it.read() } >= 0
-            source.copy(latencyMs = if (readable) latency else -1, reachable = readable)
+            val mime = if (response.isSuccessful) response.body?.byteStream()?.use { input ->
+                val bytes = ByteArray(1024)
+                var size = 0
+                while (size < bytes.size) {
+                    val read = input.read(bytes, size, bytes.size - size)
+                    if (read < 0) break
+                    size += read
+                    if (mediaMimeType(bytes.copyOf(size)) != null) break
+                }
+                mediaMimeType(bytes.copyOf(size))
+            } else null
+            source.copy(latencyMs = if (mime != null) latency else -1, reachable = mime != null, mimeType = mime ?: source.mimeType)
+            }
         } catch (_: Exception) {
             source.copy(latencyMs = -1, reachable = false)
-        } finally { connection.disconnect() }
+        }
     }
     private fun artwork(value: String?, provider: String): String {
         if (value.isNullOrBlank()) return ""
@@ -467,7 +589,8 @@ data class MediaReference(val provider: String, val id: String, val tag: String)
 data class Anime(val title: String, val tag: String, val episodes: List<Episode>, val id: String = "", val poster: String = "",
     val description: String = "", val year: Int? = null, val genres: List<String> = emptyList(), val provider: String = "",
     val banner: String = "", val references: List<MediaReference> = emptyList(), val imdbId: String? = null,
-    val firstAired: String? = null, val lastAired: String? = null, val seriesStatus: String? = null, val metadataUrl: String? = null)
+    val firstAired: String? = null, val lastAired: String? = null, val seriesStatus: String? = null, val metadataUrl: String? = null,
+    val aliases: List<String> = emptyList())
 data class Episode(val title: String, val description: String, val sources: List<VideoSource>, val id: String = "",
     val number: Int = 1, val seasonNumber: Int = 1, val poster: String = "", val language: String = "UNKNOWN", val introSeason: Int? = null, val introNumber: Int? = null)
 data class VideoSubtitle(val url: String, val language: String = "fr", val label: String = "Français", val mimeType: String = "text/vtt")
