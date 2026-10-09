@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="fr.nekotv.ComfortRegressionTest" tests="11" skipped="0" failures="0" errors="0" timestamp="2026-10-09T07:37:27.149Z" hostname="leon-Victus-by-HP-Laptop-15-fb0xxx" time="2.715">
+  <properties/>
+  <testcase name="qualityNeverComesFromOpaqueUrlDigitsAndDisplaysDecodedResolution" classname="fr.nekotv.ComfortRegressionTest" time="2.264"/>
+  <testcase name="livePlaylistProbeFollowsVariantsAndChecksEncryptedSegmentReferences" classname="fr.nekotv.ComfortRegressionTest" time="0.093"/>
+  <testcase name="liveValidationRejectsHtmlAndRecognizesContainers" classname="fr.nekotv.ComfortRegressionTest" time="0.031"/>
+  <testcase name="discoveriesAppendAndEnrichWithoutMovingExistingPosters" classname="fr.nekotv.ComfortRegressionTest" time="0.035"/>
+  <testcase name="originalAudioIsNotMisrepresentedAsFrenchSubtitles" classname="fr.nekotv.ComfortRegressionTest" time="0.025"/>
+  <testcase name="pausedScreenDimsAtThirtySecondsAndMovementWakesWithoutResuming" classname="fr.nekotv.ComfortRegressionTest" time="0.027"/>
+  <testcase name="timerKeepsDeadlineAcrossPlayersAndRequiresResumeAfterExpiry" classname="fr.nekotv.ComfortRegressionTest" time="0.049"/>
+  <testcase name="multilingualAliasesMergeIntoOneFilmAndKeepRemakesSeparate" classname="fr.nekotv.ComfortRegressionTest" time="0.025"/>
+  <testcase name="everyTimerDurationExpiresExactlyAndStaysExpiredAcrossPlayers" classname="fr.nekotv.ComfortRegressionTest" time="0.031"/>
+  <testcase name="movieResumeDoesNotInventSeasonOrEpisode" classname="fr.nekotv.ComfortRegressionTest" time="0.03"/>
+  <testcase name="largeCatalogueRefreshPreservesEveryPositionAndAppendsNewPages" classname="fr.nekotv.ComfortRegressionTest" time="0.103"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

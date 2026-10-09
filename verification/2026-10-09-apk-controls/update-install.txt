@@ -1,0 +1,4 @@
+Installation v1.2.78/code79 : Success
+Mise à jour -r v1.8.78/code85 : Success
+versionCode=85 minSdk=23 targetSdk=36
+versionName=v1.8.78

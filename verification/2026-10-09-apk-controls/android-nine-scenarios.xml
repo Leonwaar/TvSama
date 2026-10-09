@@ -1,0 +1,17 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<testsuite name="fr.nekotv.PlayerDeviceTest" tests="9" failures="0" errors="0" skipped="0" time="58.814" timestamp="2026-10-09T07:36:21" hostname="localhost">
+  <properties>
+    <property name="device" value="tvsama_phone35(AVD) - 15" />
+    <property name="flavor" value="" />
+    <property name="project" value=":app" />
+  </properties>
+  <testcase name="sleepIconFollowsControllerVisibilityAndStillOpensTimerMenu" classname="fr.nekotv.PlayerDeviceTest" time="13.179" />
+  <testcase name="invalidMediaAndHttpErrorsReachAnActionableError" classname="fr.nekotv.PlayerDeviceTest" time="13.643" />
+  <testcase name="confirmRevealsControlsThenTogglesTimelineAndNativePauseExactlyOnce" classname="fr.nekotv.PlayerDeviceTest" time="4.793" />
+  <testcase name="remotePauseSeekAndSourceReplacementDoNotLeaveOldPlayerRunning" classname="fr.nekotv.PlayerDeviceTest" time="3.112" />
+  <testcase name="autoNextReplacesTheStreamAtThirtySecondsRemainingExactlyOnce" classname="fr.nekotv.PlayerDeviceTest" time="3.636" />
+  <testcase name="newPlaybackAndSourceReplacementStartFreshConfiguredSleepCountdowns" classname="fr.nekotv.PlayerDeviceTest" time="2.567" />
+  <testcase name="explicitRemoteResumeRefreshesAnExpiredStoredDeadline" classname="fr.nekotv.PlayerDeviceTest" time="1.715" />
+  <testcase name="mp4HlsAndDashRenderVideoAndDecodeAudio" classname="fr.nekotv.PlayerDeviceTest" time="11.849" />
+  <testcase name="selectRemoteAndResumeHaveVisibleFocusAndAcceptRemoteTouchAndMouse" classname="fr.nekotv.ControlFocusDeviceTest" time="3.054" />
+</testsuite>

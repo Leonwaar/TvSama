@@ -1,0 +1,15 @@
+const {contextBridge,ipcRenderer}=require('electron');
+const methods=['bootstrap','save','catalog','cancel','details','resolve','sources','sourceToggle','directory','media','releaseMedia','segments','live','reminder','backupExport','backupImport','pairing','pair','remote','snapshot','castDiscover','castLoad','castCommand','castStop','checkUpdate','openUpdate','metadata'];
+const api=Object.fromEntries(methods.map(method=>[method,(...args)=>ipcRenderer.invoke(`sama:${method}`,...args)]));
+api.downloadUpdate=()=>ipcRenderer.invoke('sama:downloadUpdate');
+api.licenses=()=>ipcRenderer.invoke('sama:licenses');
+api.sourceAccess=name=>ipcRenderer.invoke('sama:sourceAccess',name);
+api.closeReady=()=>ipcRenderer.invoke('sama:closeReady');
+api.onClosing=callback=>{ipcRenderer.on('sama:closing',()=>callback())};
+api.onCatalog=callback=>ipcRenderer.on('sama:catalog',(_event,data)=>callback(data));
+api.onMediaError=callback=>ipcRenderer.on('sama:media-error',(_event,data)=>callback(data));
+api.onSourcesUpdated=callback=>ipcRenderer.on('sama:sources-updated',(_event,names)=>callback(names));
+api.dns=value=>ipcRenderer.invoke('sama:dns',value);
+api.scale=value=>ipcRenderer.invoke('sama:scale',value);
+api.onCommand=callback=>{const handler=(_event,data)=>callback(data);ipcRenderer.on('sama:command',handler);return()=>ipcRenderer.removeListener('sama:command',handler)};
+contextBridge.exposeInMainWorld('desktop',api);

@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<testsuite name="fr.nekotv.RemoteLinkTest" tests="3" skipped="0" failures="0" errors="0" timestamp="2026-10-08T10:49:26.263Z" hostname="leon-Victus-by-HP-Laptop-15-fb0xxx" time="0.204">
-  <properties/>
-  <testcase name="pairingDeliversSearchAndMediaWithHeaders" classname="fr.nekotv.RemoteLinkTest" time="0.126"/>
-  <testcase name="controlsAndSnapshotPreserveTimecodeAndEpisode" classname="fr.nekotv.RemoteLinkTest" time="0.033"/>
-  <testcase name="invalidTokenCannotPairOrEnqueueCommands" classname="fr.nekotv.RemoteLinkTest" time="0.045"/>
-  <system-out><![CDATA[]]></system-out>
-  <system-err><![CDATA[]]></system-err>
-</testsuite>

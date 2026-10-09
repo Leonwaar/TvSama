@@ -1,0 +1,8 @@
+<!doctype html>
+<html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' https: data:; media-src https: blob: tvsama-media:; connect-src https: tvsama-media:; object-src 'none'; base-uri 'none'">
+<title>TvSama</title><link rel="stylesheet" href="style.css"><link rel="stylesheet" href="desktop.css"></head>
+<body><aside><h1>TvSama<span>LE CINÉMA, CHEZ VOUS.</span></h1><nav aria-label="Navigation principale"></nav><small>Windows · v1.8.78</small></aside>
+<main><header><span>COLLECTION FRANÇAISE</span><button id="searchButton">Recherche</button></header><section id="content" tabindex="-1"></section></main>
+<dialog id="add"><form id="streamForm"><h2>Ajouter un flux personnel</h2><label>Titre<input id="title" required maxlength="180"></label><label>URL directe HTTPS<input id="url" type="url" required placeholder="https://…/video.mp4"></label><p id="formError" role="alert"></p><button type="submit">Ajouter</button><button type="button" id="cancel">Annuler</button></form></dialog>
+<script src="node_modules/hls.js/dist/hls.min.js"></script><script src="node_modules/dashjs/dist/modern/umd/dash.all.min.js"></script><script src="node_modules/jsqr/dist/jsQR.js"></script><script src="core/library.js"></script><script src="controls.js"></script><script src="app.js"></script></body></html>

@@ -1,0 +1,12 @@
+{
+  "path": "/home/leon/TvSama_fixed_v2/releases/TvSama-v1.8.78-universal.apk",
+  "size_bytes": 54733670,
+  "sha256": "3bf9fbc4e532841b3dffe1834510957b4e3f6b5d7c66fa1705ee377469800d66",
+  "certificate_sha256": "5b522fba46fef8a6a34e7e09d6ceee1ff9f732dcefdd7e0a48db83d80e27d50f",
+  "manifest": [
+    "package: name='fr.nekotv' versionCode='85' versionName='v1.8.78' platformBuildVersionName='16' platformBuildVersionCode='36' compileSdkVersion='36' compileSdkVersionCodename='16'",
+    "sdkVersion:'23'",
+    "targetSdkVersion:'36'",
+    "native-code: 'arm64-v8a' 'armeabi-v7a' 'x86' 'x86_64'"
+  ]
+}

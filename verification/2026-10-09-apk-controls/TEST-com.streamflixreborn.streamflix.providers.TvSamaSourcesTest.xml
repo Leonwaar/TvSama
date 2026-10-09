@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.streamflixreborn.streamflix.providers.TvSamaSourcesTest" tests="14" skipped="0" failures="0" errors="0" timestamp="2026-10-08T10:42:39.667Z" hostname="leon-Victus-by-HP-Laptop-15-fb0xxx" time="0.088">
+  <properties/>
+  <testcase name="papadustreamSeriesSeasonsAndEpisodes" classname="com.streamflixreborn.streamflix.providers.TvSamaSourcesTest" time="0.002"/>
+  <testcase name="myFluneoCatalogueEpisodesAndSelectedEpisodeEmbeds" classname="com.streamflixreborn.streamflix.providers.TvSamaSourcesTest" time="0.021"/>
+  <testcase name="animeSamaDoesNotTurnLiveActionIntoSeasonFour" classname="com.streamflixreborn.streamflix.providers.TvSamaSourcesTest" time="0.004"/>
+  <testcase name="voirAnimeCatalogueEpisodesAndPlayerServers" classname="com.streamflixreborn.streamflix.providers.TvSamaSourcesTest" time="0.007"/>
+  <testcase name="animeSamaPanelsAndPlayerArrays" classname="com.streamflixreborn.streamflix.providers.TvSamaSourcesTest" time="0.002"/>
+  <testcase name="animesSamaUsesButtonLanguageInsteadOfMisleadingGroupLabel" classname="com.streamflixreborn.streamflix.providers.TvSamaSourcesTest" time="0.006"/>
+  <testcase name="volkamaxProgramSeparatesActiveAndUpcomingByParisTime" classname="com.streamflixreborn.streamflix.providers.TvSamaSourcesTest" time="0.017"/>
+  <testcase name="wiflixAcceptsPublishedEncodedButtonsAndLegacyLinks" classname="com.streamflixreborn.streamflix.providers.TvSamaSourcesTest" time="0.005"/>
+  <testcase name="animeUltimePreservesEpisodeNumbersAndIgnoresOtherLinks" classname="com.streamflixreborn.streamflix.providers.TvSamaSourcesTest" time="0.002"/>
+  <testcase name="animekoSearchResultsAndEpisodeRows" classname="com.streamflixreborn.streamflix.providers.TvSamaSourcesTest" time="0.003"/>
+  <testcase name="animesSamaKeepsAllSeasonsAndEpisodeNumbers" classname="com.streamflixreborn.streamflix.providers.TvSamaSourcesTest" time="0.002"/>
+  <testcase name="movixLinksSupportsPlainAndStructuredLinks" classname="com.streamflixreborn.streamflix.providers.TvSamaSourcesTest" time="0.009"/>
+  <testcase name="animesSamaLoadsSagaIndexAndPreservesCurrentSagaNumber" classname="com.streamflixreborn.streamflix.providers.TvSamaSourcesTest" time="0.002"/>
+  <testcase name="livePlayersIncludeDirectFramesAndIgnoreMalformedEmbeds" classname="com.streamflixreborn.streamflix.providers.TvSamaSourcesTest" time="0.001"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

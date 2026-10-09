@@ -1,0 +1,27 @@
+{
+  "scope": "/home/leon/TvSama_fixed_v2",
+  "before_allocated_bytes": 13075865600,
+  "after_allocated_bytes": 352841728,
+  "freed_allocated_bytes": 12723023872,
+  "critical_files_preserved": [
+    "gradlew",
+    "gradle/wrapper/gradle-wrapper.jar",
+    "settings.gradle.kts",
+    "build.gradle.kts",
+    "local.properties",
+    "app/build.gradle.kts",
+    "app/src/main/AndroidManifest.xml",
+    "app/src/main/java/fr/nekotv/MainActivity.kt",
+    "app/src/main/java/fr/nekotv/Playback.kt",
+    "app/src/main/java/fr/nekotv/EpisodeAdvance.kt",
+    "app/src/main/java/fr/nekotv/TvPlayerView.kt",
+    "app/src/androidTest/assets/player-fixtures/sample-long.mp4",
+    "streamflix/app/build.gradle",
+    "streamflix/app/src/main/AndroidManifest.xml",
+    "windows/package.json",
+    "windows/package-lock.json",
+    "scripts/build-apk.py",
+    "scripts/clean-generated.py"
+  ],
+  "main_sdk_and_signing_key_preserved": true
+}

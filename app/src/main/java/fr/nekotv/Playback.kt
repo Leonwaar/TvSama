@@ -63,6 +63,7 @@ fun TvSamaPlayer(
     onBack: () -> Unit = {},
     onPrevious: (() -> Unit)? = null,
     onNext: (() -> Unit)? = null,
+    onAutoNext: (() -> Unit)? = null,
     imdbId: String? = null,
     isMovie: Boolean = false,
     seasonNumber: Int = 0,
@@ -80,6 +81,8 @@ fun TvSamaPlayer(
     val endedCallback by rememberUpdatedState(onEnded)
     val previousCallback by rememberUpdatedState(onPrevious)
     val nextCallback by rememberUpdatedState(onNext)
+    val autoNextCallback by rememberUpdatedState(onAutoNext)
+    val advance = remember(anime?.id, episode?.id, seasonNumber, episodeNumber) { EpisodeAdvance() }
     val qualityCallback by rememberUpdatedState(onActualQuality)
     val controlsCallback by rememberUpdatedState(onControlsVisibleChange)
     var casting by remember(source) { mutableStateOf(false) }
@@ -127,10 +130,15 @@ fun TvSamaPlayer(
         }
     }
     SideEffect { (context as? MainActivity)?.pictureInPictureEligible = playing && !casting }
-    val progressCallback = remember(player) { onProgress }
+    val progressCallback = remember(player, advance) {
+        { position: Long, duration: Long ->
+            onProgress(if (advance.triggered && duration > 0) duration else position, duration)
+        }
+    }
     var sleepRemaining by remember { mutableLongStateOf(0L) }
     var sleepExpired by remember { mutableStateOf(false) }
     var sleepMenu by remember { mutableStateOf(false) }
+    var pairingMenu by remember { mutableStateOf(false) }
     var dimmed by remember { mutableStateOf(false) }
     val dimPreferences = remember(context) { context.getSharedPreferences("tvsama_settings", 0) }
     var autoDim by remember { mutableStateOf(dimPreferences.getBoolean("pause_dimming", true)) }
@@ -141,11 +149,15 @@ fun TvSamaPlayer(
             else -> playerView?.hideController()
         }
     }
-    SideEffect { playerView?.controllerShowTimeoutMs = if (sleepMenu) 0 else 5_000 }
     var pauseDimmed by remember(player) { mutableStateOf(false) }
     val pauseDimming = remember(player) { PauseDimming() }
     val activity = context as? MainActivity
     val lastInteraction = activity?.lastInteraction ?: 0L
+    // Restart the deadline on user input, never on playback-position updates.
+    // Keep an open menu available long enough to choose a duration or scan its QR.
+    LaunchedEffect(playerView, sleepMenu, pairingMenu, lastInteraction) {
+        playerView?.controllerShowTimeoutMs = if (sleepMenu || pairingMenu) 0 else 8_000
+    }
     DisposableEffect(activity, player) {
         val wake: () -> Boolean = { pauseDimmed.also { if (it) pauseDimmed = false } }
         activity?.wakePausedScreen = wake
@@ -220,6 +232,14 @@ fun TvSamaPlayer(
     }
     LaunchedEffect(player, casting) {
         while (true) {
+            // Keep the Compose toolbar in sync with Media3's actual state,
+            // including the intermediate states of its hide/show animations.
+            // Reuse the existing player ticker rather than start another timer.
+            val visible = playerView?.isControllerFullyVisible == true
+            if (controlsVisible != visible) {
+                controlsVisible = visible
+                controlsCallback(visible)
+            }
             val remote = castContext?.sessionManager?.currentCastSession?.remoteMediaClient
             if (casting && remote?.mediaInfo?.contentId == source.url) {
                 position = remote.approximateStreamPosition
@@ -227,6 +247,14 @@ fun TvSamaPlayer(
             } else {
                 position = player.currentPosition
                 playbackDuration = player.duration
+            }
+            if (advance.claim(position, playbackDuration, segments?.outro,
+                    eligible = autoNextCallback != null && !isMovie && anime?.tag != "Direct" &&
+                        !timer.expired() && !sleepExpired && (if (casting) remote?.isPlaying == true else player.isPlaying))) {
+                // Stop the old stream and record the episode as completed before resolving the next one.
+                if (casting) remote?.pause() else { player.pause(); player.seekTo(playbackDuration) }
+                progressCallback(playbackDuration, playbackDuration)
+                autoNextCallback?.invoke()
             }
             RemoteLink.playback = RemotePlayback(title, position.coerceAtLeast(0), playbackDuration.coerceAtLeast(0),
                 if (casting) remote?.isPlaying == true else playing, previousCallback != null, nextCallback != null, anime, episode)
@@ -278,7 +306,7 @@ fun TvSamaPlayer(
             }
             override fun onPlaybackStateChanged(state: Int) {
                 playing = player.isPlaying
-                if (state == Player.STATE_ENDED && !casting && !timer.expired()) {
+                if (state == Player.STATE_ENDED && !casting && !timer.expired() && !advance.triggered) {
                     if (anime?.tag == "Direct") castMessage = "La diffusion est terminée."
                     else { progressCallback(player.duration.coerceAtLeast(0), player.duration.coerceAtLeast(0)); endedCallback() }
                 }
@@ -339,7 +367,7 @@ fun TvSamaPlayer(
                 saveRemote()
                 if (status.playerState == MediaStatus.PLAYER_STATE_IDLE && status.idleReason == MediaStatus.IDLE_REASON_FINISHED && !remoteFinished) {
                     remoteFinished = true
-                    if (!timer.expired()) endedCallback()
+                    if (!timer.expired() && !advance.triggered) endedCallback()
                 } else if (status.playerState == MediaStatus.PLAYER_STATE_IDLE && status.idleReason == MediaStatus.IDLE_REASON_ERROR) {
                     castMessage = "La télévision ne peut pas lire ce serveur. Choisissez une autre source."
                 }
@@ -447,22 +475,13 @@ fun TvSamaPlayer(
     }
     Box(modifier.background(Color.Black)) {
         AndroidView(modifier = Modifier.fillMaxSize(), factory = {
-            object : PlayerView(it) {
-                override fun dispatchKeyEvent(event: android.view.KeyEvent): Boolean {
-                    if (event.keyCode in listOf(android.view.KeyEvent.KEYCODE_DPAD_CENTER, android.view.KeyEvent.KEYCODE_ENTER) &&
-                        (!isControllerFullyVisible || findFocus() === this)) {
-                        if (event.action == android.view.KeyEvent.ACTION_DOWN && event.repeatCount == 0) {
-                            showController()
-                            findViewById<android.view.View>(androidx.media3.ui.R.id.exo_play_pause)?.requestFocus()
-                        }
-                        return true
-                    }
-                    return super.dispatchKeyEvent(event)
-                }
-            }.apply {
+            TvPlayerView(it).apply {
                 playerView = this
                 this.player = player
                 useController = true
+                controllerAutoShow = false
+                controllerShowTimeoutMs = 8_000
+                setControllerAnimationEnabled(false)
                 addOnLayoutChangeListener { view, _, _, _, _, _, _, _, _ ->
                     if (android.os.Build.VERSION.SDK_INT >= 26 && context.packageManager.hasSystemFeature(android.content.pm.PackageManager.FEATURE_PICTURE_IN_PICTURE)) {
                         val bounds = android.graphics.Rect()
@@ -473,10 +492,6 @@ fun TvSamaPlayer(
                     }
                 }
                 setShowSubtitleButton(true)
-                setControllerVisibilityListener(PlayerView.ControllerVisibilityListener { visibility ->
-                    controlsVisible = visibility == android.view.View.VISIBLE
-                    controlsCallback(controlsVisible)
-                })
                 setShowPreviousButton(false)
                 setShowNextButton(false)
                 findViewById<android.widget.LinearLayout>(androidx.media3.ui.R.id.exo_time)?.let { timeBar ->
@@ -484,9 +499,7 @@ fun TvSamaPlayer(
                         timeBar.addView(android.widget.ImageButton(context).apply {
                             tag = tagName; contentDescription = description
                             setImageResource(icon); setColorFilter(android.graphics.Color.WHITE)
-                            val selectable = android.util.TypedValue()
-                            context.theme.resolveAttribute(android.R.attr.selectableItemBackgroundBorderless, selectable, true)
-                            setBackgroundResource(selectable.resourceId)
+                            setBackgroundResource(R.drawable.player_control_focus)
                             isFocusable = true
                             setOnClickListener { click() }
                         }, android.widget.LinearLayout.LayoutParams((44 * resources.displayMetrics.density).toInt(), (44 * resources.displayMetrics.density).toInt()))
@@ -495,6 +508,7 @@ fun TvSamaPlayer(
                     episodeButton("episode_next", "Épisode suivant", androidx.media3.ui.R.drawable.exo_icon_next) { nextCallback?.invoke() }
                 }
                 findViewById<androidx.media3.ui.DefaultTimeBar>(androidx.media3.ui.R.id.exo_progress)?.apply {
+                    setBackgroundResource(R.drawable.player_control_focus)
                     setKeyTimeIncrement(5_000)
                     setOnKeyListener { _, code, event ->
                         if (code == android.view.KeyEvent.KEYCODE_DPAD_LEFT || code == android.view.KeyEvent.KEYCODE_DPAD_RIGHT) {
@@ -503,6 +517,11 @@ fun TvSamaPlayer(
                         false
                     }
                 }
+                fun highlightControls(view: android.view.View) {
+                    if (view !== this && view.isClickable && view.isFocusable) view.setBackgroundResource(R.drawable.player_control_focus)
+                    if (view is android.view.ViewGroup) for (index in 0 until view.childCount) highlightControls(view.getChildAt(index))
+                }
+                highlightControls(this)
                 var lastTap = 0L
                 var seekTarget = 0L
                 var tapDirection = 0
@@ -534,6 +553,7 @@ fun TvSamaPlayer(
                 keepScreenOn = true
                 isFocusable = true
                 requestFocus()
+                showController()
             }
         }, update = { view ->
             if (playerView !== view) playerView = view
@@ -551,7 +571,7 @@ fun TvSamaPlayer(
             .horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.End)) {
             Action("Retour", onClick = onBack)
             Box {
-                Action("Minuterie") { sleepMenu = true }
+                IconAction(R.drawable.ic_sleep_timer, "Minuterie de veille") { sleepMenu = true }
                 androidx.compose.material3.DropdownMenu(expanded = sleepMenu, onDismissRequest = { sleepMenu = false }) {
                     SleepTimer.options.forEach { minutes ->
                         androidx.compose.material3.DropdownMenuItem(text = { Text(if (minutes < 60) "$minutes min" else "${minutes / 60} h${if (minutes % 60 != 0) " ${minutes % 60} min" else ""}") }, onClick = { setSleep(minutes) })
@@ -566,7 +586,7 @@ fun TvSamaPlayer(
                     modifier = Modifier.align(Alignment.CenterVertically)
                 )
             }
-            CastRouteButton(Modifier.size(48.dp))
+            CastRouteButton(Modifier.size(48.dp), onDialogVisibilityChange = { pairingMenu = it })
             if (android.os.Build.VERSION.SDK_INT >= 26 && context.packageManager.hasSystemFeature(android.content.pm.PackageManager.FEATURE_PICTURE_IN_PICTURE)) {
                 androidx.compose.material3.IconButton(onClick = { (context as? android.app.Activity)?.enterPictureInPictureMode(android.app.PictureInPictureParams.Builder().setAspectRatio(android.util.Rational(16, 9)).build()) }) {
                     androidx.compose.material3.Icon(painterResource(R.drawable.ic_pip), contentDescription = "Image dans l’image", tint = Color.White)

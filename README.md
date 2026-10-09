@@ -57,7 +57,8 @@ Fonctions de lecture :
 - qualité réellement détectée à partir de la taille vidéo ;
 - doubles taps cumulatifs de 15 secondes à gauche ou à droite ;
 - accélération de la recherche avec les touches de télécommande ;
-- épisodes précédent/suivant et autoplay de l'épisode suivant ;
+- épisodes précédent/suivant ; autoplay au début d’une outro IntroDB valide, au plus tard à 30 secondes de la fin ;
+- commandes masquées après 8 secondes d’inactivité, touche OK pour les afficher puis lecture/pause sur la barre ;
 - bouton pour ignorer l'introduction via IntroDB ;
 - sous-titres activables et choix VF/VOSTFR au démarrage ;
 - Picture-in-Picture automatique et bouton manuel si compatible ;
@@ -111,7 +112,7 @@ L'APK de validation est généré dans `app/build/outputs/apk/debug/app-debug.ap
 Les tests unitaires couvrent notamment la reprise de lecture, le classement des
 sources et l'audit réseau.
 
-La version compilée actuelle est `v1.1.76` avec le `versionCode` `76`. Les compilations
+La version compilée actuelle est `v1.8.78` avec le `versionCode` `85`. Les compilations
 de validation ne constituent pas une livraison et ne doivent pas incrémenter la
 version par elles-mêmes.
 
@@ -163,7 +164,30 @@ La compilation universelle ne constitue pas un test matériel de tous les modèl
 ### Vérification avant publication d’une mise à jour
 
 Pour chaque release, changer `versionName` dans `app/build.gradle.kts`, puis recompiler.
-Utiliser ce nom comme tag GitHub (actuellement `v1.1.76`) et joindre le nouvel APK
+Utiliser ce nom comme tag GitHub (actuellement `v1.8.78`) et joindre le nouvel APK
 universel signé avec la même clé que la version installée. Augmenter `versionCode`
-reste recommandé pour que l’installateur Android accepte la mise à jour dans tous
-les cas ; l’application ne l’exige plus avant de proposer l’installation.
+est obligatoire à chaque ajout ou correction fonctionnelle.
+
+### Reconstruire après nettoyage
+
+Le SDK de compilation reste dans `/home/leon/Android/Sdk`, indiqué par `local.properties`.
+Les wrappers Gradle, configurations, sources Android/Windows, dépendances déclarées,
+lockfile npm, fixtures et tests sont conservés. Les caches globaux de dépendances
+et la clé existante dans `~/.android/debug.keystore` restent en place.
+
+```bash
+python3 scripts/build-apk.py
+cd windows
+npm ci
+npm run build
+```
+
+Le script Android compile, aligne, signe et vérifie l’APK, puis le dépose dans
+`../releases/`, séparément des sources. Pour une autre clé existante : variables
+`TVSAMA_KEYSTORE`, `TVSAMA_KEY_ALIAS`, `TVSAMA_STORE_PASSWORD`, `TVSAMA_KEY_PASSWORD`.
+Conserver la même clé pour installer les prochaines versions en mise à jour.
+
+`python3 scripts/clean-generated.py` affiche les sorties régénérables ; `--apply`
+les supprime. L’option `--remove-test-sdk` retire uniquement le SDK de test voisin,
+après arrêt de son émulateur. Un émulateur ou appareil ADB reste nécessaire pour
+exécuter `:app:connectedDebugAndroidTest` ; il n’est pas nécessaire pour construire l’APK.

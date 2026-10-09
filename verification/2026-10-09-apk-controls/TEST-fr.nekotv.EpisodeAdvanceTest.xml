@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="fr.nekotv.EpisodeAdvanceTest" tests="5" skipped="0" failures="0" errors="0" timestamp="2026-10-09T07:37:29.876Z" hostname="leon-Victus-by-HP-Laptop-15-fb0xxx" time="0.001">
+  <properties/>
+  <testcase name="usesEarlierOutroAndNeverWaitsPastThirtySecondsRemaining" classname="fr.nekotv.EpisodeAdvanceTest" time="0.0"/>
+  <testcase name="shortVideosAreNotSkippedAtStart" classname="fr.nekotv.EpisodeAdvanceTest" time="0.0"/>
+  <testcase name="invalidOutrosUseFallback" classname="fr.nekotv.EpisodeAdvanceTest" time="0.001"/>
+  <testcase name="fallsBackToThirtySecondsAndOnlyAdvancesOnce" classname="fr.nekotv.EpisodeAdvanceTest" time="0.0"/>
+  <testcase name="disabledPausedMissingNextAndUnknownDurationsDoNotAdvance" classname="fr.nekotv.EpisodeAdvanceTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

@@ -1,0 +1,59 @@
+{
+  "name": "tvsama-windows",
+  "version": "1.8.78",
+  "description": "TvSama pour Windows — portage desktop en validation",
+  "author": "TvSama",
+  "private": true,
+  "main": "main.cjs",
+  "scripts": {
+    "start": "electron .",
+    "test": "node --test services.test.cjs maintenance.test.cjs reliability.test.cjs ui.test.cjs",
+    "test:e2e": "node e2e.cjs",
+    "dist": "node build.cjs"
+  },
+  "build": {
+    "appId": "fr.nekotv.desktop",
+    "productName": "TvSama",
+    "files": [
+      "main.cjs",
+      "preload.cjs",
+      "core/**",
+      "services/**",
+      "index.html",
+      "app.js",
+      "controls.js",
+      "style.css",
+      "desktop.css",
+      "node_modules/hls.js/dist/hls.min.js",
+      "node_modules/jsqr/dist/jsQR.js",
+      "licenses/**",
+      "node_modules/dashjs/dist/modern/umd/dash.all.min.js"
+    ],
+    "directories": {
+      "output": "dist"
+    },
+    "win": {
+      "target": "portable",
+      "signAndEditExecutable": true,
+      "signExecutable": false
+    },
+    "artifactName": "TvSama-${version}-Windows-x64.${ext}",
+    "compression": "normal"
+  },
+  "devDependencies": {
+    "electron": "44.7.0",
+    "electron-builder": "26.15.3",
+    "jsdom": "26.1.0",
+    "playwright-core": "1.64.0"
+  },
+  "dependencies": {
+    "bonjour-service": "1.4.4",
+    "cheerio": "1.2.0",
+    "dashjs": "5.2.1",
+    "hls.js": "1.7.3",
+    "jsqr": "1.4.0",
+    "luxon": "3.7.2",
+    "pngjs": "7.0.0",
+    "qrcode": "1.5.4"
+  }
+}

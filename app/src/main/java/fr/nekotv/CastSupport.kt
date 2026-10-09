@@ -5,10 +5,7 @@ import android.app.UiModeManager
 import android.content.res.Configuration
 import android.graphics.Bitmap
 import android.graphics.Color as AndroidColor
-import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -19,9 +16,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.semantics.contentDescription
-import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
@@ -53,14 +47,15 @@ internal fun castContextOrNull(context: Context): CastContext? =
 
 /** The remote icon starts phone/TV pairing by QR, then offers the native Cast receiver chooser. */
 @Composable
-fun CastRouteButton(modifier: Modifier = Modifier) {
+fun CastRouteButton(modifier: Modifier = Modifier, onDialogVisibilityChange: (Boolean) -> Unit = {}) {
     val context = LocalContext.current
     var showPairing by remember { mutableStateOf(false) }
-    Box(modifier.background(Color(0xFF171717), RoundedCornerShape(6.dp)).clickable { showPairing = true }
-        .semantics { contentDescription = "Associer le téléphone à la télévision par QR code" }, contentAlignment = Alignment.Center) {
-        androidx.compose.material3.Icon(painterResource(R.drawable.tvsama_remote_logo), contentDescription = "Télécommande TvSama", tint = Color.Unspecified, modifier = Modifier.size(34.dp))
+    IconAction(R.drawable.tvsama_remote_logo, "Associer le téléphone à la télévision par QR code",
+        modifier = modifier, tint = Color.Unspecified, iconSize = 34.dp) {
+        showPairing = true; onDialogVisibilityChange(true)
     }
-    if (showPairing) PairingDialog(context) { showPairing = false }
+    androidx.compose.runtime.DisposableEffect(Unit) { onDispose { onDialogVisibilityChange(false) } }
+    if (showPairing) PairingDialog(context) { showPairing = false; onDialogVisibilityChange(false) }
 }
 
 @Composable

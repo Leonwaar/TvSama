@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="fr.nekotv.WrappedTsTest" tests="3" skipped="0" failures="0" errors="0" timestamp="2026-10-09T07:37:30.812Z" hostname="leon-Victus-by-HP-Laptop-15-fb0xxx" time="0.01">
+  <properties/>
+  <testcase name="pngTransportHandlesEveryPublishedFilterAndAlphaWithoutChangingPackets" classname="fr.nekotv.WrappedTsTest" time="0.007"/>
+  <testcase name="ordinaryMediaIsUntouchedAndBrokenEnvelopesAreRejected" classname="fr.nekotv.WrappedTsTest" time="0.001"/>
+  <testcase name="webpExifAndRawGzipEnvelopesPreserveTsPackets" classname="fr.nekotv.WrappedTsTest" time="0.002"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

@@ -503,6 +503,8 @@ private fun TvSamaApp() {
                     episodeNumber = if (playingAnime?.tag == "Film") 0 else playingEpisode?.introNumber ?: playingEpisode?.number ?: 0,
                     onPrevious = if (playingAnime?.tag != "Film" && episodeIndex > 0) ({ resolve(true, target = entries[episodeIndex - 1]) }) else null,
                     onNext = if (playingAnime?.tag != "Film" && episodeIndex >= 0 && episodeIndex + 1 < entries.size) ({ resolve(true, target = entries[episodeIndex + 1]) }) else null,
+                    onAutoNext = if (autoplay && playingAnime?.tag !in listOf("Film", "Direct") && episodeIndex >= 0 && episodeIndex + 1 < entries.size)
+                        ({ resolve(true, target = entries[episodeIndex + 1]) }) else null,
                     resumeAt = playingAnime?.let { library.progress(it, playingEpisode) } ?: 0,
                     subtitlesEnabled = subtitlesEnabled,
                     onActualQuality = { currentQuality = it },
@@ -555,7 +557,7 @@ private fun TvSamaApp() {
                     onEnded = {
                         val entries = selected?.episodes.orEmpty().distinctBy { it.seasonNumber to it.number }
                         val index = entries.indexOfFirst { it.number == episode?.number && it.seasonNumber == episode?.seasonNumber }
-                        if (playingAnime?.tag != "Direct" && autoplay && index >= 0 && index + 1 < entries.size) {
+                        if (playingAnime?.tag !in listOf("Film", "Direct") && autoplay && index >= 0 && index + 1 < entries.size) {
                             resolve(true, target = entries[index + 1])
                         }
                     }) }

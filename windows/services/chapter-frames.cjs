@@ -1,0 +1,3 @@
+const {load}=require('cheerio'),{httpsURL}=require('./network.cjs');
+function chapterFrames(text,base){const $=load(text),out=[];$('script').each((_i,n)=>{const match=/thisChapterSources\s*=\s*(\{[^\n]+})\s*;/.exec($(n).html()||'');if(!match)return;try{for(const [name,html]of Object.entries(JSON.parse(match[1]))){if(typeof html!=='string')continue;const frames=load(html);frames('iframe[src],iframe[data-src]').each((_j,frame)=>{try{const url=httpsURL(new URL(frames(frame).attr('src')||frames(frame).attr('data-src'),base)).href;out.push({url,name,headers:{Referer:base}});}catch{}});}}catch{}});return [...new Map(out.map(entry=>[entry.url,entry])).values()];}
+module.exports={chapterFrames};

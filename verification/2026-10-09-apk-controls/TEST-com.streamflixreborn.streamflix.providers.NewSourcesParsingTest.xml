@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.streamflixreborn.streamflix.providers.NewSourcesParsingTest" tests="9" skipped="0" failures="0" errors="0" timestamp="2026-10-08T10:42:39.476Z" hostname="leon-Victus-by-HP-Laptop-15-fb0xxx" time="0.188">
+  <properties/>
+  <testcase name="vidmolyChoosesHlsAmongMultipleQuotedSources" classname="com.streamflixreborn.streamflix.providers.NewSourcesParsingTest" time="0.126"/>
+  <testcase name="addressRotationRequiresTheAdaptersActualCatalogue" classname="com.streamflixreborn.streamflix.providers.NewSourcesParsingTest" time="0.017"/>
+  <testcase name="coflixCurrentThemeKeepsMovieTypesAndRealSeasonNumbers" classname="com.streamflixreborn.streamflix.providers.NewSourcesParsingTest" time="0.017"/>
+  <testcase name="warflixMovieAndEpisodeTemplatesUseCorrectIdentifiers" classname="com.streamflixreborn.streamflix.providers.NewSourcesParsingTest" time="0.004"/>
+  <testcase name="animeUltimeFilmsAndSpecialsAreNotSilentlyDiscarded" classname="com.streamflixreborn.streamflix.providers.NewSourcesParsingTest" time="0.008"/>
+  <testcase name="frenchStreamingUsesDisplayedEpisodeAndKeepsSeparateLanguages" classname="com.streamflixreborn.streamflix.providers.NewSourcesParsingTest" time="0.005"/>
+  <testcase name="wordpressCatalogueNeverCountsAdvertisementsAsMovies" classname="com.streamflixreborn.streamflix.providers.NewSourcesParsingTest" time="0.003"/>
+  <testcase name="publicTmdbCatalogueKeepsTypesAliasesAndSeasonNumbers" classname="com.streamflixreborn.streamflix.providers.NewSourcesParsingTest" time="0.004"/>
+  <testcase name="frenchStreamingContentTitleDoesNotUseSiteHeader" classname="com.streamflixreborn.streamflix.providers.NewSourcesParsingTest" time="0.001"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>
