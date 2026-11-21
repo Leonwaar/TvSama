@@ -30,19 +30,21 @@ android {
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         minSdk = 23
         targetSdk = 36
-        versionCode = 85
-        versionName = "v1.8.78"
+        versionCode = 107
+        versionName = "v1.8.88-rc13"
+        buildConfigField("long", "BUILT_AT_MILLIS", "${System.currentTimeMillis()}L")
         buildConfigField("String", "UPDATE_REPOSITORY", "\"$updateRepository\"")
         buildConfigField("String", "TMDB_READ_TOKEN", "\"$tmdbReadToken\"")
     }
 
-    splits { abi { isEnable = false }; density { isEnable = false } }
+    splits { abi { isEnable = false } }
 
     testOptions { unitTests.isIncludeAndroidResources = true }
     buildFeatures { compose = true; buildConfig = true }
 }
 
 dependencies {
+    implementation("org.jsoup:jsoup:1.21.2")
     implementation("com.google.code.gson:gson:2.11.0")
     testImplementation("junit:junit:4.13.2")
     androidTestImplementation("androidx.test:runner:1.6.1")
@@ -51,6 +53,11 @@ dependencies {
     androidTestImplementation(platform("androidx.compose:compose-bom:2025.08.00"))
     androidTestImplementation("androidx.compose.ui:ui-test-junit4")
     testImplementation("org.robolectric:robolectric:4.14.1")
+    testImplementation(platform("androidx.compose:compose-bom:2025.08.00"))
+    testImplementation("androidx.compose.ui:ui-test-junit4")
+    testImplementation("androidx.test:core:1.6.1")
+    testImplementation("androidx.test:runner:1.6.1")
+    testImplementation("androidx.test.ext:junit:1.2.1")
     coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.5")
     implementation(project(":streamflix"))
     implementation("com.github.bumptech.glide:glide:5.0.0-rc01")

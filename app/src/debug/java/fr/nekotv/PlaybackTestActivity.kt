@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 class PlaybackTestActivity : ComponentActivity() {
     val source = mutableStateOf<VideoSource?>(null)
     val nextSource = mutableStateOf<VideoSource?>(null)
+    val anime = mutableStateOf<Anime?>(null)
     @Volatile var advances = 0
     @Volatile var error = ""
     @Volatile var progress = 0L
@@ -20,7 +21,7 @@ class PlaybackTestActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         setContent {
             source.value?.let { video ->
-                TvSamaPlayer(source = video, title = "Local decoder fixture",
+                TvSamaPlayer(source = video, anime = anime.value, title = "Local decoder fixture",
                     modifier = Modifier.fillMaxSize(), onBack = {},
                     onControlsVisibleChange = { controlsVisible = it },
                     onAutoNext = nextSource.value?.let { next -> ({ advances++; nextSource.value = null; source.value = next }) },

@@ -1,6 +1,5 @@
-# Direct natif — 2026-10-06T07:11:03.312363642Z
+# Direct TV français — 2026-10-27T09:41:42.466415458Z
 
-Contrôle réseau et transport des segments ; décodage Android à vérifier séparément.
+Contrôle du flux HLS et de son segment, sans décodage Android.
 
-Canal+ sport : iframe publiée résolue sans JavaScript publicitaire ; manifeste et segment déballé : accessibles ; 6404 ms.
-Échantillon réel PNG : 2631548 octets → 2677120 octets MPEG-TS, identiques au décodage indépendant ; 206 ms.
+Arte : 2 adresse(s) publiées, flux et segment accessibles.

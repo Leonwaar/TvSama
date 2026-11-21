@@ -1,0 +1,48 @@
+{
+  "events": [
+    {
+      "type": "vidrift:ui-hidden"
+    },
+    {
+      "type": "status",
+      "message": "Recherche d’une piste VF sur Vidrift…"
+    },
+    {
+      "type": "vidrift:ui-visible"
+    },
+    {
+      "type": "status",
+      "message": "Recherche d’une piste VF sur Vidrift…"
+    },
+    {
+      "type": "status",
+      "message": "Recherche d’une piste VF sur Vidrift…"
+    },
+    {
+      "type": "vidrift:ui-hidden"
+    },
+    {
+      "type": "vidrift:ui-visible"
+    },
+    {
+      "type": "error",
+      "message": "Vidrift : aucune piste VF confirmée. Les langues inconnues et les autres doublages ont été écartés."
+    }
+  ],
+  "state": [
+    {
+      "server": "atlas",
+      "sources": [
+        {
+          "value": "0",
+          "label": "Atlas 1"
+        }
+      ],
+      "audios": [],
+      "duration": 8888.046000000044,
+      "paused": true,
+      "currentTime": 0.248956,
+      "muted": false
+    }
+  ]
+}

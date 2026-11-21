@@ -1,11 +1,81 @@
-# Classroom VF — 2026-10-06T14:15:38.155378531Z
+# Classroom VF — 2026-10-27T09:30:30.307806303Z
 
 Recherche : 5 fiches ; 4 saisons ; 3 serveurs VF.
 - VF · VF-1 : Échec : HttpException HTTP 404 
 - VF · VF-2 : Échec : HttpException HTTP 403 Forbidden
 - VF · VF-3 : Échec : Exception No extractors found for URL: 
 
-Résolution TvSama : 3 sources accessibles, sans décodage matériel.
+Résolution TvSama : 12 sources accessibles, sans décodage matériel.
+- MyFluneo · LECTEUR VOE VF · VF · application/x-mpegURL
+- Anime-Sama · derricknationtop.com VF · VF · application/x-mpegURL
+- Voiranime · LECTEUR myTV · VF · application/x-mpegURL
 - Coflix · Voe VF · VF · application/x-mpegURL
+- Vostfree · Uqload VF · VF · application/x-mpegURL
+- MyFluneo · LECTEUR Stape VF · VF · video/mp4
+- Anime-Sama · ansembed.net VF · VF · application/x-mpegURL
+- Voiranime · LECTEUR FHD1 · VF · video/mp4
+- MyFluneo · LECTEUR myTV VF · VF · application/x-mpegURL
+- Anime-Sama · uqload.vc VF · VF · application/x-mpegURL
 - Voiranime · LECTEUR VOE · VF · application/x-mpegURL
-- Coflix · Uqload VF · VF · application/x-mpegURL
+- MyFluneo · LECTEUR FHD1 VF · VF · video/mp4
+- Vidrift · Lecteur officiel · langue à confirmer · VF · application/x-tvsama-vidrift
+- Vidrift · Lecteur officiel · langue à confirmer · VF · application/x-tvsama-vidrift
+- Animes-Sama · VF · VF-1 · page intégrée · VF · application/x-tvsama-web-embed
+- FrenchManga · Vidzy (VF) · page intégrée · VF · application/x-tvsama-web-embed
+- Coflix · Vidmoly VF · page intégrée · VF · application/x-tvsama-web-embed
+- Vostfree · Sibnet VF · page intégrée · VF · application/x-tvsama-web-embed
+- Animes-Sama · VF · VF-2 · page intégrée · VF · application/x-tvsama-web-embed
+- FrenchManga · Luluvid (VF) · page intégrée · VF · application/x-tvsama-web-embed
+- Coflix · Vidoza VF · page intégrée · VF · application/x-tvsama-web-embed
+- Vostfree · Streamsb VF · page intégrée · VF · application/x-tvsama-web-embed
+- Animes-Sama · VF · VF-3 · page intégrée · VF · application/x-tvsama-web-embed
+- Anime-Sama · ansembed.net VF · page intégrée · VF · application/x-tvsama-web-embed
+- Voiranime · LECTEUR myTV · page intégrée · VF · application/x-tvsama-web-embed
+- Coflix · Voe VF · page intégrée · VF · application/x-tvsama-web-embed
+- Vostfree · Mytv VF · page intégrée · VF · application/x-tvsama-web-embed
+- MyFluneo · LECTEUR myTV VF · page intégrée · VF · application/x-tvsama-web-embed
+- Anime-Sama · derricknationtop.com VF · page intégrée · VF · application/x-tvsama-web-embed
+- Voiranime · LECTEUR MOON · page intégrée · VF · application/x-tvsama-web-embed
+- Coflix · Filemoon VF · page intégrée · VF · application/x-tvsama-web-embed
+- Vostfree · Uqload VF · page intégrée · VF · application/x-tvsama-web-embed
+- Anime-Sama · uqload.vc VF · page intégrée · VF · application/x-tvsama-web-embed
+- Voiranime · LECTEUR SB · page intégrée · VF · application/x-tvsama-web-embed
+- Coflix · Waaw.ac VF · page intégrée · VF · application/x-tvsama-web-embed
+- Voiranime · LECTEUR VOE · page intégrée · VF · application/x-tvsama-web-embed
+- Coflix · 1fichier VF · lien publié · page intégrée · VF · application/x-tvsama-web-embed
+- Voiranime · LECTEUR Stape · page intégrée · VF · application/x-tvsama-web-embed
+- Coflix · Filemoon VF · lien publié · page intégrée · VF · application/x-tvsama-web-embed
+- Voiranime · LECTEUR FHD1 · page intégrée · VF · application/x-tvsama-web-embed
+- Coflix · Voe VF · lien publié · page intégrée · VF · application/x-tvsama-web-embed
+- Coflix · Uqload VF · page intégrée · VF · application/x-tvsama-web-embed
+- Coflix · Lecteurvideo · page intégrée · UNKNOWN · application/x-tvsama-web-embed
+- WarFlix · Link - 1 · page intégrée · UNKNOWN · application/x-tvsama-web-embed
+- WarFlix · Link - 2 · page intégrée · UNKNOWN · application/x-tvsama-web-embed
+- WarFlix · Link - 3 · page intégrée · UNKNOWN · application/x-tvsama-web-embed
+- WarFlix · Link - 4 · page intégrée · UNKNOWN · application/x-tvsama-web-embed
+- WarFlix · Link - 5 · page intégrée · UNKNOWN · application/x-tvsama-web-embed
+- WarFlix · Link - 6 · page intégrée · UNKNOWN · application/x-tvsama-web-embed
+- WarFlix · Link - 7 · page intégrée · UNKNOWN · application/x-tvsama-web-embed
+- WarFlix · Link - 8 · page intégrée · UNKNOWN · application/x-tvsama-web-embed
+- WarFlix · Link - 9 · page intégrée · UNKNOWN · application/x-tvsama-web-embed
+- WarFlix · Link - 10 · page intégrée · UNKNOWN · application/x-tvsama-web-embed
+- WarFlix · Link - 11 · page intégrée · UNKNOWN · application/x-tvsama-web-embed
+- WarFlix · Link - 12 · page intégrée · UNKNOWN · application/x-tvsama-web-embed
+- WarFlix · Link - 13 · page intégrée · UNKNOWN · application/x-tvsama-web-embed
+- WarFlix · Link - 14 · page intégrée · UNKNOWN · application/x-tvsama-web-embed
+- WarFlix · Link - 15 · page intégrée · UNKNOWN · application/x-tvsama-web-embed
+- WarFlix · Link - 16 · page intégrée · UNKNOWN · application/x-tvsama-web-embed
+- WarFlix · Link - 17 · page intégrée · UNKNOWN · application/x-tvsama-web-embed
+- WarFlix · Link - 18 · page intégrée · UNKNOWN · application/x-tvsama-web-embed
+- WarFlix · Link - 19 · page intégrée · UNKNOWN · application/x-tvsama-web-embed
+- WarFlix · Link - 20 · page intégrée · UNKNOWN · application/x-tvsama-web-embed
+- WarFlix · Link - 21 · page intégrée · UNKNOWN · application/x-tvsama-web-embed
+- WarFlix · Link - 22 · page intégrée · UNKNOWN · application/x-tvsama-web-embed
+- WarFlix · Link - 23 · page intégrée · UNKNOWN · application/x-tvsama-web-embed
+- WarFlix · Link - 24 · page intégrée · UNKNOWN · application/x-tvsama-web-embed
+- WarFlix · Link - 25 · page intégrée · UNKNOWN · application/x-tvsama-web-embed
+- WarFlix · Link - 26 · page intégrée · UNKNOWN · application/x-tvsama-web-embed
+- WarFlix · Link - 27 · page intégrée · UNKNOWN · application/x-tvsama-web-embed
+- WarFlix · Italian - 1 · page intégrée · UNKNOWN · application/x-tvsama-web-embed
+- WarFlix · Portuguese - 1 · page intégrée · UNKNOWN · application/x-tvsama-web-embed
+- WarFlix · Portuguese - 2 · page intégrée · UNKNOWN · application/x-tvsama-web-embed

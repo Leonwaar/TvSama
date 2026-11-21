@@ -97,7 +97,26 @@ class PlayerDeviceTest {
         assertTrue(view.dispatchKeyEvent(KeyEvent(now, now + 150, KeyEvent.ACTION_UP, key, 0)))
     }
 
-    @Test fun confirmRevealsControlsThenTogglesTimelineAndNativePauseExactlyOnce() {
+    @Test fun aShortClipCannotStartOrCompleteAMovie() {
+        ActivityScenario.launch(PlaybackTestActivity::class.java).use { scenario ->
+            scenario.onActivity {
+                it.anime.value = Anime("Film attendu", "Film", emptyList(), "short-fixture")
+                it.source.value = source("sample.mp4")
+            }
+            await("Short movie was not rejected") {
+                var rejected = false
+                scenario.onActivity { rejected = it.error == SHORT_PROGRAM_ERROR }
+                rejected
+            }
+            scenario.onActivity {
+                assertFalse(player(it.window.decorView)?.isPlaying == true)
+                assertEquals(0L, it.progress)
+                assertFalse(it.ended)
+            }
+        }
+    }
+
+    @Test fun confirmRevealsControlsThenActivatesTheFocusedPauseButtonExactlyOnce() {
         ActivityScenario.launch(PlaybackTestActivity::class.java).use { scenario ->
             scenario.onActivity { it.source.value = source("sample.mp4") }
             await("Player did not start") {
@@ -118,7 +137,7 @@ class PlayerDeviceTest {
                 scenario.onActivity {
                     val view = playerView(it.window.decorView)!!
                     confirm(view, key, repeat = true)
-                    assertTrue("Revealing controls paused playback", view.player!!.playWhenReady)
+                    assertTrue("One OK must only reveal the controls, not pause", view.player!!.playWhenReady)
                 }
                 await("Controller did not open") {
                     var visible = false
@@ -126,14 +145,25 @@ class PlayerDeviceTest {
                 }
                 scenario.onActivity {
                     val view = playerView(it.window.decorView)!!
+                    val pause = view.findViewById<View>(androidx.media3.ui.R.id.exo_play_pause)
+                    assertTrue("OK must move focus to the pause button", pause.isFocused)
+                    confirm(view, key)
+                    assertFalse("Second OK on pause must pause once", view.player!!.playWhenReady)
+                    confirm(view, key)
+                    assertTrue("Next OK on pause must resume once", view.player!!.playWhenReady)
+
+                    // A timeline OK commits the pending seek and moves focus to pause; a
+                    // second OK is required before playback changes.
                     val bar = view.findViewById<View>(androidx.media3.ui.R.id.exo_progress)
                     bar.isFocusableInTouchMode = true
                     assertTrue(bar.requestFocus())
                     confirm(view, key, repeat = true)
-                    assertFalse("Timeline OK must pause once", view.player!!.playWhenReady)
+                    assertTrue("Timeline OK must not pause immediately", view.player!!.playWhenReady)
                     confirm(view, key)
-                    assertTrue("Timeline OK must resume once", view.player!!.playWhenReady)
-                    // A directional seek must be committed before OK toggles playback.
+                    assertFalse("Pause OK after the timeline must pause once", view.player!!.playWhenReady)
+                    confirm(view, key)
+                    assertTrue("Next pause OK must resume once", view.player!!.playWhenReady)
+
                     view.player!!.pause()
                     view.player!!.seekTo(1000)
                     var scrubTarget = -1L
@@ -146,14 +176,17 @@ class PlayerDeviceTest {
                         }
                     }
                     (bar as androidx.media3.ui.DefaultTimeBar).addListener(scrubListener)
+                    assertTrue(bar.requestFocus())
                     bar.dispatchKeyEvent(KeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_DPAD_RIGHT))
                     bar.dispatchKeyEvent(KeyEvent(KeyEvent.ACTION_UP, KeyEvent.KEYCODE_DPAD_RIGHT))
                     confirm(view, key)
-                    assertTrue(view.player!!.playWhenReady)
+                    assertFalse("Timeline OK must not toggle before pause is focused", view.player!!.playWhenReady)
                     assertTrue("No directional seek occurred", scrubTarget >= 0)
                     assertEquals("Pending directional seek was lost", scrubTarget, view.player!!.currentPosition)
                     bar.removeListener(scrubListener)
-                    val pause = view.findViewById<View>(androidx.media3.ui.R.id.exo_play_pause)
+                    confirm(view, key)
+                    assertTrue("Second OK on pause must resume", view.player!!.playWhenReady)
+
                     pause.isFocusableInTouchMode = true
                     assertTrue(pause.requestFocus())
                     confirm(view, key)
@@ -282,6 +315,20 @@ class PlayerDeviceTest {
                 var error = ""
                 await("No bounded error: $file", 30_000) { scenario.onActivity { error = it.error }; error.isNotBlank() }
                 assertTrue(error, error.contains("Essayez un autre serveur"))
+            }
+        }
+    }
+    @Test fun invalidStartupAddressDoesNotCrashAndAnotherSourceCanStillPlay() {
+        ActivityScenario.launch(PlaybackTestActivity::class.java).use { scenario ->
+            scenario.onActivity { it.source.value = source("sample.mp4").copy(url = "invalid media address") }
+            var error = ""
+            await("Startup error was not reported") { scenario.onActivity { error = it.error }; error.isNotBlank() }
+            assertTrue(error, error.contains("Impossible d’initialiser le lecteur"))
+            scenario.onActivity { it.source.value = source("sample.mp4") }
+            await("A valid source must still start after initialization fails") {
+                var playing = false
+                scenario.onActivity { playing = player(it.window.decorView)?.isPlaying == true }
+                playing
             }
         }
     }

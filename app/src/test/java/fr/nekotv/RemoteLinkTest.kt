@@ -14,6 +14,39 @@ import org.robolectric.annotation.Config
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [28], application = Application::class)
 class RemoteLinkTest {
+    @Test fun resettingPreferencesRevokesTheOldQrAndDisconnectsTheTarget() = runBlocking {
+        val context = RuntimeEnvironment.getApplication()
+        val old = RemoteLink.start(context)
+        RemoteLink.pair(context, old)
+        val oldToken = RemoteLink.token(context)
+        val settings = context.getSharedPreferences("tvsama_settings", 0)
+        settings.edit().putBoolean("subtitles", false).commit()
+        val notified = java.util.concurrent.atomic.AtomicBoolean(false)
+        val listener = android.content.SharedPreferences.OnSharedPreferenceChangeListener { _, key ->
+            if (key == "subtitles") notified.set(settings.getBoolean("subtitles", false))
+        }
+        settings.registerOnSharedPreferenceChangeListener(listener)
+        RemoteLink.resetPreferences(context)
+        org.robolectric.Shadows.shadowOf(android.os.Looper.getMainLooper()).idle()
+        settings.unregisterOnSharedPreferenceChangeListener(listener)
+        assertTrue("Reset must notify subtitle observers on Android versions before R", notified.get())
+        assertNull(RemoteLink.target.value)
+        assertNotEquals(oldToken, RemoteLink.token(context))
+        assertTrue(runCatching { RemoteLink.pair(context, old) }.isFailure)
+        RemoteLink.pair(context, RemoteLink.start(context))
+        assertNotNull(RemoteLink.target.value)
+    }
+    @Test fun olderPeerDataGetsSafeDefaultsAndExplicitNullsAreRejected() {
+        val command = RemoteLink.decodeCommand("""{"action":"play","anime":{"title":"Test","tag":"Série","episodes":[{"title":"E1","description":"","sources":[]}]},"sources":[{"name":"Test","url":"https://media.example/test.mp4","language":"VF","quality":"Auto","provider":"Test"}]}""")
+        assertTrue(command.anime!!.aliases.isEmpty())
+        assertTrue(command.anime.references.isEmpty())
+        assertTrue(command.sources.single().headers.isEmpty())
+        assertTrue(command.sources.single().subtitles.isEmpty())
+        assertEquals(1, command.anime.episodes.single().number)
+        assertTrue(runCatching { RemoteLink.decodeCommand("""{"action":"play","anime":{"title":"Test","episodes":null},"sources":[]}""") }.isFailure)
+        assertTrue(runCatching { RemoteLink.decodeSnapshot("""{"playback":null}""") }.isFailure)
+        assertTrue(runCatching { RemoteLink.decodeSnapshot("""{"history":[{"anime":null,"duration":100}]}""") }.isFailure)
+    }
     @After fun cleanup() {
         RemoteLink.stop()
         RemoteLink.disconnect(RuntimeEnvironment.getApplication())
@@ -51,8 +84,18 @@ class RemoteLinkTest {
         RemoteLink.pair(context, RemoteLink.start(context))
         RemoteLink.send(context, RemoteCommand(action = "seek", position = 123456))
         assertEquals(123456L, withTimeout(2000) { RemoteLink.commands.receive() }.position)
-        RemoteLink.send(context, RemoteCommand(action = "sleep"))
-        assertEquals("sleep", withTimeout(2000) { RemoteLink.commands.receive() }.action)
+        RemoteLink.send(context, RemoteCommand(action = "seek_by", position = -15_000))
+        assertEquals(-15_000L, withTimeout(2000) { RemoteLink.commands.receive() }.position)
+        RemoteLink.send(context, RemoteCommand(action = "key", query = "right"))
+        assertEquals("right", withTimeout(2000) { RemoteLink.commands.receive() }.query)
+        assertTrue(runCatching { RemoteLink.send(context, RemoteCommand(action = "seek_by", position = 120_001)) }.isFailure)
+        RemoteLink.send(context, RemoteCommand(action = "sleep", position = 30))
+        withTimeout(2000) { RemoteLink.commands.receive() }.also {
+            assertEquals("sleep", it.action)
+            assertEquals(30, it.sleepMinutes())
+        }
+        assertEquals(30, RemoteCommand(action = "sleep").sleepMinutes())
+        assertEquals(30, RemoteCommand(action = "sleep", position = 999).sleepMinutes())
         RemoteLink.playback = RemotePlayback(title = "Test", position = 654321, duration = 900000, playing = true, hasNext = true)
         RemoteLink.sync(context)
         assertEquals(654321L, RemoteLink.snapshot.value.playback.position)

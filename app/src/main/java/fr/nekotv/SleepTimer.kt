@@ -25,7 +25,7 @@ class SleepTimer(context: Context, private val now: () -> Long = System::current
     }
     fun expired() = deadline() > 0 && now() >= deadline()
     companion object {
-        val options = listOf(60, 90, 120, 150, 180)
-        fun label(minutes: Int) = "${minutes / 60} h" + if (minutes % 60 == 0) "" else " 30"
+        val options = listOf(30, 60, 90, 120, 150, 180)
+        fun label(minutes: Int) = if (minutes < 60) "$minutes min" else "${minutes / 60} h" + if (minutes % 60 == 0) "" else " 30"
     }
 }

@@ -1,0 +1,173 @@
+package fr.nekotv
+
+import kotlin.math.exp
+import kotlin.math.ln
+import kotlin.math.sqrt
+import java.text.Normalizer
+import java.util.Locale
+import java.time.Instant
+import java.time.ZoneOffset
+
+/** Local, recency-weighted content ranking with a deliberately mixed discovery feed. */
+internal object Recommendations {
+    private val themes = mapOf(
+        "adventure" to "aventure adventure voyage quete quest aventureux",
+        "action" to "action combat bataille battle guerre war superheros superhero ninja samourai",
+        "fantasy" to "fantastique fantasy magie magic demon dragon surnaturel supernatural pouvoir powers",
+        "scifi" to "science fiction scifi espace space futur robot alien apocalypse",
+        "comedy" to "comedie comedy comique humour humor drole funny sitcom",
+        "drama" to "drame drama famille family emotion adolescence school ecole",
+        "romance" to "romance romantique romantic amour love couple",
+        "thriller" to "thriller suspense crime enquete detective meurtre murder mystere mystery",
+        "horror" to "horreur horror zombie peur fear epouvante",
+        "animation" to "anime animes manga animation animee shonen shounen seinen")
+    private val stop = "avec dans pour une des les est qui que sur par the and this from that you his her saison season episode film serie vostfr".split(' ').toSet()
+    private val combiningMarks = Regex("\\p{M}")
+    private val wordBoundaries = Regex("[^\\p{L}\\p{N}]+")
+    private val themeWords by lazy { themes.mapValues { words(it.value) } }
+    fun displayed(catalogue: List<Anime>, ranked: List<Anime>, previous: List<Anime> = emptyList(), loading: Boolean = false): List<Anime> {
+        fun key(item: Anime) = "${item.provider}|${item.tag}|${item.id}"
+        val available = catalogue.distinctBy(::key)
+        val current = available.associateBy(::key)
+        val ordered = ranked.mapNotNull { current[key(it)] }.distinctBy(::key)
+        val keys = ordered.map(::key).toSet()
+        val incoming = ordered + available.filter { key(it) !in keys }
+        if (previous.isEmpty()) return incoming
+        // Keep previous items when loading OR when incoming is empty to prevent feed jumping
+        if (loading || incoming.isEmpty()) return CatalogIdentity.appendStable(previous, incoming)
+        val references = available.flatMap { it.references + MediaReference(it.provider, it.id, it.tag) }.toSet()
+        val retained = previous.filter { item ->
+            (item.references + MediaReference(item.provider, item.id, item.tag)).any { it in references }
+        }
+        return CatalogIdentity.appendStable(retained, incoming)
+    }
+    private fun words(value: String) = Normalizer.normalize(value, Normalizer.Form.NFD).replace(combiningMarks, "")
+        .lowercase(Locale.ROOT).split(wordBoundaries)
+        .filter { it.length > 2 && it !in stop }.toSet()
+    private fun features(item: Anime): Set<String> {
+        val tokens = words((listOf(item.title, com.streamflixreborn.streamflix.providers.TvSamaAnimeProvider.cleanSynopsis(item.description)) + item.aliases + item.genres).joinToString(" "))
+        val concepts = themeWords.filterValues { vocabulary -> vocabulary.any { it in tokens } }.keys
+        return tokens + concepts.map { "theme:$it" } + item.genres.flatMap { words(it) }.map { "genre:$it" }
+    }
+    fun rank(catalogue: List<Anime>, history: List<SavedPlayback>, favorites: List<Anime>, searches: List<String>, searchMatches: List<Anime> = emptyList(), now: Long = System.currentTimeMillis()): List<Anime> {
+        if (catalogue.isEmpty()) return emptyList()
+        
+        // Optimization: Avoid creating many intermediate lists/sets. 
+        // Use sequences for large catalog processing to reduce memory pressure.
+        val all = (catalogue + history.map { it.anime } + favorites + searchMatches).distinct()
+        val vectors = all.associateWith(::features)
+        val frequency = vectors.values.flatten().groupingBy { it }.eachCount()
+        val profile = mutableMapOf<String, Double>()
+        
+        fun learn(item: Anime, weight: Double) {
+            val tokens = vectors[item] ?: features(item)
+            val norm = sqrt(tokens.size.coerceAtLeast(1).toDouble())
+            tokens.forEach { token -> profile[token] = (profile[token] ?: 0.0) + weight / norm }
+        }
+        
+        history.groupBy { CatalogIdentity.title(it.anime.title) }.values.forEach { entries ->
+            val last = entries.maxByOrNull { it.updatedAt } ?: return@forEach
+            val age = (now - last.updatedAt).coerceAtLeast(0).toDouble() / (86_400_000 * 30.0)
+            val engagement = if (last.duration > 0) (last.position.toDouble() / last.duration).coerceIn(0.0, 1.0) else 0.2
+            learn(last.anime, exp(-age) * (1.0 + engagement + ln(1.0 + entries.size)))
+        }
+        favorites.forEach { learn(it, 2.5) }
+        
+        searches.take(20).forEachIndexed { index, search ->
+            val weight = 1.5 * exp(-index / 6.0)
+            val query = words(search)
+            query.forEach { token -> profile[token] = (profile[token] ?: 0.0) + weight }
+            themeWords.filterValues { it.any { token -> token in query } }.keys.forEach { theme ->
+                profile["theme:$theme"] = (profile["theme:$theme"] ?: 0.0) + weight
+            }
+            
+            // Optimization: Use sequence for filtering and take(3) to avoid creating a large list
+            val matches = all.asSequence()
+                .distinctBy { CatalogIdentity.title(it.title) }
+                .filter { item ->
+                    (listOf(item.title) + item.aliases).any { title ->
+                        val titleWords = words(title)
+                        query.isNotEmpty() && titleWords.containsAll(query)
+                    }
+                }
+                .take(3)
+                .toList()
+            
+            matches.forEach { learn(it, weight / matches.size.coerceAtLeast(1)) }
+        }
+        
+        val seen = history.map { CatalogIdentity.title(it.anime.title) }.toSet()
+        val maxPopularity = catalogue.maxOfOrNull { it.popularity.takeIf(Double::isFinite)?.coerceAtLeast(0.0) ?: 0.0 }?.coerceAtLeast(1.0) ?: 1.0
+        val currentYear = Instant.ofEpochMilli(now).atZone(ZoneOffset.UTC).year
+        
+        fun popularity(item: Anime) = if (item.popularity.isFinite() && item.popularity > 0)
+            ln(1.0 + item.popularity) / ln(1.0 + maxPopularity) else 0.12
+        fun freshness(item: Anime): Double {
+            val year = item.firstAired?.take(4)?.toIntOrNull() ?: item.year ?: return 0.15
+            if (year > currentYear) return 0.0
+            return exp(-(currentYear - year) / 6.0)
+        }
+        fun quality(item: Anime): Double {
+            val rating = item.rating.takeIf(Double::isFinite)?.coerceIn(0.0, 10.0) ?: 0.0
+            return ((rating * item.voteCount.coerceAtLeast(0) + 6.0 * 100) / (item.voteCount.coerceAtLeast(0) + 100.0)) / 10.0
+        }
+        
+        val profileNorm = sqrt(profile.values.sumOf { it * it }).coerceAtLeast(1.0)
+        
+        // Memory Optimization: Calculate affinity and discovery on the fly or in a single pass 
+        // instead of creating multiple large maps for the entire catalogue.
+        val ranked = catalogue.associateWith { item ->
+            val tokens = vectors[item] ?: features(item)
+            val weights = tokens.associateWith { token ->
+                ln(1.0 + vectors.size.toDouble() / (frequency[token] ?: 1)) * if (token.startsWith("theme:")) 2.0 else 1.0
+            }
+            val dot = weights.entries.sumOf { (token, weight) -> (profile[token] ?: 0.0) * weight }
+            val norm = sqrt(weights.values.sumOf { it * it }).coerceAtLeast(1.0)
+            val affinityValue = (dot / (norm * profileNorm)).coerceIn(0.0, 1.0)
+            
+            val discValue = popularity(item) * 1.3 + freshness(item) * 0.6 + quality(item) * 0.5
+            
+            affinityValue * 2.4 + discValue -
+                (if (CatalogIdentity.title(item.title) in seen) 1.5 else 0.0) -
+                (if (item.poster.isBlank()) 0.08 else 0.0)
+        }
+        
+        val seenItems = catalogue.filter { CatalogIdentity.title(it.title) in seen }.toSet()
+        val remaining = catalogue.distinct().sortedWith(compareBy<Anime> { it in seenItems }.thenByDescending { ranked[it] ?: 0.0 }).toMutableList()
+        val result = mutableListOf<Anime>()
+        
+        while (remaining.isNotEmpty() && result.size < 120) {
+            val recent = result.takeLast(5)
+            val explore = result.size % 5 == 4
+            val unseen = remaining.filter { it !in seenItems }.ifEmpty { remaining }
+            
+            val next = (if (explore) {
+                unseen.sortedByDescending { item -> 
+                    val pop = popularity(item) * 1.3 + freshness(item) * 0.6 + quality(item) * 0.5
+                    pop - if (item in seenItems) 1.5 else 0.0 
+                }.take(48)
+            } else {
+                unseen.take(48)
+            }).maxByOrNull { item ->
+                val repeatedType = recent.count { it.tag == item.tag }
+                val similarity = recent.maxOfOrNull { previous ->
+                    val a = vectors[item] ?: features(item)
+                    val b = vectors[previous] ?: features(previous)
+                    val shared = a.count { it in b }
+                    shared.toDouble() / (a.size + b.size - shared).coerceAtLeast(1)
+                } ?: 0.0
+                
+                val base = if (explore) {
+                    (popularity(item) * 1.3 + freshness(item) * 0.6 + quality(item) * 0.5) - if (item in seenItems) 1.5 else 0.0
+                } else {
+                    ranked[item] ?: 0.0
+                }
+                base - repeatedType * (if (explore) 0.4 else 0.22) - similarity * 0.4
+            } ?: break
+            
+            result += next
+            remaining.remove(next)
+        }
+        return result + remaining
+    }
+}

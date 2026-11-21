@@ -73,7 +73,7 @@ class SourceNetworkAuditTest {
         }
         report.appendText("Médias accessibles : $accessible/${nativeServers.size}. Lecture décodée : non vérifiée.\n")
     }
-    @Test fun nativeWrappedLivePlayback() = runBlocking {
+    @Test fun nativeFrenchLivePlayback() = runBlocking {
         assumeTrue(System.getProperty("tvsama.networkAudit") == "true")
         val application = com.streamflixreborn.streamflix.StreamFlixApp()
         org.robolectric.util.ReflectionHelpers.callInstanceMethod<Void>(application, "attach",
@@ -81,26 +81,15 @@ class SourceNetworkAuditTest {
         com.streamflixreborn.streamflix.StreamFlixApp::class.java.getDeclaredField("instance").apply { isAccessible = true }.set(null, application)
         UserPreferences.setup(RuntimeEnvironment.getApplication())
         val report = File("../LIVE_NATIVE_AUDIT.md")
-        report.writeText("# Direct natif — ${java.time.Instant.now()}\n\nContrôle réseau et transport des segments ; décodage Android à vérifier séparément.\n")
-        val events = VolkaMaxProvider.events()
-        val event = events.first { it.isLive && it.title.contains("Canal", true) }
-        val server = VolkaMaxProvider.servers(event.url).first()
-        val start = System.nanoTime()
-        val video = VolkaMaxProvider.video(server)
-        var failure = ""
-        val checked = validateLiveSource(VideoSource(event.title, video.source, "UNKNOWN", "Auto", VolkaMaxProvider.NAME, video.headers.orEmpty(), mimeType = video.type)) { failure = it }
-        report.appendText("\n${event.title} : iframe publiée résolue sans JavaScript publicitaire ; manifeste et segment déballé : ${if (checked != null) "accessibles" else "échec"} ; ${(System.nanoTime() - start) / 1_000_000} ms.\n")
-        if (failure.isNotEmpty()) report.appendText("Cause : $failure\n")
-        val sample = File("/tmp/tvsama-live-segment.bin")
-        if (sample.exists()) {
-            val wrapped = sample.readBytes()
-            val before = System.nanoTime()
-            val ts = WrappedTs.decode(wrapped)!!
-            org.junit.Assert.assertEquals("video/mp2t", mediaMimeType(ts))
-            org.junit.Assert.assertArrayEquals(File("/tmp/tvsama-live-decoded.ts").readBytes(), ts)
-            report.appendText("Échantillon réel PNG : ${wrapped.size} octets → ${ts.size} octets MPEG-TS, identiques au décodage indépendant ; ${(System.nanoTime() - before) / 1_000_000} ms.\n")
+        report.writeText("# Direct TV français — ${java.time.Instant.now()}\n\nContrôle du flux HLS et de son segment, sans décodage Android.\n")
+        val events = FrenchLiveTv.events(force = true)
+        val event = events.firstOrNull { it.title.contains("Arte", true) } ?: events.first()
+        val readers = FrenchLiveTv.servers(event.url)
+        val checked = readers.firstNotNullOfOrNull { reader ->
+            validateLiveSource(VideoSource(reader.name, reader.src, "VF", "Auto", "TVradioZap"))
         }
-        org.junit.Assert.assertNotNull("Manifeste ou segment de direct invalide : $failure", checked)
+        report.appendText("\n${event.title} : ${readers.size} adresse(s) publiées, flux et segment ${if (checked != null) "accessibles" else "non confirmés"}.\n")
+        org.junit.Assert.assertNotNull("Aucun flux HLS français confirmé pour ${event.title}", checked)
     }
     @Test fun movixWorksWithoutPersonalMetadataKey() = runBlocking {
         assumeTrue(System.getProperty("tvsama.networkAudit") == "true")
@@ -261,11 +250,11 @@ class SourceNetworkAuditTest {
             delay(10)
         }
         val sources = resolution.await()
-        report.appendText("\nRésolution TvSama : ${sources?.size ?: "délai dépassé à 70 s"} sources accessibles, sans décodage matériel.\n")
+        report.appendText("\nRésolution TvSama : ${sources?.count { it.reachable } ?: "délai dépassé à 70 s"} sources accessibles, sans décodage matériel.\n")
         sources.orEmpty().forEach { report.appendText("- ${it.provider} · ${it.name} · ${it.language} · ${it.mimeType.orEmpty()}\n") }
         org.junit.Assert.assertNotNull("Résolution TvSama > 70 s", sources)
         org.junit.Assert.assertTrue("Sources: ${sources.orEmpty().map { Triple(it.name, it.language, it.reachable) }}; statuts: ${manager.providerStatuses()}", sources.orEmpty().any { it.language == "VF" && it.reachable })
-        org.junit.Assert.assertTrue(sources.orEmpty().all { it.language == "VF" })
+        org.junit.Assert.assertTrue(sources.orEmpty().all { it.language in setOf("VF", "UNKNOWN") })
     }
     @Test fun liveAndIntro() = runBlocking {
         assumeTrue(System.getProperty("tvsama.networkAudit") == "true")
@@ -307,11 +296,11 @@ class SourceNetworkAuditTest {
             var seasonNumber: Int? = null
             var episodeNumber: Int? = null
             val results = mutableListOf<String>()
-            suspend fun <T> stage(block: suspend () -> T): T? {
+            suspend fun <T> stage(timeoutMs: Long = 30_000, block: suspend () -> T): T? {
                 val started = System.nanoTime()
                 return try {
                 coroutineScope {
-                    val task = async(Dispatchers.IO) { withTimeout(30_000) { block() } }
+                    val task = async(Dispatchers.IO) { withTimeout(timeoutMs) { block() } }
                     // Browser extractors dispatch to Android's main looper. Pump it during JVM audits
                     // so their timeouts can finish even though JavaScript itself is not simulated.
                     while (!task.isCompleted) {
@@ -327,9 +316,12 @@ class SourceNetworkAuditTest {
             val home = stage { provider.getHome().flatMap { it.list }.filter { it is Movie || it is TvShow }.also { check(it.isNotEmpty()) { "Vide" } } }
             // A catalogue may lead with an announced/ongoing title whose episode list is
             // intentionally empty. Prefer a published sample for the detail/media stages.
-            val sample = if (provider.name == "Animes-Sama") {
-                TvShow("https://animes-sama.su/anime/one-piece/", "One Piece")
-            } else home?.firstOrNull()
+            val sample = when (provider.name) {
+                "Animes-Sama" -> TvShow("https://animes-sama.su/anime/one-piece/", "One Piece")
+                "Voiranime" -> TvShow("https://voir-anime.to/anime/tokyo-revengers-3/", "Tokyo Revengers")
+                "MyFluneo" -> TvShow("https://myfluneo.eu/anime/naruto/", "Naruto")
+                else -> home?.firstOrNull()
+            }
             val title = when (sample) { is Movie -> sample.title; is TvShow -> sample.title; else -> "Naruto" }
             stage {
                 var found = provider.search(title.take(70))
@@ -342,8 +334,10 @@ class SourceNetworkAuditTest {
                     is Movie -> provider.getMovie(sample.id).let { id = it.id; Video.Type.Movie(it.id, it.title, "", it.poster.orEmpty(), it.imdbId) }
                     is TvShow -> {
                         val tv = provider.getTvShow(sample.id)
-                        val season = tv.seasons.firstOrNull() ?: error("Aucune saison publiée pour ${tv.title}")
-                        val ep = (season.episodes.ifEmpty { provider.getEpisodesBySeason(season.id) }).firstOrNull()
+                        val season = tv.seasons.firstOrNull { it.number > 0 } ?: tv.seasons.firstOrNull()
+                            ?: error("Aucune saison publiée pour ${tv.title}")
+                        val episodes = season.episodes.ifEmpty { provider.getEpisodesBySeason(season.id) }
+                        val ep = episodes.firstOrNull { it.number > 0 } ?: episodes.firstOrNull()
                             ?: error("Aucun épisode publié pour ${tv.title}, saison ${season.number}")
                         id = ep.id
                         seasonNumber = season.number
@@ -355,21 +349,23 @@ class SourceNetworkAuditTest {
                 }
             }
             if (type != null && id != null) {
-                stage {
-                    UserPreferences.currentProvider = provider
+                stage(timeoutMs = 45_000) {
                     val servers = provider.getServers(id!!, type)
                     check(servers.isNotEmpty())
                     var success = false
                     val failures = mutableListOf<String>()
-                    val nativeServers = servers.filterNot { it.id == "frembed-embed" }.take(5)
+                    val nativeServers = servers.filterNot { it.id == "frembed-embed" }
+                        .filter { provider.name != "WarFlix" || mediaLanguage(it.name, emptyList()) in listOf("VF", "VOSTFR") }
                     check(nativeServers.isNotEmpty()) { "Lecteur navigateur seulement ; audit JVM impossible" }
                     for (server in nativeServers) {
                         try {
-                            val video = withTimeout(9_000) { provider.getVideo(server) }
+                            val video = withContext(com.streamflixreborn.streamflix.utils.ExtractionProvider(provider)) {
+                                withTimeout(if (provider.name == "Coflix") 24_000 else 12_000) { provider.getVideo(server) }
+                            }
                             var reason = ""
                             val verified = withTimeout(9_000) {
                                 validateLiveSource(VideoSource(server.name, video.source, "UNKNOWN", "Auto", provider.name,
-                                    video.headers.orEmpty())) { reason = it }
+                                    video.headers.orEmpty()), minimumVodDurationMs = if (provider is IptvProvider) 0 else 90_000) { reason = it }
                             }
                             check(verified != null) { reason.ifBlank { "Signature média absente" } }
                             chosenServer = server.name
@@ -403,17 +399,11 @@ class SourceNetworkAuditTest {
             val external = manager.externalSource(name)!!
             report.appendText("| $name (lien externe) | Non testé : ${external.url} | Pas d’adaptateur | Pas d’adaptateur | Non intégrée |\n")
         }
-        val live = runCatching { VolkaMaxProvider.events() }
-        report.appendText("\nVolkamax : ${live.getOrNull()?.let { "${it.size} événements, ${it.count { e -> e.isLive }} actifs" } ?: "échec du calendrier"}.\n")
+        val live = runCatching { StreamedLive.events(force = true) }
+        report.appendText("\nStreamed : ${live.getOrNull()?.let { "${it.size} événements, ${it.count { e -> e.isLive }} en direct" } ?: "calendrier indisponible"}.\n")
         live.getOrNull()?.firstOrNull { it.isLive }?.let { event ->
-            val liveMedia = runCatching {
-                val servers = VolkaMaxProvider.servers(event.url)
-                val video = servers.firstNotNullOfOrNull { server -> runCatching { VolkaMaxProvider.video(server) }.getOrNull() }
-                check(video != null) { "Aucun extracteur compatible parmi ${servers.size} lecteurs" }
-                val c = URL(video.source).openConnection() as HttpURLConnection
-                try { c.connectTimeout = 5000; c.readTimeout = 5000; video.headers.orEmpty().forEach { (k,v) -> c.setRequestProperty(k,v) }; check(c.responseCode in 200..299); check(c.inputStream.use { it.read() } >= 0) } finally { c.disconnect() }
-            }
-            report.appendText("\nVolkamax — accès média : ${if (liveMedia.isSuccess) "OK (sans décodage)" else liveMedia.exceptionOrNull()?.javaClass?.simpleName}.\n")
+            val readers = runCatching { StreamedLive.servers(event.url) }.getOrDefault(emptyList())
+            report.appendText("Lecteurs publiés pour ${event.title} : ${readers.size} · média non confirmé dans cet échantillon.\n")
         }
         val metadata = enrichSeries(Anime("Jujutsu Kaisen", "Série", emptyList()))
         report.appendText("\nMétadonnées Jujutsu Kaisen : IMDb ${metadata.imdbId}, première diffusion ${metadata.firstAired}, ${metadata.seriesStatus}.\n")

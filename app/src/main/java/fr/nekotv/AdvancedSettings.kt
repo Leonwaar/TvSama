@@ -27,6 +27,54 @@ import org.json.JSONObject
 
 /** Local, user-selected backup files never contain cloud credentials. */
 private val backupPreferenceFiles = listOf("sources", "tvsama_library", "tvsama_settings")
+internal val localPairingKeys = setOf("pairing_token", "paired_tv_token", "paired_tv_host", "paired_tv_device")
+internal fun portablePreference(file: String, key: String) = file != "tvsama_settings" || key !in localPairingKeys
+
+internal fun exportLibraryPreferences(context: Context): JSONObject {
+    val files = JSONObject()
+    backupPreferenceFiles.forEach { name ->
+        val entries = JSONObject()
+        context.getSharedPreferences(name, Context.MODE_PRIVATE).all.forEach { (key, value) ->
+            if (!portablePreference(name, key)) return@forEach
+            val type = when (value) {
+                is String -> "string"
+                is Boolean -> "boolean"
+                is Int -> "int"
+                is Long -> "long"
+                is Float -> "float"
+                is Set<*> -> "strings"
+                else -> return@forEach
+            }
+            entries.put(key, JSONObject().put("type", type).put("value", if (value is Set<*>) JSONArray(value.toList()) else value))
+        }
+        files.put(name, entries)
+    }
+    return files
+}
+
+internal fun restoreLibraryPreferences(context: Context, files: JSONObject) {
+    backupPreferenceFiles.forEach { name ->
+        val entries = files.optJSONObject(name) ?: return@forEach
+        val preferences = context.getSharedPreferences(name, Context.MODE_PRIVATE)
+        val edit = preferences.edit().clear()
+        if (name == "tvsama_settings") localPairingKeys.forEach { key ->
+            preferences.getString(key, null)?.let { edit.putString(key, it) }
+        }
+        entries.keys().forEach { key ->
+            if (!portablePreference(name, key)) return@forEach
+            val entry = entries.getJSONObject(key)
+            when (entry.getString("type")) {
+                "string" -> edit.putString(key, entry.getString("value"))
+                "boolean" -> edit.putBoolean(key, entry.getBoolean("value"))
+                "int" -> edit.putInt(key, entry.getInt("value"))
+                "long" -> edit.putLong(key, entry.getLong("value"))
+                "float" -> edit.putFloat(key, entry.getDouble("value").toFloat())
+                "strings" -> edit.putStringSet(key, entry.getJSONArray("value").let { array -> (0 until array.length()).map { array.getString(it) }.toSet() })
+            }
+        }
+        check(edit.commit()) { "Écriture impossible" }
+    }
+}
 
 @Composable
 fun AdvancedSettings() {
@@ -37,23 +85,7 @@ fun AdvancedSettings() {
     val export = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("application/json")) { uri ->
         if (uri != null) {
             feedback = runCatching {
-                val files = JSONObject()
-                backupPreferenceFiles.forEach { name ->
-                    val entries = JSONObject()
-                    context.getSharedPreferences(name, Context.MODE_PRIVATE).all.forEach { (key, value) ->
-                        val type = when (value) {
-                            is String -> "string"
-                            is Boolean -> "boolean"
-                            is Int -> "int"
-                            is Long -> "long"
-                            is Float -> "float"
-                            is Set<*> -> "strings"
-                            else -> return@forEach
-                        }
-                        entries.put(key, JSONObject().put("type", type).put("value", if (value is Set<*>) JSONArray(value.toList()) else value))
-                    }
-                    files.put(name, entries)
-                }
+                val files = exportLibraryPreferences(context)
                 val data = JSONObject().put("app", "TvSama").put("version", 1).put("preferences", files)
                 requireNotNull(context.contentResolver.openOutputStream(uri)).bufferedWriter().use { it.write(data.toString(2)) }
                 "Sauvegarde enregistrée."
@@ -93,22 +125,7 @@ fun AdvancedSettings() {
             confirmButton = {
                 TextButton(onClick = {
                     feedback = runCatching {
-                        backupPreferenceFiles.forEach { name ->
-                            val entries = files.optJSONObject(name) ?: return@forEach
-                            val edit = context.getSharedPreferences(name, Context.MODE_PRIVATE).edit().clear()
-                            entries.keys().forEach { key ->
-                                val entry = entries.getJSONObject(key)
-                                when (entry.getString("type")) {
-                                    "string" -> edit.putString(key, entry.getString("value"))
-                                    "boolean" -> edit.putBoolean(key, entry.getBoolean("value"))
-                                    "int" -> edit.putInt(key, entry.getInt("value"))
-                                    "long" -> edit.putLong(key, entry.getLong("value"))
-                                    "float" -> edit.putFloat(key, entry.getDouble("value").toFloat())
-                                    "strings" -> edit.putStringSet(key, entry.getJSONArray("value").let { array -> (0 until array.length()).map { array.getString(it) }.toSet() })
-                                }
-                            }
-                            check(edit.commit()) { "Écriture impossible" }
-                        }
+                        restoreLibraryPreferences(context, files)
                         "Sauvegarde restaurée. Fermez puis relancez TvSama pour charger les données."
                     }.getOrElse { "Restauration impossible : ${it.localizedMessage}" }
                     pendingRestore = null

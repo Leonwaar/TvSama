@@ -17,11 +17,13 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.launch
 import org.json.JSONObject
+import org.json.JSONArray
+import java.time.Instant
 import java.io.File
 import java.net.HttpURLConnection
 import java.net.URL
 
-data class AppRelease(val version: String, val assetUrl: String, val size: Long, val digest: String)
+data class AppRelease(val version: String, val assetUrl: String, val size: Long, val digest: String, val publishedAt: String)
 object AppUpdates {
     private fun connection(url: String, binary: Boolean = false): HttpURLConnection {
         val target = URL(url)
@@ -33,29 +35,60 @@ object AppUpdates {
         }
     }
     fun newer(remote: String, local: String): Boolean {
-        fun parts(s: String) = s.trim().removePrefix("v").removePrefix("V").split(".").map { it.toIntOrNull() ?: -1 }
-        val a = parts(remote); val b = parts(local)
-        if (a.any { it < 0 }) return false
-        for (i in 0 until maxOf(a.size, b.size)) {
-            val x = a.getOrElse(i) { 0 }; val y = b.getOrElse(i) { 0 }
-            if (x != y) return x > y
+        return runCatching { Instant.parse(remote).isAfter(Instant.parse(local)) }.getOrDefault(false)
+    }
+    internal fun parseRelease(json: JSONObject): AppRelease? {
+        return try {
+            if (json.optBoolean("draft") || json.optBoolean("prerelease")) return null
+            val published = runCatching { Instant.parse(json.getString("published_at")) }.getOrNull() ?: return null
+            val array = json.optJSONArray("assets") ?: return null
+            val apks = (0 until array.length()).mapNotNull { array.optJSONObject(it) }.filter { it.optString("name").endsWith(".apk", true) }
+            if (apks.isEmpty()) return null
+            val asset = apks.firstOrNull { it.optString("name").contains("universal", true) } ?: apks.singleOrNull()
+                ?: return null
+            AppRelease(json.getString("tag_name"), asset.getString("browser_download_url"),
+                asset.getLong("size"), asset.optString("digest"), published.toString())
+        } catch (_: org.json.JSONException) { null }
+    }
+    private fun sha256(file: File): String {
+        val digest = java.security.MessageDigest.getInstance("SHA-256")
+        file.inputStream().use { input ->
+            val buffer = ByteArray(65536)
+            while (true) { val n = input.read(buffer); if (n < 0) break; digest.update(buffer, 0, n) }
         }
-        return false
+        return "sha256:" + digest.digest().joinToString("") { "%02x".format(it) }
+    }
+    internal fun shouldOffer(context: Context, release: AppRelease): Boolean {
+        val prefs = context.getSharedPreferences("tvsama_updates", Context.MODE_PRIVATE)
+        val installedHash by lazy { File(context.applicationInfo.sourceDir).takeIf { it.isFile }?.let(::sha256) }
+        val pending = prefs.getString("pending_hash", null)
+        if (pending != null && pending == installedHash) {
+            val publication = runCatching { Instant.parse(prefs.getString("pending_publication", "")).toEpochMilli() }.getOrNull()
+            if (publication != null) prefs.edit().putLong("installed_publication", publication)
+                .remove("pending_hash").remove("pending_publication").apply()
+        }
+        val reference = maxOf(BuildConfig.BUILT_AT_MILLIS, prefs.getLong("installed_publication", 0))
+        if (!newer(release.publishedAt, Instant.ofEpochMilli(reference).toString())) return false
+        if (release.digest.startsWith("sha256:") && release.digest == installedHash) {
+            prefs.edit().putLong("installed_publication", Instant.parse(release.publishedAt).toEpochMilli()).apply()
+            return false
+        }
+        return true
     }
     suspend fun latest(context: Context): AppRelease? = withContext(Dispatchers.IO) {
         check(BuildConfig.UPDATE_REPOSITORY.isNotBlank()) { "Dépôt GitHub absent de la configuration de compilation" }
-        val conn = connection("https://api.github.com/repos/${BuildConfig.UPDATE_REPOSITORY}/releases/latest")
-        try {
-            check(conn.responseCode == 200) { if (conn.responseCode == 404) "Aucune release publique disponible sur le dépôt configuré." else "GitHub : HTTP ${conn.responseCode}" }
-            val json = JSONObject(conn.inputStream.bufferedReader().use { it.readText() })
-            val version = json.getString("tag_name")
-            if (!newer(version, BuildConfig.VERSION_NAME)) return@withContext null
-            val array = json.getJSONArray("assets")
-            val apks = (0 until array.length()).map { array.getJSONObject(it) }.filter { it.getString("name").endsWith(".apk", true) }
-            val asset = apks.firstOrNull { it.getString("name").contains("universal", true) } ?: apks.singleOrNull()
-                ?: error("La release doit proposer un APK universel identifié")
-            AppRelease(version, asset.getString("browser_download_url"), asset.getLong("size"), asset.optString("digest"))
-        } finally { conn.disconnect() }
+        val releases = mutableListOf<AppRelease>()
+        var page = 1
+        do {
+            val conn = connection("https://api.github.com/repos/${BuildConfig.UPDATE_REPOSITORY}/releases?per_page=100&page=$page")
+            val items = try {
+                check(conn.responseCode == 200) { "Vérification GitHub : HTTP ${conn.responseCode}" }
+                JSONArray(conn.inputStream.bufferedReader().use { it.readText() })
+            } finally { conn.disconnect() }
+            for (i in 0 until items.length()) items.optJSONObject(i)?.let(::parseRelease)?.let(releases::add)
+            page++
+        } while (items.length() == 100)
+        releases.maxByOrNull { Instant.parse(it.publishedAt) }?.takeIf { shouldOffer(context, it) }
     }
     suspend fun download(context: Context, release: AppRelease): File = withContext(Dispatchers.IO) {
         check(release.assetUrl.startsWith("https://github.com/${BuildConfig.UPDATE_REPOSITORY}/releases/download/"))
@@ -83,11 +116,8 @@ object AppUpdates {
             }
         }
         check(downloaded) { "Trop de redirections" }
-        if (release.digest.startsWith("sha256:")) {
-            val digest = java.security.MessageDigest.getInstance("SHA-256")
-            file.inputStream().use { input -> val buffer = ByteArray(65536); while (true) { val n = input.read(buffer); if (n < 0) break; digest.update(buffer, 0, n) } }
-            check(digest.digest().joinToString("") { "%02x".format(it) } == release.digest.substringAfter(":")) { "Empreinte APK incorrecte" }
-        }
+        val fingerprint = sha256(file)
+        if (release.digest.startsWith("sha256:")) check(fingerprint == release.digest) { "Empreinte APK incorrecte" }
         @Suppress("DEPRECATION")
         val flags = PackageManager.GET_SIGNATURES
         @Suppress("DEPRECATION")
@@ -97,6 +127,8 @@ object AppUpdates {
         val installed = context.packageManager.getPackageInfo(context.packageName, flags)
         @Suppress("DEPRECATION")
         check(archive.signatures?.toSet() == installed.signatures?.toSet() && !archive.signatures.isNullOrEmpty()) { "Signature incompatible avec la version installée" }
+        context.getSharedPreferences("tvsama_updates", Context.MODE_PRIVATE).edit()
+            .putString("pending_hash", fingerprint).putString("pending_publication", release.publishedAt).apply()
         file
     }
     fun install(context: Context, file: File) {
@@ -119,16 +151,19 @@ fun UpdatePrompt(manual: Boolean = false) {
     var busy by remember { mutableStateOf(false) }
     var apk by remember { mutableStateOf<File?>(null) }
     var revision by remember { mutableIntStateOf(0) }
+    var checking by remember { mutableStateOf(true) }
     LaunchedEffect(revision) {
+        checking = true; apk = null; release = null
         try { release = AppUpdates.latest(context); status = if (release == null) "Application à jour" else "Nouvelle version disponible" }
         catch (e: CancellationException) { throw e }
         catch (e: Exception) { status = e.message ?: "Vérification impossible" }
+        finally { checking = false }
     }
     if (manual) Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
         Text("Mises à jour · ${BuildConfig.UPDATE_REPOSITORY}")
         Text(status, color = Muted)
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            Action("Vérifier") { revision++ }
+            Action(if (checking) "Vérification…" else "Vérifier", enabled = !checking && !busy) { revision++ }
         }
     }
     release?.let { candidate -> AlertDialog(onDismissRequest = { if (!busy) release = null },

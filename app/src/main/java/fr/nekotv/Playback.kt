@@ -6,13 +6,19 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.compose.ui.res.painterResource
 import androidx.lifecycle.Lifecycle
@@ -36,15 +42,147 @@ import com.google.android.gms.cast.MediaTrack
 import com.google.android.gms.cast.framework.CastSession
 import com.google.android.gms.cast.framework.SessionManagerListener
 import com.google.android.gms.common.images.WebImage
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.CoroutineStart
+import kotlinx.coroutines.Deferred
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.async
 import kotlinx.coroutines.delay
-import androidx.compose.ui.focus.FocusRequester
-import androidx.compose.ui.focus.focusRequester
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import kotlinx.coroutines.withTimeoutOrNull
+
+internal const val SHORT_PROGRAM_ERROR = "Ce serveur ne propose qu’un court extrait. Recherche d’un autre lecteur."
+internal const val UNKNOWN_PROGRAM_ERROR = "La durée de ce lecteur n’est pas vérifiable. Recherche d’un autre lecteur."
+internal const val LANGUAGE_MISMATCH_ERROR = "Ce lecteur ne diffuse pas la version choisie. Recherche d’un autre lecteur."
+
+/** VF must select French audio; VOSTFR must select the original audio, never the French dub. */
+private fun preferredAudioLanguages(source: VideoSource): Array<String> = when (source.language) {
+    "VF" -> arrayOf("fr", "fra", "fre")
+    "VOSTFR" -> {
+        val original = source.originalLanguage?.trim()?.lowercase()
+            ?.takeIf { it.matches(Regex("[a-z]{2,3}")) && it != "fr" }
+        if (original != null) arrayOf(original)
+        else arrayOf("ja", "en", "ko", "zh", "es", "de", "it", "pt", "ru", "ar")
+    }
+    else -> arrayOf("fr", "fra")
+}
+
+/** +15 dB of constant gain: a very audible boost for quiet streams, protected by the limiter below. */
+internal const val PLAYER_AUDIO_BOOST_MILLIBELS = 1_500
+
+// shortcut: seuil fixe de 90 s, utiliser la durée du catalogue si des programmes légitimes plus courts sont ajoutés.
+internal fun programDurationIssue(tag: String?, durationMs: Long, live: Boolean = false): String? {
+    if (live || tag != "Film" && tag != "Série") return null
+    if (durationMs in 1 until 90_000L) return SHORT_PROGRAM_ERROR
+    if (durationMs <= 0) return UNKNOWN_PROGRAM_ERROR
+    return null
+}
 
 private fun VideoSource.contentType(): String? = mimeType ?: when {
     Uri.parse(url).path.orEmpty().endsWith(".m3u8", true) -> MimeTypes.APPLICATION_M3U8
     Uri.parse(url).path.orEmpty().endsWith(".mpd", true) -> MimeTypes.APPLICATION_MPD
     Uri.parse(url).path.orEmpty().endsWith(".mp4", true) -> MimeTypes.VIDEO_MP4
     else -> null
+}
+
+/** Race the public Vidrift API against the hidden iframe capture so the first working
+ *  native manifest wins, and never keep a hidden WebView alive after the player starts. */
+private val vidriftStreamCache = java.util.concurrent.ConcurrentHashMap<String, Pair<Long, VideoSource>>()
+private val vidriftFailureCache = java.util.concurrent.ConcurrentHashMap<String, Long>()
+private const val VIDRIFT_CACHE_TTL = 3 * 60_000L
+private const val VIDRIFT_FAILURE_TTL = 30_000L
+
+/** One in-flight API resolution per Vidrift URL. The detail screen prewarms it while the
+ *  viewer reads the sheet, then the player awaits the same request instead of issuing a
+ *  second one when Play is pressed. The job lives in its own scope so leaving the detail
+ *  screen does not throw away work that is one second away from finishing. */
+private val vidriftApiScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+private val vidriftApiInFlight = java.util.concurrent.ConcurrentHashMap<String, Deferred<VideoSource?>>()
+
+private fun vidriftApiResolution(source: VideoSource): Deferred<VideoSource?> {
+    val cacheKey = "${source.url}|${source.language}"
+    vidriftApiInFlight[cacheKey]?.let { return it }
+    val started = vidriftApiScope.async(start = CoroutineStart.LAZY) {
+        val resolved = try {
+            withTimeoutOrNull(14_000) { resolveVidriftStream(source)
+                ?.let { candidate -> withTimeoutOrNull(8_000) { validateLiveSource(candidate, minimumVodDurationMs = 90_000, verifyLanguage = true) } }
+            }
+        } catch (e: CancellationException) { throw e
+        } catch (_: Exception) { null }
+        if (resolved != null) {
+            vidriftStreamCache[cacheKey] = System.currentTimeMillis() to resolved
+            vidriftFailureCache.remove(cacheKey)
+        }
+        resolved
+    }
+    val existing = vidriftApiInFlight.putIfAbsent(cacheKey, started)
+    if (existing != null) return existing
+    started.invokeOnCompletion { vidriftApiInFlight.remove(cacheKey, started) }
+    started.start()
+    return started
+}
+
+private suspend fun resolveFirstVidrift(context: android.content.Context, source: VideoSource): VideoSource? {
+    val cacheKey = "${source.url}|${source.language}"
+    vidriftStreamCache[cacheKey]?.takeIf { System.currentTimeMillis() - it.first < VIDRIFT_CACHE_TTL }
+        ?.let { return it.second }
+    if ((vidriftFailureCache[cacheKey] ?: 0L) > System.currentTimeMillis()) return null
+    val resolved = coroutineScope {
+        val results = Channel<VideoSource?>(2)
+        val api = launch(Dispatchers.IO) {
+            val value = try { withTimeoutOrNull(18_000) { vidriftApiResolution(source).await() } }
+            catch (e: CancellationException) { throw e }
+            catch (_: Exception) { null }
+            results.send(value)
+        }
+        val web = launch(Dispatchers.Main) {
+            val value = try { withTimeoutOrNull(22_000) { resolveVidriftWebStream(context, source) } }
+            catch (e: CancellationException) { throw e }
+            catch (_: Exception) { null }
+            results.send(value)
+        }
+        var winner: VideoSource? = null
+        var received = 0
+        while (received < 2 && winner == null) {
+            winner = results.receive()
+            received++
+        }
+        api.cancel(); web.cancel(); results.close()
+        winner
+    }
+    if (resolved != null) {
+        vidriftStreamCache[cacheKey] = System.currentTimeMillis() to resolved
+        vidriftFailureCache.remove(cacheKey)
+    } else vidriftFailureCache[cacheKey] = System.currentTimeMillis() + VIDRIFT_FAILURE_TTL
+    return resolved
+}
+
+/** A failed native playback must not be served again from the short-lived resolution cache. */
+internal fun invalidateResolvedStream(source: VideoSource) {
+    if (source.mimeType != VIDRIFT_MIME_TYPE) return
+    val key = "${source.url}|${source.language}"
+    vidriftStreamCache.remove(key)
+    vidriftFailureCache.remove(key)
+}
+
+/** Resolve the public Vidrift API while the viewer is still browsing the server list.
+ *  If it succeeds the player starts immediately; otherwise the normal WebView race runs. */
+internal suspend fun prewarmPlaybackSource(source: VideoSource): Boolean = withContext(Dispatchers.IO) {
+    if (source.mimeType != VIDRIFT_MIME_TYPE) return@withContext false
+    val cacheKey = "${source.url}|${source.language}"
+    val now = System.currentTimeMillis()
+    if (vidriftStreamCache[cacheKey]?.takeIf { now - it.first < VIDRIFT_CACHE_TTL } != null) return@withContext true
+    if ((vidriftFailureCache[cacheKey] ?: 0L) > now) return@withContext false
+    val resolved = try {
+        withTimeoutOrNull(22_000) { vidriftApiResolution(source).await() }
+    } catch (e: CancellationException) { throw e
+    } catch (_: Exception) { null }
+    resolved != null
 }
 
 @androidx.annotation.OptIn(androidx.media3.common.util.UnstableApi::class)
@@ -69,12 +207,65 @@ fun TvSamaPlayer(
     seasonNumber: Int = 0,
     episodeNumber: Int = 0,
     onActualQuality: (String) -> Unit = {},
+    onPrefetchNext: (() -> Unit)? = null,
     onProgress: (Long, Long) -> Unit,
     modifier: Modifier = Modifier,
     onError: (String) -> Unit = {},
     onEnded: () -> Unit = {}
 ) {
+    if (source.mimeType == VIDRIFT_MIME_TYPE) {
+        val context = LocalContext.current
+        var nativeSource by remember(source.url) { mutableStateOf<VideoSource?>(null) }
+        var resolving by remember(source.url) { mutableStateOf(true) }
+        var failure by remember(source.url) { mutableStateOf<String?>(null) }
+        LaunchedEffect(source.url) {
+            resolving = true; failure = null
+            val resolved = resolveFirstVidrift(context, source)
+            nativeSource = resolved
+            resolving = false
+            if (resolved == null) failure =
+                "Aucune piste ${source.language} confirmée pour cette source. Choisis une autre version ou une autre source."
+        }
+        val errorState by rememberUpdatedState(onError)
+        LaunchedEffect(failure) { failure?.let(errorState) }
+        if (resolving) {
+            var elapsedSeconds by remember(source.url) { mutableIntStateOf(0) }
+            LaunchedEffect(source.url) {
+                while (true) { delay(1_000); elapsedSeconds++ }
+            }
+            Box(modifier.fillMaxSize().background(Color.Black), contentAlignment = Alignment.Center) {
+                Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                    CircularProgressIndicator(color = Accent)
+                    Text("Intégration du flux Vidrift…",
+                        color = Color.White)
+                    Text("Version ${source.language} · ${elapsedSeconds}s", color = Color.White.copy(alpha = 0.7f))
+                    Text("La lecture démarre dès qu’une piste ${source.language} est confirmée.",
+                        color = Color.White.copy(alpha = 0.6f), fontSize = 12.sp, textAlign = TextAlign.Center,
+                        modifier = Modifier.padding(horizontal = 32.dp))
+                    OutlinedButton(onClick = onBack) { Text("Annuler") }
+                }
+            }
+            return
+        }
+        val target = nativeSource
+        if (target != null) {
+            TvSamaPlayer(target, anime, episode, title,
+                poster = poster, resumeAt = resumeAt, subtitlesEnabled = subtitlesEnabled,
+                isFullscreen = isFullscreen, onControlsVisibleChange = onControlsVisibleChange,
+                onToggleFullscreen = onToggleFullscreen, onBack = onBack, onPrevious = onPrevious,
+                onNext = onNext, onAutoNext = onAutoNext, imdbId = imdbId, isMovie = isMovie,
+                seasonNumber = seasonNumber, episodeNumber = episodeNumber,
+                onActualQuality = onActualQuality, onPrefetchNext = onPrefetchNext,
+                onProgress = onProgress, modifier = modifier, onError = onError, onEnded = onEnded)
+            return
+        }
+        Box(modifier.fillMaxSize().background(Color.Black), contentAlignment = Alignment.Center) {
+            Text(failure ?: "Lecture indisponible", color = Color.White)
+        }
+        return
+    }
     val context = LocalContext.current
+    val live = anime?.isLiveContent() == true
     val lifecycle = LocalLifecycleOwner.current.lifecycle
     val inPip = (context as? MainActivity)?.inPictureInPicture == true
     val errorCallback by rememberUpdatedState(onError)
@@ -82,6 +273,8 @@ fun TvSamaPlayer(
     val previousCallback by rememberUpdatedState(onPrevious)
     val nextCallback by rememberUpdatedState(onNext)
     val autoNextCallback by rememberUpdatedState(onAutoNext)
+    val prefetchCallback by rememberUpdatedState(onPrefetchNext)
+    var prefetched by remember(anime?.id, episode?.id) { mutableStateOf(false) }
     val advance = remember(anime?.id, episode?.id, seasonNumber, episodeNumber) { EpisodeAdvance() }
     val qualityCallback by rememberUpdatedState(onActualQuality)
     val controlsCallback by rememberUpdatedState(onControlsVisibleChange)
@@ -91,6 +284,10 @@ fun TvSamaPlayer(
     var segments by remember(imdbId, seasonNumber, episodeNumber, isMovie) { mutableStateOf<EpisodeSegments?>(null) }
     var playbackDuration by remember(source) { mutableLongStateOf(0L) }
     var position by remember(source) { mutableLongStateOf(0L) }
+    var firstFrame by remember(source) { mutableStateOf(false) }
+    var durationApproved by remember(source, anime?.tag) { mutableStateOf(live || anime?.tag !in listOf("Film", "Série")) }
+    var durationRejected by remember(source) { mutableStateOf(false) }
+    var playbackSampleConfirmed by remember(source) { mutableStateOf(false) }
     LaunchedEffect(imdbId, seasonNumber, episodeNumber, isMovie) { segments = fetchSegments(imdbId, seasonNumber, episodeNumber, isMovie) }
     var castMessage by remember(source) { mutableStateOf<String?>(null) }
     val castContext = remember(context) { castContextOrNull(context) }
@@ -100,34 +297,45 @@ fun TvSamaPlayer(
     // This also clears an expired deadline when the timer was left enabled.
     val initialSleepDeadline = remember(source) { timer.restart() }
     var sleepDeadline by remember(source) { mutableLongStateOf(initialSleepDeadline) }
-    val player = remember(source) {
-        val dataSource = if (anime?.tag == "Direct") MediaNetwork.factory(source)
-            else PlaybackCache.factory(context, source)
-        ExoPlayer.Builder(context).setMediaSourceFactory(DefaultMediaSourceFactory(dataSource)).apply {
-            if (anime?.tag == "Direct") setLoadControl(androidx.media3.exoplayer.DefaultLoadControl.Builder()
-                .setBufferDurationsMs(2_000, 10_000, 500, 1_000)
-                .setPrioritizeTimeOverSizeThresholds(true).build())
-        }.build().apply {
-            trackSelectionParameters = trackSelectionParameters.buildUpon()
-                .setPreferredAudioLanguages(*(if (source.language == "VOSTFR") arrayOf("ja", "en") else arrayOf("fr", "fra")))
-                .setPreferredTextLanguage("fr")
-                .setSelectUndeterminedTextLanguage(source.language == "VOSTFR").build()
-            setAudioAttributes(androidx.media3.common.AudioAttributes.DEFAULT, true)
-            setHandleAudioBecomingNoisy(true)
-            setMediaItem(MediaItem.Builder().setUri(source.url).apply {
-                setMediaMetadata(androidx.media3.common.MediaMetadata.Builder().setTitle(title)
-                    .apply { if (poster.startsWith("https://")) setArtworkUri(Uri.parse(poster)) }.build())
-                source.contentType()?.let { setMimeType(it) }
-                setSubtitleConfigurations(source.subtitles.map { subtitle ->
-                    MediaItem.SubtitleConfiguration.Builder(Uri.parse(subtitle.url))
-                        .setMimeType(subtitle.mimeType).setLanguage(subtitle.language).setLabel(subtitle.label)
-                        .setSelectionFlags(if (source.language == "VOSTFR") C.SELECTION_FLAG_DEFAULT else 0).build()
-                })
-            }.build())
-            if (anime?.tag == "Direct") seekToDefaultPosition() else seekTo(resumeAt.coerceAtLeast(0))
-            prepare()
-            playWhenReady = initialSleepDeadline == 0L || initialSleepDeadline > System.currentTimeMillis()
+    val playerResult = remember(source) {
+        var allocated: ExoPlayer? = null
+        try {
+            val dataSource = if (live) MediaNetwork.factory(source)
+                else PlaybackCache.factory(context, source)
+            ExoPlayer.Builder(context, androidx.media3.exoplayer.DefaultRenderersFactory(context).setEnableDecoderFallback(true)).setMediaSourceFactory(DefaultMediaSourceFactory(dataSource)).apply {
+                if (live) setLoadControl(androidx.media3.exoplayer.DefaultLoadControl.Builder()
+                    .setBufferDurationsMs(2_000, 10_000, 500, 1_000)
+                    .setPrioritizeTimeOverSizeThresholds(true).build())
+            }.build().also { allocated = it }.apply {
+                trackSelectionParameters = trackSelectionParameters.buildUpon()
+                    .setPreferredAudioLanguages(*preferredAudioLanguages(source))
+                    .setPreferredTextLanguage("fr")
+                    .setSelectUndeterminedTextLanguage(source.language == "VOSTFR").build()
+                setAudioAttributes(androidx.media3.common.AudioAttributes.DEFAULT, true)
+                volume = 1f
+                setHandleAudioBecomingNoisy(true)
+                setMediaItem(MediaItem.Builder().setUri(source.url).apply {
+                    setMediaMetadata(androidx.media3.common.MediaMetadata.Builder().setTitle(title)
+                        .apply { if (poster.startsWith("https://")) setArtworkUri(Uri.parse(poster)) }.build())
+                    source.contentType()?.let { setMimeType(it) }
+                    setSubtitleConfigurations(source.subtitles.map { subtitle ->
+                        MediaItem.SubtitleConfiguration.Builder(Uri.parse(subtitle.url))
+                            .setMimeType(subtitle.mimeType).setLanguage(subtitle.language).setLabel(subtitle.label)
+                            .setSelectionFlags(if (source.language == "VOSTFR") C.SELECTION_FLAG_DEFAULT else 0).build()
+                    })
+                }.build())
+                if (live) seekToDefaultPosition() else seekTo(resumeAt.coerceAtLeast(0))
+            }.let { Result.success(it) }
+        } catch (error: Exception) {
+            allocated?.release()
+            Result.failure(error)
         }
+    }
+    val player = playerResult.getOrNull()
+    if (player == null) {
+        LaunchedEffect(source) { errorCallback("Impossible d’initialiser le lecteur. Réessayez ou choisissez un autre serveur.") }
+        Box(modifier.background(Color.Black), contentAlignment = Alignment.Center) { Text("Lecture indisponible", color = Color.White) }
+        return
     }
     SideEffect { (context as? MainActivity)?.pictureInPictureEligible = playing && !casting }
     val progressCallback = remember(player, advance) {
@@ -141,6 +349,67 @@ fun TvSamaPlayer(
     var pairingMenu by remember { mutableStateOf(false) }
     var dimmed by remember { mutableStateOf(false) }
     val dimPreferences = remember(context) { context.getSharedPreferences("tvsama_settings", 0) }
+    val audioBoost = remember { dimPreferences.getBoolean("audio_boost", true) }
+    var audioSession by remember(player) { mutableIntStateOf(player.audioSessionId) }
+    DisposableEffect(player, audioSession, audioBoost, casting) {
+        var dynamics: android.media.audiofx.DynamicsProcessing? = null
+        var loudness: android.media.audiofx.LoudnessEnhancer? = null
+        // Low-end devices (1 GB RAM) may struggle with multi-band dynamics processing.
+        // We keep the LoudnessEnhancer (lightweight) and skip the heavy DynamicsProcessing
+        // on devices reporting less than ~2 GB of RAM to preserve CPU headroom.
+        val am = context.getSystemService(android.content.Context.ACTIVITY_SERVICE) as android.app.ActivityManager
+        val info = android.app.ActivityManager.MemoryInfo()
+        am.getMemoryInfo(info)
+        val isLowRam = info.totalMem < 2_000_000_000L
+        if (audioBoost && !casting && audioSession != C.AUDIO_SESSION_ID_UNSET && audioSession > 0 && !isLowRam) {
+            // LoudnessEnhancer : boost global très marqué pour les pistes faibles.
+            // Cible : +1500 mB (≈ +15 dB) de gain constant, le limiteur évite la saturation.
+            runCatching {
+                loudness = android.media.audiofx.LoudnessEnhancer(audioSession).apply {
+                    setTargetGain(PLAYER_AUDIO_BOOST_MILLIBELS)
+                    enabled = true
+                }
+            }
+            // DynamicsProcessing (Android 9+) : compresseur multi-bande pour homogénéiser
+            // et éviter les extrêmes (trop fort / trop faible entre scènes)
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.P) {
+                runCatching {
+                    val defaults = android.media.audiofx.DynamicsProcessing(audioSession)
+                    val channels: Int
+                    val variant: Int
+                    try {
+                        channels = defaults.channelCount.coerceAtLeast(1)
+                        variant = defaults.config.variant
+                    } finally { defaults.release() }
+                    val bandLow = android.media.audiofx.DynamicsProcessing.MbcBand(
+                        true, 250f, 5f, 150f, 4f, -18f, 8f, -50f, 1.5f, 3f, 2f
+                    )
+                    val bandMid = android.media.audiofx.DynamicsProcessing.MbcBand(
+                        true, 4_000f, 3f, 200f, 6f, -20f, 10f, -55f, 1.2f, 4f, 3f
+                    )
+                    val bandHigh = android.media.audiofx.DynamicsProcessing.MbcBand(
+                        true, 20_000f, 8f, 100f, 3f, -16f, 6f, -50f, 1f, 2f, 1f
+                    )
+                    val config = android.media.audiofx.DynamicsProcessing.Config.Builder(
+                        variant, channels, false, 0, true, 3, false, 0, true
+                    ).setMbcAllChannelsTo(
+                        android.media.audiofx.DynamicsProcessing.Mbc(true, true, 3).apply {
+                            setBand(0, bandLow); setBand(1, bandMid); setBand(2, bandHigh)
+                        }
+                    ).setLimiterAllChannelsTo(
+                        android.media.audiofx.DynamicsProcessing.Limiter(
+                            true, true, 0, 2f, 60f, 10f, -1f, 0f
+                        )
+                    ).build()
+                    dynamics = android.media.audiofx.DynamicsProcessing(0, audioSession, config).apply { enabled = true }
+                }
+            }
+        }
+        onDispose {
+            dynamics?.release()
+            loudness?.release()
+        }
+    }
     var autoDim by remember { mutableStateOf(dimPreferences.getBoolean("pause_dimming", true)) }
     var playerView by remember(player) { mutableStateOf<PlayerView?>(null) }
     BackHandler(!inPip && (sleepMenu || controlsVisible)) {
@@ -196,13 +465,14 @@ fun TvSamaPlayer(
                         if (remote != null) remote.play() else player.play()
                     }
                 }
-                "seek" -> {
+                "seek", "seek_by" -> {
                     val duration = remote?.streamDuration ?: player.duration
-                    val target = command.position.coerceIn(0, duration.takeIf { it > 0 } ?: Long.MAX_VALUE)
+                    val requested = if (command.action == "seek_by") (remote?.approximateStreamPosition ?: player.currentPosition) + command.position else command.position
+                    val target = requested.coerceIn(0, duration.takeIf { it > 0 } ?: Long.MAX_VALUE)
                     if (remote != null) remote.seek(MediaSeekOptions.Builder().setPosition(target).build())
                     else player.seekTo(target)
                 }
-                "sleep" -> { setSleep(180); if (remote != null) remote.play() else player.play() }
+                "sleep" -> setSleep(command.sleepMinutes())
             }
         }
     }
@@ -226,12 +496,28 @@ fun TvSamaPlayer(
         if (darkened && window != null) window.attributes = window.attributes.apply { screenBrightness = 0f }
         onDispose { if (darkened && window != null) window.attributes = window.attributes.apply { screenBrightness = previous } }
     }
-    LaunchedEffect(player, subtitlesEnabled) {
+    LaunchedEffect(player, subtitlesEnabled, casting) {
         player.trackSelectionParameters = player.trackSelectionParameters.buildUpon()
             .setTrackTypeDisabled(C.TRACK_TYPE_TEXT, !subtitlesEnabled).build()
+        if (casting) castContext?.sessionManager?.currentCastSession?.remoteMediaClient
+            ?.takeIf { it.mediaInfo?.contentId == source.url }?.setActiveMediaTracks(
+                if (subtitlesEnabled && source.language == "VOSTFR" && source.subtitles.isNotEmpty()) longArrayOf(1) else longArrayOf())
     }
     LaunchedEffect(player, casting) {
+        var watchedMs = 0L
+        var lastTick = android.os.SystemClock.elapsedRealtime()
+        var confirmed = false
         while (true) {
+            val now = android.os.SystemClock.elapsedRealtime()
+            if (!confirmed && !casting && firstFrame && player.isPlaying && !live && anime?.tag in listOf("Film", "Série")) {
+                watchedMs += (now - lastTick).coerceIn(0L, 500L)
+                if (watchedMs >= 90_000) {
+                    StreamFlixProviderManager.getInstance().confirmProgramPlayback(source, player.duration)
+                    playbackSampleConfirmed = true
+                    confirmed = true
+                }
+            }
+            lastTick = now
             // Keep the Compose toolbar in sync with Media3's actual state,
             // including the intermediate states of its hide/show animations.
             // Reuse the existing player ticker rather than start another timer.
@@ -248,8 +534,19 @@ fun TvSamaPlayer(
                 position = player.currentPosition
                 playbackDuration = player.duration
             }
-            if (advance.claim(position, playbackDuration, segments?.outro,
-                    eligible = autoNextCallback != null && !isMovie && anime?.tag != "Direct" &&
+            if (!prefetched && !casting && player.isPlaying && position >= 10_000 && player.totalBufferedDuration >= 15_000 &&
+                prefetchCallback != null && PlaybackCache.canPrefetch(context)) {
+                prefetched = true
+                prefetchCallback?.invoke()
+            }
+            val canAutoAdvance = autoNextCallback != null && !isMovie && !live &&
+                !timer.expired() && !sleepExpired && (if (casting) remote?.isPlaying == true else player.isPlaying)
+            advance.claimPostCredits(position, playbackDuration, segments, canAutoAdvance)?.let { target ->
+                if (casting) remote?.seek(MediaSeekOptions.Builder().setPosition(target).build()) else player.seekTo(target)
+            }
+            if (advance.claim(position, playbackDuration, segments.autoOutro(playbackDuration),
+                    eligible = autoNextCallback != null && !isMovie && !live &&
+                        position >= (segments?.protectedUntil ?: 0) &&
                         !timer.expired() && !sleepExpired && (if (casting) remote?.isPlaying == true else player.isPlaying))) {
                 // Stop the old stream and record the episode as completed before resolving the next one.
                 if (casting) remote?.pause() else { player.pause(); player.seekTo(playbackDuration) }
@@ -266,7 +563,7 @@ fun TvSamaPlayer(
             .setCallback(object : androidx.media3.session.MediaSession.Callback {
                 override fun onPlayerCommandRequest(session: androidx.media3.session.MediaSession,
                     controller: androidx.media3.session.MediaSession.ControllerInfo, command: Int): Int {
-                    if (command in setOf(Player.COMMAND_PLAY_PAUSE, Player.COMMAND_SEEK_IN_CURRENT_MEDIA_ITEM,
+                        if (command in setOf(Player.COMMAND_PLAY_PAUSE, Player.COMMAND_SEEK_IN_CURRENT_MEDIA_ITEM,
                             Player.COMMAND_SEEK_BACK, Player.COMMAND_SEEK_FORWARD)) {
                         if (activity?.notifyPlayerInteraction() == true) return androidx.media3.session.SessionResult.RESULT_ERROR_INVALID_STATE
                         if (command == Player.COMMAND_PLAY_PAUSE && sleepExpired) {
@@ -276,21 +573,68 @@ fun TvSamaPlayer(
                     return androidx.media3.session.SessionResult.RESULT_SUCCESS
                 }
             }).build()
+        var errorReported = false
         var liveWindowRecoveries = 0
         var lastLiveWindowRecovery = 0L
+        var pendingAutoplay = initialSleepDeadline == 0L || initialSleepDeadline > System.currentTimeMillis()
+        var durationChecked = live || anime?.tag !in listOf("Film", "Série")
+        var languageChecked = live || casting || source.language !in listOf("VF", "VOSTFR")
+        fun rejectBadDuration(duration: Long): Boolean {
+            if (durationRejected) return true
+            val issue = programDurationIssue(anime?.tag, duration, live) ?: return false
+            durationRejected = true
+            player.stop()
+            errorCallback(issue)
+            return true
+        }
         val listener = object : Player.Listener {
             override fun onRenderedFirstFrame() {
+                firstFrame = true
                 if (BuildConfig.DEBUG) android.util.Log.d("TvSamaPlayer", "Première image ${source.provider} : ${android.os.SystemClock.elapsedRealtime() - loadStartedAt} ms ; ${player.videoFormat?.width}x${player.videoFormat?.height} ; audio ${player.audioFormat?.sampleMimeType.orEmpty()}")
             }
+            override fun onAudioSessionIdChanged(audioSessionId: Int) { audioSession = audioSessionId }
             override fun onTracksChanged(tracks: androidx.media3.common.Tracks) {
                 if (BuildConfig.DEBUG) {
                     val selected = tracks.groups.flatMap { group -> (0 until group.length).filter(group::isTrackSelected).map { group.getTrackFormat(it) } }
                     android.util.Log.d("TvSamaPlayer", "Pistes actives ${source.provider} : ${selected.joinToString { "${it.sampleMimeType} ${it.language.orEmpty()} ${it.width}x${it.height}" }}")
                 }
+                if (languageChecked || casting) return
+                val audioGroups = tracks.groups.filter { it.type == C.TRACK_TYPE_AUDIO }
+                val declaredAudio = audioGroups.flatMap { group ->
+                    (0 until group.length).mapNotNull { group.getTrackFormat(it).language?.takeIf(String::isNotBlank) }
+                }
+                if (declaredAudio.isEmpty()) return
+                languageChecked = true
+                // A server name is only a hint. If the manifest declares its audio languages
+                // and none matches the chosen version, the source is mislabelled: never play it.
+                if (!audioMatchesRequested(source.language, source.originalLanguage, declaredAudio)) {
+                    if (!errorReported) {
+                        errorReported = true
+                        player.stop()
+                        errorCallback(LANGUAGE_MISMATCH_ERROR)
+                    }
+                    return
+                }
+                val wantsFrench = source.language == "VF"
+                val original = source.originalLanguage?.trim()?.lowercase()
+                    ?.takeIf { it.matches(Regex("[a-z]{2,3}")) && it != "fr" }
+                fun matchesAudio(format: androidx.media3.common.Format): Boolean {
+                    val tag = mediaLanguageTag(format.language) ?: return false
+                    return if (wantsFrench) tag == "fr" else original?.let { tag == it } ?: (tag != "fr")
+                }
+                val target = audioGroups.firstOrNull { group ->
+                    (0 until group.length).any { matchesAudio(group.getTrackFormat(it)) }
+                } ?: return
+                val indices = (0 until target.length).filter { matchesAudio(target.getTrackFormat(it)) }
+                if (indices.isEmpty()) return
+                // Force the confirmed track instead of relying on language scoring alone.
+                player.trackSelectionParameters = player.trackSelectionParameters.buildUpon()
+                    .setOverrideForType(androidx.media3.common.TrackSelectionOverride(target.mediaTrackGroup, indices))
+                    .build()
             }
             override fun onPlayerError(error: PlaybackException) {
                 if (BuildConfig.DEBUG) android.util.Log.w("TvSamaPlayer", "Lecture ${source.provider} : ${error.errorCodeName} (${error.cause?.javaClass?.simpleName.orEmpty()})")
-                if (anime?.tag == "Direct" && error.errorCode == PlaybackException.ERROR_CODE_BEHIND_LIVE_WINDOW) {
+                if (live && error.errorCode == PlaybackException.ERROR_CODE_BEHIND_LIVE_WINDOW) {
                     val now = android.os.SystemClock.elapsedRealtime()
                     if (now - lastLiveWindowRecovery > 60_000) liveWindowRecoveries = 0
                     if (liveWindowRecoveries++ < 2) {
@@ -302,14 +646,37 @@ fun TvSamaPlayer(
                         return
                     }
                 }
-                errorCallback("Ce serveur ne peut pas être lu (${error.errorCodeName}). Essayez un autre serveur.")
+                if (errorReported) return
+                errorReported = true
+                val http = generateSequence<Throwable>(error) { it.cause }
+                    .filterIsInstance<androidx.media3.datasource.HttpDataSource.InvalidResponseCodeException>().firstOrNull()?.responseCode
+                errorCallback(if (http != null) "Le serveur vidéo répond HTTP $http. Recherche d’un autre lecteur."
+                    else "Ce serveur ne peut pas être lu (${error.errorCodeName}). Essayez un autre serveur.")
             }
             override fun onPlaybackStateChanged(state: Int) {
                 playing = player.isPlaying
+                if (state == Player.STATE_READY && !durationChecked) {
+                    durationChecked = true
+                    if (rejectBadDuration(player.duration)) return
+                    durationApproved = player.duration >= 90_000L
+                    player.playWhenReady = pendingAutoplay && !timer.expired()
+                }
                 if (state == Player.STATE_ENDED && !casting && !timer.expired() && !advance.triggered) {
-                    if (anime?.tag == "Direct") castMessage = "La diffusion est terminée."
+                    if (rejectBadDuration(player.currentPosition)) return
+                    if (live) castMessage = "La diffusion est terminée."
                     else { progressCallback(player.duration.coerceAtLeast(0), player.duration.coerceAtLeast(0)); endedCallback() }
                 }
+            }
+            override fun onTimelineChanged(timeline: androidx.media3.common.Timeline, reason: Int) {
+                if (!live && anime?.tag in listOf("Film", "Série")) {
+                    if (player.duration > 0 && rejectBadDuration(player.duration)) return
+                    if (durationChecked && player.playbackState == Player.STATE_READY)
+                        durationApproved = player.duration >= 90_000L
+                }
+            }
+            override fun onPlayWhenReadyChanged(playWhenReady: Boolean, reason: Int) {
+                if (!durationChecked && reason == Player.PLAY_WHEN_READY_CHANGE_REASON_USER_REQUEST)
+                    pendingAutoplay = playWhenReady
             }
             override fun onIsPlayingChanged(isPlaying: Boolean) { playing = isPlaying }
             override fun onVideoSizeChanged(videoSize: androidx.media3.common.VideoSize) {
@@ -317,27 +684,35 @@ fun TvSamaPlayer(
             }
         }
         player.addListener(listener)
+        player.prepare()
+        player.playWhenReady = durationChecked && pendingAutoplay
         var resumeOnStart = false
         val observer = LifecycleEventObserver { _, event ->
             if (event == Lifecycle.Event.ON_STOP) {
-                resumeOnStart = player.playWhenReady
-                progressCallback(player.currentPosition.coerceAtLeast(0), player.duration.coerceAtLeast(0))
+                resumeOnStart = player.playWhenReady || (!durationChecked && pendingAutoplay)
+                pendingAutoplay = false
+                if (playbackSampleConfirmed || live || anime?.tag !in listOf("Film", "Série"))
+                    progressCallback(player.currentPosition.coerceAtLeast(0), player.duration.coerceAtLeast(0))
                 // A visible PiP activity remains STARTED; STOP means it was hidden or dismissed.
                 player.pause()
-            } else if (event == Lifecycle.Event.ON_START && resumeOnStart && !casting && !timer.expired()) player.play()
+            } else if (event == Lifecycle.Event.ON_START && resumeOnStart && !casting && !durationRejected && !timer.expired()) {
+                pendingAutoplay = true
+                if (durationChecked) player.play()
+            }
         }
         lifecycle.addObserver(observer)
         onDispose {
-            progressCallback(player.currentPosition.coerceAtLeast(0), player.duration.coerceAtLeast(0))
+            if (!durationRejected) progressCallback(player.currentPosition.coerceAtLeast(0), player.duration.coerceAtLeast(0))
             lifecycle.removeObserver(observer)
             player.removeListener(listener)
+            playerView?.takeIf { it.player === player }?.player = null
             (context as? MainActivity)?.pictureInPictureEligible = false
             RemoteLink.playback = RemotePlayback()
             mediaSession.release()
             player.release()
         }
     }
-    DisposableEffect(player, castContext) {
+    DisposableEffect(player, castContext, durationApproved) {
         var active = true
         var trackedRemote: RemoteMediaClient? = null
         var lastRemotePosition = resumeAt.coerceAtLeast(0)
@@ -387,6 +762,10 @@ fun TvSamaPlayer(
             if (lifecycle.currentState.isAtLeast(Lifecycle.State.STARTED) && remoteWantedPlayback && !timer.expired()) player.play()
         }
         fun sendTo(session: CastSession) {
+            if (!durationApproved) {
+                castMessage = "Vérification de la durée avant diffusion sur la télévision…"
+                return
+            }
             // The default receiver cannot attach arbitrary Referer/Cookie headers to requests.
             if (source.headers.isNotEmpty()) {
                 castMessage = "Ce serveur exige des en-têtes privés et ne peut pas être casté. Choisissez un autre serveur."
@@ -408,7 +787,7 @@ fun TvSamaPlayer(
             }
             val info = MediaInfo.Builder(source.url)
                 .setContentType(source.contentType() ?: "video/mp4")
-                .setStreamType(if (anime?.tag == "Direct") MediaInfo.STREAM_TYPE_LIVE else MediaInfo.STREAM_TYPE_BUFFERED).setMetadata(metadata)
+                .setStreamType(if (live) MediaInfo.STREAM_TYPE_LIVE else MediaInfo.STREAM_TYPE_BUFFERED).setMetadata(metadata)
                 .setMediaTracks(source.subtitles.mapIndexed { index, subtitle ->
                     MediaTrack.Builder(index.toLong() + 1, MediaTrack.TYPE_TEXT)
                         .setSubtype(MediaTrack.SUBTYPE_SUBTITLES).setContentId(subtitle.url)
@@ -416,7 +795,7 @@ fun TvSamaPlayer(
                 }).build()
             val request = MediaLoadRequestData.Builder().setMediaInfo(info)
                 .setCurrentTime(player.currentPosition.coerceAtLeast(0)).setAutoplay(player.playWhenReady && !timer.expired())
-            if (source.language == "VOSTFR" && source.subtitles.isNotEmpty()) request.setActiveTrackIds(longArrayOf(1))
+            request.setActiveTrackIds(if (subtitlesEnabled && source.language == "VOSTFR" && source.subtitles.isNotEmpty()) longArrayOf(1) else longArrayOf())
             remote.load(request.build()).setResultCallback { result ->
                 if (!active) return@setResultCallback
                 if (result.status.isSuccess) {
@@ -433,6 +812,7 @@ fun TvSamaPlayer(
         val listener = object : SessionManagerListener<CastSession> {
             override fun onSessionStarted(session: CastSession, id: String) = sendTo(session)
             override fun onSessionResumed(session: CastSession, suspended: Boolean) {
+                if (!durationApproved) return
                 val remote = session.remoteMediaClient
                 if (remote?.mediaInfo?.contentId == source.url) {
                     track(remote)
@@ -467,6 +847,7 @@ fun TvSamaPlayer(
         while (true) {
             delay(3000)
             val remote = castContext?.sessionManager?.currentCastSession?.remoteMediaClient
+            if (!casting && !playbackSampleConfirmed && !live && anime?.tag in listOf("Film", "Série")) continue
             if (casting && remote != null) {
                 progressCallback(remote.approximateStreamPosition.coerceAtLeast(0), remote.streamDuration.coerceAtLeast(0))
                 player.seekTo(remote.approximateStreamPosition.coerceAtLeast(0))
@@ -475,7 +856,7 @@ fun TvSamaPlayer(
     }
     Box(modifier.background(Color.Black)) {
         AndroidView(modifier = Modifier.fillMaxSize(), factory = {
-            TvPlayerView(it).apply {
+            (android.view.LayoutInflater.from(it).inflate(R.layout.tvsama_player_view, null) as TvPlayerView).apply {
                 playerView = this
                 this.player = player
                 useController = true
@@ -558,6 +939,7 @@ fun TvSamaPlayer(
         }, update = { view ->
             if (playerView !== view) playerView = view
             view.player = player; view.keepScreenOn = playing && !casting
+            view.findViewById<SegmentTimeBar>(androidx.media3.ui.R.id.exo_progress)?.setSegments(segments.skipSegments(playbackDuration))
             view.useController = !inPip
             if (inPip) view.hideController()
             view.findViewWithTag<android.widget.ImageButton>("episode_previous")?.apply {
@@ -567,7 +949,8 @@ fun TvSamaPlayer(
                 isEnabled = onNext != null; alpha = if (isEnabled) 1f else .35f
             }
         })
-        if (controlsVisible && !inPip) Row(Modifier.align(Alignment.TopEnd).fillMaxWidth().padding(14.dp)
+        if (controlsVisible && !inPip) Row(Modifier.align(Alignment.TopEnd)
+            .fillMaxWidth(if (!live && anime?.tag in listOf("Série", "Film")) .55f else 1f).padding(14.dp)
             .horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.End)) {
             Action("Retour", onClick = onBack)
             Box {
@@ -594,6 +977,17 @@ fun TvSamaPlayer(
             }
             Action(if (isFullscreen) "×" else "⛶") { onToggleFullscreen() }
         }
+        if (controlsVisible && !casting && !inPip && !live && anime != null && anime.tag in listOf("Série", "Film")) {
+            Column(Modifier.align(Alignment.TopStart).padding(20.dp).fillMaxWidth(.42f)) {
+                Text(anime.title, color = Color.White, style = MaterialTheme.typography.titleLarge.copy(
+                    fontWeight = androidx.compose.ui.text.font.FontWeight.Bold,
+                    shadow = androidx.compose.ui.graphics.Shadow(Color.Black, blurRadius = 4f)), maxLines = 2)
+                episode?.takeIf { anime.tag == "Série" }?.let { current ->
+                    Text("S${current.seasonNumber} · E${current.number} · ${current.title}", color = Color.LightGray,
+                        style = MaterialTheme.typography.bodyMedium, maxLines = 1)
+                }
+            }
+        }
         if (casting) Column(Modifier.fillMaxSize().background(Color.Black), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
             Text("Lecture sur votre télévision", color = Color.White)
             Text(title, color = Color.White, modifier = Modifier.padding(16.dp))
@@ -615,18 +1009,35 @@ fun TvSamaPlayer(
                 CastRouteButton(Modifier.size(48.dp))
             }
         }
-        val activeSegment = listOf("Passer l’intro" to segments?.intro, "Passer l’outro" to segments?.outro)
-            .firstOrNull { (_, segment) -> segment != null && position >= segment.start && position < segment.end && (playbackDuration <= 0 || segment.start < playbackDuration) }
+        val nextPrompt = !inPip && !isMovie && !live && nextCallback != null && showNextEpisodePrompt(position, playbackDuration, segments?.outro, segments?.postCredits)
+        val nextFocus = remember { androidx.compose.ui.focus.FocusRequester() }
+        LaunchedEffect(nextPrompt, episode?.id) {
+            if (nextPrompt && context.isTelevision()) {
+                withFrameNanos { }
+                runCatching { nextFocus.requestFocus() }
+            }
+        }
+        if (nextPrompt) {
+            val outroStart = boundedSegment(segments?.outro, playbackDuration, true)?.start
+            val endPoint = outroStart ?: playbackDuration
+            val remainingSecs = ((endPoint - position) / 1_000L).coerceAtLeast(0L)
+            val label = if (remainingSecs <= 120L) "Épisode suivant · ${remainingSecs}s" else "Épisode suivant"
+            Action(label, Modifier.align(Alignment.BottomEnd)
+                .padding(end = 20.dp, bottom = if (controlsVisible && !casting) 92.dp else 24.dp)
+                .then(Modifier.focusRequester(nextFocus)).background(Color.Black), primary = true) { nextCallback?.invoke() }
+        }
+        val activeSegment = segments.skipSegments(playbackDuration)
+            .firstOrNull { part -> position >= part.range.start && position < part.range.end }
         if (!inPip && activeSegment != null) {
-            val segment = activeSegment.second!!
-            val skipFocus = remember { FocusRequester() }
-            LaunchedEffect(activeSegment.first, segment.start) { if (context.isTelevision()) skipFocus.requestFocus() }
-            Action(activeSegment.first, Modifier.focusRequester(skipFocus).align(Alignment.BottomStart)
+            val segment = activeSegment.range
+            Action(activeSegment.label, Modifier.align(Alignment.BottomStart)
                 .padding(start = 16.dp, bottom = if (controlsVisible && !casting) 88.dp else 20.dp)
                 .background(Color.Black.copy(alpha = .6f))) {
+                val target = if (activeSegment.ending) boundedSegment(segments?.postCredits, playbackDuration, true)
+                    ?.takeIf { segment.start < it.start }?.start ?: segment.end else segment.end
                 if (casting) castContext?.sessionManager?.currentCastSession?.remoteMediaClient?.seek(
-                    MediaSeekOptions.Builder().setPosition(segment.end).build())
-                else player.seekTo(segment.end)
+                    MediaSeekOptions.Builder().setPosition(target).build())
+                else player.seekTo(target)
             }
         }
         // Opaque veil: the paused video and source controls must not remain visible.
@@ -650,9 +1061,19 @@ fun TvSamaPlayer(
     }
 }
 
-internal fun seekIncrement(heldMillis: Long): Long = when {
-    heldMillis < 3000 -> 1000L
-    heldMillis < 6000 -> 10000L
-    heldMillis < 10000 -> 30000L
-    else -> 60000L
+internal fun seekIncrement(heldMillis: Long): Long {
+    val progress = heldMillis.coerceIn(0, 8_000) / 8_000.0
+    return (15_000 + 105_000 * progress * progress).toLong() / 1_000 * 1_000
+}
+
+internal fun isEmbedPlaybackUrl(url: String): Boolean {
+    val lower = url.lowercase()
+    if (listOf(".m3u8", ".mpd", ".mp4", ".mkv", ".webm", ".ts").any { lower.substringBefore('?').endsWith(it) }) return false
+    return lower.contains("/embed") || lower.contains("/e/") || lower.contains("embed.") ||
+        lower.contains("player.") || lower.contains("/v/") || lower.contains("/video/") ||
+        lower.endsWith(".html") || lower.endsWith(".htm") || lower.endsWith(".php") ||
+        lower.contains("uqload") || lower.contains("voe.sx") || lower.contains("streamwish") ||
+        lower.contains("vidmoly") || lower.contains("dood") || lower.contains("filelions") ||
+        lower.contains("vidoza") || lower.contains("sibnet") || lower.contains("sendvid") ||
+        lower.contains("frembed") || lower.contains("supervideo")
 }

@@ -6,6 +6,8 @@ import android.content.res.Configuration
 import android.graphics.Bitmap
 import android.graphics.Color as AndroidColor
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -50,8 +52,8 @@ internal fun castContextOrNull(context: Context): CastContext? =
 fun CastRouteButton(modifier: Modifier = Modifier, onDialogVisibilityChange: (Boolean) -> Unit = {}) {
     val context = LocalContext.current
     var showPairing by remember { mutableStateOf(false) }
-    IconAction(R.drawable.tvsama_remote_logo, "Associer le téléphone à la télévision par QR code",
-        modifier = modifier, tint = Color.Unspecified, iconSize = 34.dp) {
+    IconAction(R.drawable.ic_pairing_bolt, "Associer le téléphone à la télévision par QR code",
+        modifier = modifier, tint = Accent, iconSize = 28.dp) {
         showPairing = true; onDialogVisibilityChange(true)
     }
     androidx.compose.runtime.DisposableEffect(Unit) { onDispose { onDialogVisibilityChange(false) } }
@@ -76,12 +78,13 @@ private fun PairingDialog(context: Context, onDismiss: () -> Unit) {
             catch (e: Exception) { scanMessage = "Association impossible : ${e.message}" }
         }
     }
-    val qr = remember(payload) { if (payload.isBlank()) null else qrBitmap(payload, 360) }
+    val qr = remember(payload) { if (payload.isBlank()) null else qrBitmap(payload, 512) }
     AlertDialog(onDismissRequest = onDismiss, containerColor = Color(0xFF111111),
         title = { Text("Associer la télécommande", color = Color.White) },
-        text = { Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(12.dp)) {
+        text = { Column(Modifier.heightIn(max = 600.dp),
+            horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(14.dp)) {
             Text("Scannez ce code avec l’application TvSama sur votre téléphone. Les deux appareils doivent être sur le même Wi‑Fi.", color = Color.LightGray)
-            if (qr != null) AndroidView(factory = { android.widget.ImageView(it).apply { setImageBitmap(qr); contentDescription = "QR code de liaison TvSama" } }, modifier = Modifier.size(220.dp))
+            if (qr != null) AndroidView(factory = { android.widget.ImageView(it).apply { setImageBitmap(qr); contentDescription = "QR code de liaison TvSama" } }, modifier = Modifier.size(340.dp))
             if (context.packageManager.hasSystemFeature(android.content.pm.PackageManager.FEATURE_CAMERA_ANY)) Action("Scanner l’écran avec la caméra") {
                 scanner.launch(android.content.Intent(context, com.streamflixreborn.streamflix.activities.tools.QrScannerActivity::class.java))
             }
@@ -89,8 +92,7 @@ private fun PairingDialog(context: Context, onDismiss: () -> Unit) {
             if (paired != null) Action("Délier la télévision ($paired)") { RemoteLink.disconnect(context) }
             Text("Gardez TvSama ouvert sur l’écran associé.", color = Color.LightGray, fontSize = 12.sp)
         } },
-        confirmButton = { TextButton(onClick = onDismiss) { Text("Terminé") } },
-        dismissButton = { TextButton(onClick = onDismiss) { Text("Fermer", color = Color.White) } })
+        confirmButton = { TextButton(onClick = onDismiss) { Text("Fermer") } })
 }
 
 private fun qrBitmap(value: String, size: Int): Bitmap {

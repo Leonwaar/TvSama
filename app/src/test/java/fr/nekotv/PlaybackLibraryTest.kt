@@ -20,6 +20,14 @@ class PlaybackLibraryTest {
         RuntimeEnvironment.getApplication().getSharedPreferences("tvsama_library", 0).edit().clear().commit()
         store = LibraryStore(RuntimeEnvironment.getApplication())
     }
+    @Test fun languagePreferenceOffersOnlyFrenchDubsAndFrenchSubtitles() {
+        RuntimeEnvironment.getApplication().getSharedPreferences("tvsama_library", 0).edit().putString("language", "VO").commit()
+        assertEquals("VF", store.language())
+        store.setLanguage("VO")
+        assertEquals("VF", store.language())
+        store.setLanguage("VOSTFR")
+        assertEquals("VOSTFR", store.language())
+    }
     @Test fun oneResumeCardButProgressRetainedForEachEpisode() {
         store.save(show, episodes[0], 100_000, 120_000)
         store.save(show, episodes[1], 40_000, 120_000)
@@ -27,6 +35,18 @@ class PlaybackLibraryTest {
         assertEquals(2, store.history().size)
         assertEquals(40_000L, store.progress(show, episodes[1]))
         assertEquals(1f, store.fraction(show, episodes[0]))
+    }
+    @Test fun historyStaysLightAndOnlyResumeCardsLoadTheEpisodeCatalogue() {
+        val many = show.copy(episodes = (1..600).map { episodes[0].copy(id = "$it", number = it) })
+        store.save(many, many.episodes[0], 100_000, 120_000)
+        store.save(many, many.episodes[1], 40_000, 120_000)
+        assertTrue(store.history().all { it.anime.episodes.isEmpty() })
+        assertSame(store.history(), store.history())
+        assertEquals(600, store.continuing().single().anime.episodes.size)
+        assertEquals(many.episodes[1].id, store.continuing().single().episodeId)
+        store.saveAsync(many, many.episodes[1], 45_000, 120_000)!!.get(5, java.util.concurrent.TimeUnit.SECONDS)
+        assertEquals(45_000L, store.progress(many, many.episodes[1]))
+        assertTrue(store.history().all { it.anime.episodes.isEmpty() })
     }
     @Test fun correctedTitleAndRotatedAddressKeepTheSameMovieProgress() {
         val original = Anime("French-Stream", "Film", emptyList(), "https://old.example/film/doing-life.html", provider = "FrenchStreaming")
@@ -48,6 +68,11 @@ class PlaybackLibraryTest {
         store.save(show, episodes[1], 89_999, 120_000)
         assertEquals(episodes[1], store.resumeEpisode(show))
         assertEquals(89_999L, store.progress(show, episodes[1]))
+    }
+    @Test fun initialPlaybackStartsAtSeasonOneDespiteSpecials() {
+        val specialsFirst = show.copy(episodes = listOf(episodes[0].copy(seasonNumber = 0), episodes[0], episodes[1]))
+        assertEquals(episodes[0], specialsFirst.firstEpisode())
+        assertEquals(episodes[0], store.resumeEpisode(specialsFirst))
     }
     @Test fun removalPreservesWatchedStateAndNewViewingRestoresCard() {
         store.save(show, episodes[0], 120_000, 120_000)
@@ -82,11 +107,12 @@ class PlaybackLibraryTest {
         assertEquals(12, store.searches().size)
         assertEquals("recherche 19", store.searches().first())
     }
-    @Test fun semanticVersionComparison() {
-        assertTrue(AppUpdates.newer("V1.0.100", "V1.0.70"))
-        assertFalse(AppUpdates.newer("V1.0.69", "V1.0.70"))
-        assertFalse(AppUpdates.newer("v1.0.70", "V1.0.70"))
-        assertFalse(AppUpdates.newer("nightly", "V1.0.70"))
+    @Test fun updateComparisonUsesPublicationDatesAndRejectsInvalidDates() {
+        assertTrue(AppUpdates.newer("2026-10-15T09:00:00Z", "2026-10-14T09:00:00Z"))
+        assertFalse(AppUpdates.newer("2026-10-14T09:00:00Z", "2026-10-15T09:00:00Z"))
+        assertFalse(AppUpdates.newer("2026-10-15T09:00:00Z", "2026-10-15T11:00:00+02:00"))
+        assertFalse(AppUpdates.newer("invalid", "2026-10-15T09:00:00Z"))
+        assertFalse(AppUpdates.newer("2026-10-15T09:00:00Z", "invalid"))
     }
     @Test fun introDbParsesMilliseconds() {
         val data = JSONObject("""{"imdb_id":"tt1234567","season":1,"episode":2,"start_ms":55000,"end_ms":145000}""")
@@ -221,6 +247,29 @@ class PlaybackLibraryTest {
         assertNotNull(parseSegments(json, "tt1234567", 1, 1)!!.outro)
     }
 
+    @Test fun secondSegmentCatalogueSupportsCreditsAndRealEpisodeShapes() {
+        val greys = parseTheIntroDb(JSONObject("""{"type":"tv","intro":[{"start_ms":null,"end_ms":0}],"credits":[{"start_ms":2574000,"end_ms":null}]}"""))
+        assertNull(greys.intro)
+        assertEquals(IntroSegment(2_574_000, Long.MAX_VALUE), greys.outro)
+        assertEquals(IntroSegment(2_574_000, 2_610_000), boundedSegment(greys.outro, 2_610_000, true))
+        val hunter = parseTheIntroDb(JSONObject("""{"type":"tv","intro":[{"start_ms":null,"end_ms":79998}],"credits":[{"start_ms":1325000,"end_ms":1405000}]}"""))
+        assertEquals(IntroSegment(0, 79_998), hunter.intro)
+        assertEquals(IntroSegment(1_325_000, 1_405_000), hunter.outro)
+        assertNull(boundedSegment(hunter.outro, 1_370_000, true))
+    }
+
+    @Test fun multiplePublishedSegmentsRemainSeparate() {
+        val data = JSONObject("""{"type":"tv","intro":[{"start_ms":0,"end_ms":80000},{"start_ms":300000,"end_ms":325000}],"recap":[{"start_ms":90000,"end_ms":120000}],"credits":[{"start_ms":1300000,"end_ms":1340000},{"start_ms":1400000,"end_ms":null}],"preview":[{"start_ms":1450000,"end_ms":null}]}""")
+        val segments = parseTheIntroDb(data)
+        assertEquals(IntroSegment(0, 80_000), segments.intro)
+        assertEquals(IntroSegment(1_400_000, Long.MAX_VALUE), segments.outro)
+        assertEquals(listOf("Passer l’intro", "Passer le récapitulatif", "Passer le générique", "Passer l’aperçu"),
+            segments.additional.map { it.label })
+        assertEquals(listOf(0L, 90_000L, 300_000L, 1_300_000L, 1_400_000L, 1_450_000L),
+            segments.skipSegments(1_500_000).map { it.range.start })
+        assertEquals(1_450_000L, segments.autoOutro(1_500_000)?.start)
+    }
+
     @Test fun sharedResumeUsesNewestWatchEvenWhenItsTimecodeIsEarlier() {
         val first = SavedPlayback(show, "1", "Un", 90000, 200000, 1, 1, 100)
         val rewound = first.copy(position = 20000, updatedAt = 200)
@@ -242,11 +291,11 @@ class PlaybackLibraryTest {
         assertEquals("popular", rankCatalogue(listOf(show, popular), "", mapOf(CatalogIdentity.title("Popular") to 50.0)).first().id)
     }
     @Test fun seekStaysPreciseForFirstThreeSeconds() {
-        assertEquals(1000L, seekIncrement(0))
-        assertEquals(1000L, seekIncrement(2999))
-        assertEquals(10000L, seekIncrement(3000))
-        assertEquals(30000L, seekIncrement(6000))
-        assertEquals(60000L, seekIncrement(10000))
+        assertEquals(15000L, seekIncrement(0))
+        assertEquals(15000L, seekIncrement(500))
+        assertEquals(21000L, seekIncrement(2000))
+        assertEquals(41000L, seekIncrement(4000))
+        assertEquals(120000L, seekIncrement(10000))
     }
 
     @Test fun removingSharedResumeSurvivesSyncAndWatchingAgainRestoresIt() {
@@ -260,6 +309,69 @@ class PlaybackLibraryTest {
         store.save(show, episodes[0], 21000, 200000)
         store.mergeHiddenResume(hidden)
         assertEquals(1, store.continuing().size)
+    }
+
+    @Test fun clearedHistoryCanBeRecoveredAfterSync() {
+        store.save(show, episodes[0], 20_000, 120_000)
+        val saved = store.history()
+        store.clearHistory()
+        val peerDeletion = store.hiddenResumeTimes()
+        assertTrue(store.history().isEmpty())
+        assertTrue(store.hasHistoryBackup())
+        store.mergeHistory(saved)
+        assertTrue(store.history().isEmpty())
+        assertTrue(store.continuing().isEmpty())
+        store.restoreHistory()
+        store.mergeHiddenResume(peerDeletion)
+        assertEquals(20_000L, store.progress(show, episodes[0]))
+        assertEquals(1, store.continuing().size)
+        assertFalse(store.hasHistoryBackup())
+    }
+
+    @Test fun secondEmptyClearDoesNotEraseRecoveryCopy() {
+        store.save(show, episodes[0], 20_000, 120_000)
+        store.clearHistory()
+        store.clearHistory()
+        store.restoreHistory()
+        assertEquals(1, store.history().size)
+    }
+
+    @Test fun recoveryKeepsNewViewingSinceClear() {
+        store.save(show, episodes[0], 20_000, 120_000)
+        store.clearHistory()
+        store.save(show, episodes[1], 30_000, 120_000)
+        store.restoreHistory()
+        assertEquals(2, store.history().size)
+        assertEquals(30_000L, store.progress(show, episodes[1]))
+    }
+
+    @Test fun recoveryDoesNotTruncateHistoryToTheOldSyncLimit() {
+        store.mergeHistory((1..250).map { number -> SavedPlayback(show, "$number", "Épisode $number", 10_000, 120_000, 1, number, number.toLong()) })
+        store.clearHistory()
+        store.restoreHistory()
+        assertEquals(250, store.history().size)
+    }
+
+    @Test fun recoveryPreservesPreviouslyHiddenResumeCards() {
+        store.save(show, episodes[0], 20_000, 120_000)
+        store.hideResume(show)
+        store.clearHistory()
+        store.restoreHistory()
+        assertEquals(1, store.history().size)
+        assertTrue(store.continuing().isEmpty())
+    }
+
+    @Test fun completedFilmsSurviveRewatchAndSeriesRequireAllKnownEpisodes() {
+        val movie = show.copy(tag = "Film", id = "movie", title = "Film test", episodes = emptyList())
+        store.save(movie, null, 120_000, 120_000)
+        store.save(movie, null, 10_000, 120_000)
+        assertEquals(listOf(movie.title), store.completedContent().map { it.title })
+        for (episode in episodes.dropLast(1)) store.save(show, episode, 120_000, 120_000)
+        assertEquals(1, store.completedContent().size)
+        store.save(show, episodes.last(), 120_000, 120_000)
+        assertEquals(setOf(movie.title, show.title), store.completedContent().map { it.title }.toSet())
+        store.save(show, episodes.first(), 10_000, 120_000)
+        assertEquals(2, store.completedContent().size)
     }
 
 }

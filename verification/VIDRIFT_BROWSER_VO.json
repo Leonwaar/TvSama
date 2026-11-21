@@ -1,0 +1,97 @@
+{
+  "events": [
+    {
+      "type": "vidrift:ui-hidden"
+    },
+    {
+      "type": "status",
+      "message": "Recherche d’une piste VO sur Vidrift…"
+    },
+    {
+      "type": "vidrift:ui-visible"
+    },
+    {
+      "type": "status",
+      "message": "Recherche d’une piste VO sur Vidrift…"
+    },
+    {
+      "type": "vidrift:ui-hidden"
+    },
+    {
+      "type": "status",
+      "message": "Recherche d’une piste VO sur Vidrift…"
+    },
+    {
+      "type": "ready",
+      "language": "VO"
+    },
+    {
+      "type": "state",
+      "paused": true,
+      "currentTime": 0,
+      "duration": 8888.337889000053
+    },
+    {
+      "type": "progress",
+      "currentTime": 12,
+      "duration": 8888.337889000053,
+      "played": 0
+    },
+    {
+      "type": "status",
+      "message": ""
+    },
+    {
+      "type": "state",
+      "paused": true,
+      "currentTime": 12,
+      "duration": 8888.337889000053
+    },
+    {
+      "type": "vidrift:ui-visible"
+    },
+    {
+      "type": "state",
+      "paused": false,
+      "currentTime": 12.120687,
+      "duration": 8888.337889000053
+    },
+    {
+      "type": "vidrift:ui-hidden"
+    },
+    {
+      "type": "progress",
+      "currentTime": 17.218642,
+      "duration": 8888.337889000053,
+      "played": 5.218641999999999
+    }
+  ],
+  "state": [
+    {
+      "server": "lyra",
+      "sources": [
+        {
+          "value": "0",
+          "label": "English"
+        },
+        {
+          "value": "1",
+          "label": "Hindi"
+        },
+        {
+          "value": "2",
+          "label": "Tamil"
+        },
+        {
+          "value": "3",
+          "label": "Telugu"
+        }
+      ],
+      "audios": [],
+      "duration": 8888.337889000053,
+      "paused": false,
+      "currentTime": 12.120687,
+      "muted": false
+    }
+  ]
+}

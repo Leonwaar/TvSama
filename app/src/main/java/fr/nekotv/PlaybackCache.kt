@@ -30,7 +30,15 @@ internal object PlaybackCache {
         .setCache(cache(context)).setFlags(CacheDataSource.FLAG_IGNORE_CACHE_ON_ERROR)
         .setUpstreamDataSourceFactory(MediaNetwork.factory(source))
 
+    fun canPrefetch(context: Context): Boolean = runCatching {
+        val connectivity = context.getSystemService(Context.CONNECTIVITY_SERVICE) as android.net.ConnectivityManager
+        val unmetered = !connectivity.isActiveNetworkMetered
+        unmetered && connectivity.getNetworkCapabilities(connectivity.activeNetwork)
+            ?.hasCapability(android.net.NetworkCapabilities.NET_CAPABILITY_INTERNET) == true
+    }.getOrDefault(false)
+
     suspend fun prefetch(context: Context, source: VideoSource) = withContext(Dispatchers.IO) {
+        if (source.mimeType == VIDRIFT_MIME_TYPE || !canPrefetch(context)) return@withContext
         val factory = factory(context, source)
         val uri = Uri.parse(source.url)
         val hls = uri.path.orEmpty().endsWith(".m3u8", true) || source.mimeType?.contains("mpegurl", true) == true
@@ -50,13 +58,13 @@ internal object PlaybackCache {
             for (item in listOfNotNull(segment.initializationSegment, segment)) {
                 currentCoroutineContext().ensureActive()
                 val target = java.net.URI(media.baseUri).resolve(item.url).toString()
-                val length = if (item.byteRangeLength > 0) minOf(item.byteRangeLength, 512 * 1024L) else 512 * 1024L
+                val length = if (item.byteRangeLength > 0) minOf(item.byteRangeLength, 2 * 1024 * 1024L) else 2 * 1024 * 1024L
                 CacheWriter(factory.createDataSource(), DataSpec.Builder().setUri(target)
                     .setPosition(item.byteRangeOffset).setLength(length).build(), null, null).cache()
             }
         } else if (uri.path.orEmpty().endsWith(".mp4", true) || source.mimeType == "video/mp4") {
             currentCoroutineContext().ensureActive()
-            CacheWriter(factory.createDataSource(), DataSpec.Builder().setUri(uri).setLength(512 * 1024L).build(), null, null).cache()
+            CacheWriter(factory.createDataSource(), DataSpec.Builder().setUri(uri).setLength(2 * 1024 * 1024L).build(), null, null).cache()
         }
     }
 }

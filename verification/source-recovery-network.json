@@ -1,0 +1,254 @@
+[
+  {
+    "suite": "PlaybackLibraryTest",
+    "timestamp": "2026-10-16T12:43:32.938Z",
+    "cases": [
+      {
+        "name": "recoveryKeepsNewViewingSinceClear",
+        "seconds": "0.605",
+        "status": "passed",
+        "failure": null
+      },
+      {
+        "name": "latestEngagementWinsEvenWhenRewatchingEarlierEpisode",
+        "seconds": "0.31",
+        "status": "passed",
+        "failure": null
+      },
+      {
+        "name": "clearedHistoryCanBeRecoveredAfterSync",
+        "seconds": "0.154",
+        "status": "passed",
+        "failure": null
+      },
+      {
+        "name": "seekStaysPreciseForFirstThreeSeconds",
+        "seconds": "0.353",
+        "status": "passed",
+        "failure": null
+      },
+      {
+        "name": "beforeThresholdKeepsTimecode",
+        "seconds": "0.236",
+        "status": "passed",
+        "failure": null
+      },
+      {
+        "name": "sharedResumeUsesNewestWatchEvenWhenItsTimecodeIsEarlier",
+        "seconds": "0.185",
+        "status": "passed",
+        "failure": null
+      },
+      {
+        "name": "numberedSeasonsKeepEveryReferenceAndDoNotRenameUnrelatedNumbers",
+        "seconds": "0.318",
+        "status": "passed",
+        "failure": null
+      },
+      {
+        "name": "recoveryDoesNotTruncateHistoryToTheOldSyncLimit",
+        "seconds": "0.472",
+        "status": "passed",
+        "failure": null
+      },
+      {
+        "name": "exactSearchMatchBeatsPopularUnrelatedTitles",
+        "seconds": "0.13",
+        "status": "passed",
+        "failure": null
+      },
+      {
+        "name": "secondEmptyClearDoesNotEraseRecoveryCopy",
+        "seconds": "0.131",
+        "status": "passed",
+        "failure": null
+      },
+      {
+        "name": "correctedTitleAndRotatedAddressKeepTheSameMovieProgress",
+        "seconds": "0.055",
+        "status": "passed",
+        "failure": null
+      },
+      {
+        "name": "favoritesKeepRemakesAndDifferentMediaSeparate",
+        "seconds": "0.057",
+        "status": "passed",
+        "failure": null
+      },
+      {
+        "name": "introAndOutroAreIndependentAndIdentityChecked",
+        "seconds": "0.107",
+        "status": "passed",
+        "failure": null
+      },
+      {
+        "name": "searchHistoryIsUniqueAndBounded",
+        "seconds": "0.11",
+        "status": "passed",
+        "failure": null
+      },
+      {
+        "name": "introDbParsesMilliseconds",
+        "seconds": "0.055",
+        "status": "passed",
+        "failure": null
+      },
+      {
+        "name": "favoriteMatchesAlternateProviderReferencesAndRotatedDomains",
+        "seconds": "0.064",
+        "status": "passed",
+        "failure": null
+      },
+      {
+        "name": "oneResumeCardButProgressRetainedForEachEpisode",
+        "seconds": "0.065",
+        "status": "passed",
+        "failure": null
+      },
+      {
+        "name": "classroomAliasesAndSeasonsMergeWithoutLosingSources",
+        "seconds": "0.046",
+        "status": "passed",
+        "failure": null
+      },
+      {
+        "name": "introDbRejectsWrongIdentityAndInvalidRange",
+        "seconds": "0.046",
+        "status": "passed",
+        "failure": null
+      },
+      {
+        "name": "repeatedFavoriteActionsAreIdempotentAndRefreshMetadata",
+        "seconds": "0.068",
+        "status": "passed",
+        "failure": null
+      },
+      {
+        "name": "removingSharedResumeSurvivesSyncAndWatchingAgainRestoresIt",
+        "seconds": "0.065",
+        "status": "passed",
+        "failure": null
+      },
+      {
+        "name": "homepageUsesPopularityWhenAvailable",
+        "seconds": "0.051",
+        "status": "passed",
+        "failure": null
+      },
+      {
+        "name": "languageVariantsAndMissingYearMergeReferences",
+        "seconds": "0.063",
+        "status": "passed",
+        "failure": null
+      },
+      {
+        "name": "introDbPreservesFractionalSecondsAndRejectsNullTimes",
+        "seconds": "0.157",
+        "status": "passed",
+        "failure": null
+      },
+      {
+        "name": "updateComparisonUsesPublicationDatesAndRejectsInvalidDates",
+        "seconds": "0.203",
+        "status": "passed",
+        "failure": null
+      },
+      {
+        "name": "initialPlaybackStartsAtSeasonOneDespiteSpecials",
+        "seconds": "0.063",
+        "status": "passed",
+        "failure": null
+      },
+      {
+        "name": "nextEpisodeSkipsLanguageVariants",
+        "seconds": "0.041",
+        "status": "passed",
+        "failure": null
+      },
+      {
+        "name": "removalPreservesWatchedStateAndNewViewingRestoresCard",
+        "seconds": "0.083",
+        "status": "passed",
+        "failure": null
+      },
+      {
+        "name": "introDbFallsBackToSeconds",
+        "seconds": "0.046",
+        "status": "passed",
+        "failure": null
+      },
+      {
+        "name": "addressRotationsPreserveSavedPathsQueriesAndFragments",
+        "seconds": "0.077",
+        "status": "passed",
+        "failure": null
+      },
+      {
+        "name": "favoriteSurvivesDetailsEnrichmentAndCanBeRemovedAfterReload",
+        "seconds": "0.111",
+        "status": "passed",
+        "failure": null
+      },
+      {
+        "name": "recoveryPreservesPreviouslyHiddenResumeCards",
+        "seconds": "0.309",
+        "status": "passed",
+        "failure": null
+      },
+      {
+        "name": "removingLegacyFavoriteRemovesItsDuplicateEntries",
+        "seconds": "0.082",
+        "status": "passed",
+        "failure": null
+      },
+      {
+        "name": "remakesRemainSeparate",
+        "seconds": "0.066",
+        "status": "passed",
+        "failure": null
+      },
+      {
+        "name": "thresholdMovesToNextSeasonAndEpisode",
+        "seconds": "0.063",
+        "status": "passed",
+        "failure": null
+      }
+    ],
+    "evidence": []
+  },
+  {
+    "suite": "PopularTitlesNetworkTest",
+    "timestamp": "2026-10-16T12:42:23.045Z",
+    "cases": [
+      {
+        "name": "narutoAndKnownFilmHaveVerifiedFrenchMedia",
+        "seconds": "55.635",
+        "status": "passed",
+        "failure": null
+      },
+      {
+        "name": "wiflixKnownMovieHasVerifiedMedia",
+        "seconds": "14.184",
+        "status": "failed",
+        "failure": "java.lang.AssertionError: Wiflix Fight Club : aucun média vérifié parmi [Vidara VF, Voe VF, LuLuTV VF, FMX VF, Vidsonic VF, DdStream VF, Save VF, uqload VF, Vmoly VF, Filelions VF, Swish VF]"
+      }
+    ],
+    "evidence": [
+      "Naruto : références [WarFlix, Movix, FRAnime, Anime-Sama, AnimeKO, Anime-Sama, MyFluneo, FrenchAnime, MyFluneo], VF [MyFluneo/LECTEUR VOE VF, MyFluneo/LECTEUR Stape VF, MyFluneo/LECTEUR FHD1 VF], VOSTFR [MyFluneo/LECTEUR FHD1 VOSTFR, MyFluneo/LECTEUR Stape VOSTFR, MyFluneo/LECTEUR VOE VOSTFR]",
+      "Fight Club : références [WarFlix, Coflix, Movix], VF [WarFlix/Uqload (French), WarFlix/Voe (French), Coflix/Uqload VF, Coflix/Uqload VF, Coflix/Xtremestream VF], VOSTFR []"
+    ]
+  },
+  {
+    "suite": "SourceNetworkAuditTest",
+    "timestamp": "2026-10-16T12:43:38.065Z",
+    "cases": [
+      {
+        "name": "allFrenchSources",
+        "seconds": "106.008",
+        "status": "passed",
+        "failure": null
+      }
+    ],
+    "evidence": []
+  }
+]

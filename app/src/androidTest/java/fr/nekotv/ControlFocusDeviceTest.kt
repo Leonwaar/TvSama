@@ -2,11 +2,15 @@ package fr.nekotv
 
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.width
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.toPixelMap
 import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.SemanticsActions
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.test.*
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.test.platform.app.InstrumentationRegistry
@@ -17,6 +21,35 @@ import org.junit.Test
 /** Checks the pixels of the actual Compose controls, as well as their input actions. */
 class ControlFocusDeviceTest {
     @get:Rule val compose = createAndroidComposeRule<PlaybackTestActivity>()
+
+    @Test fun phoneResetRequiresTheRedConfirmationAndCancelKeepsPreferences() {
+        val prefs = compose.activity.getSharedPreferences("tvsama_settings", 0)
+        prefs.edit().putString("paired_tv_device", "test-tv").commit()
+        var historyCleared = false
+        compose.runOnUiThread {
+            compose.activity.setContent {
+                SamaTheme {
+                    Box(Modifier.width(320.dp).fillMaxHeight()) {
+                        TvSettings("VF", {}, true, {}, false, { historyCleared = true }, {})
+                    }
+                }
+            }
+        }
+        compose.onNodeWithText("Réinitialiser les préférences").performScrollTo().assertIsDisplayed().performClick()
+        compose.runOnIdle { assertEquals("test-tv", prefs.getString("paired_tv_device", null)) }
+        compose.onNodeWithText("Annuler").performClick()
+        compose.runOnIdle { assertEquals("test-tv", prefs.getString("paired_tv_device", null)) }
+        compose.onNodeWithText("Réinitialiser les préférences").performClick()
+        val confirmation = compose.onNodeWithText("Réinitialiser").assertIsDisplayed()
+        val pixels = confirmation.captureToImage().toPixelMap()
+        val red = pixels[5, pixels.height / 2]
+        assertTrue("Confirmation must be red: $red", red.red > .5f && red.green < .3f && red.blue < .3f)
+        confirmation.performClick()
+        compose.runOnIdle {
+            assertNull(prefs.getString("paired_tv_device", null))
+            assertFalse(historyCleared)
+        }
+    }
 
     @OptIn(ExperimentalTestApi::class)
     @Test fun selectRemoteAndResumeHaveVisibleFocusAndAcceptRemoteTouchAndMouse() {

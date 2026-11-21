@@ -20,3 +20,14 @@ internal fun actualQuality(width: Int, height: Int): String = when {
     width > 0 || height > 0 -> "${height}p"
     else -> "Détection…"
 }
+
+/**
+ * Real quality declared by an HLS master playlist (`RESOLUTION=1920x1080`).
+ * A server label often just says "Auto"; the manifest usually knows the actual height.
+ */
+internal fun declaredHlsQuality(playlist: String): String? {
+    val height = Regex("(?i)RESOLUTION=\\d+x(\\d+)").findAll(playlist)
+        .mapNotNull { it.groupValues[1].toIntOrNull() }.maxOrNull() ?: return null
+    if (height < 360) return null
+    return actualQuality(0, height)
+}

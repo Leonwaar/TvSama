@@ -1,4 +1,4 @@
-# Movix sans clé personnelle — 2026-10-06T13:51:12.150717141Z
+# Movix sans clé personnelle — 2026-10-27T09:30:12.060203418Z
 
 Métadonnées publiques TMDB, API de lecteurs Movix. Aucun décodage Android dans cet essai.
 

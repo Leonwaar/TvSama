@@ -1,0 +1,24 @@
+{
+  "app": {
+    "tests": 177,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 26
+  },
+  "streamflix/app": {
+    "tests": 69,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "lint-debug": {
+    "Error": 0,
+    "Warning": 110,
+    "Fatal": 0
+  },
+  "lint-release": {
+    "Error": 0,
+    "Warning": 110,
+    "Fatal": 0
+  }
+}

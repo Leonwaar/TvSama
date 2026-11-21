@@ -1,0 +1,14 @@
+<merge xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto">
+    <include layout="@layout/exo_player_control_view" />
+    <fr.nekotv.SegmentTimeBar
+        android:id="@id/exo_progress"
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/exo_styled_progress_layout_height"
+        android:layout_gravity="bottom"
+        android:layout_marginBottom="@dimen/exo_styled_progress_margin_bottom"
+        app:bar_gravity="center"
+        app:bar_height="4dp"
+        app:scrubber_enabled_size="12dp"
+        app:scrubber_disabled_size="0dp"
+        app:scrubber_dragged_size="16dp" />
+</merge>
