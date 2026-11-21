@@ -2,7 +2,7 @@
 
 Application Android TV en Kotlin et Jetpack Compose. TvSama regroupe des catalogues
 francophones, affiche les fiches et épisodes, résout des sources vidéo autorisées,
-puis lit les médias avec AndroidX Media3/ExoPlayer.
+puis lit les médias avec AndroidX Media3/ExoPlayr.
 
 Version en cours : `v1.8.88-rc6` (validation, pas de release finale).
 Vavoo est retiré ; les résultats réseau de Wiflix et Coflix restent variables. Papadustream et FRAnime
