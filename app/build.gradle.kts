@@ -4,8 +4,9 @@ plugins {
     id("org.jetbrains.kotlin.plugin.compose")
 }
 
-val updateRemote = providers.exec { commandLine("git", "config", "--get", "remote.origin.url") }.standardOutput.asText.get().trim()
-val updateRepository = Regex("github\\.com[:/]([^/]+/[^/]+?)(?:\\.git)?$").find(updateRemote)?.groupValues?.get(1).orEmpty()
+// val updateRemote = "git@github.com:Leonwaar/TvSama.git"
+// val updateRepository = Regex("github\\.com[:/]([^/]+/[^/]+?)(?:\\.git)?$").find(updateRemote)?.groupValues?.get(1).orEmpty()
+val updateRepository = ""
 val tmdbReadToken = providers.gradleProperty("tmdbReadToken")
     .orElse(providers.environmentVariable("TMDB_READ_TOKEN"))
     .orElse("")
@@ -46,6 +47,7 @@ android {
 dependencies {
     implementation("org.jsoup:jsoup:1.21.2")
     implementation("com.google.code.gson:gson:2.11.0")
+    implementation("org.nanohttpd:nanohttpd:2.3.1")
     testImplementation("junit:junit:4.13.2")
     androidTestImplementation("androidx.test:runner:1.6.1")
     androidTestImplementation("androidx.test:core:1.6.1")
@@ -60,6 +62,8 @@ dependencies {
     testImplementation("androidx.test.ext:junit:1.2.1")
     coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.5")
     implementation(project(":streamflix"))
+    implementation("androidx.room:room-runtime:2.7.0-rc01")
+    implementation("androidx.room:room-ktx:2.7.0-rc01")
     implementation("com.github.bumptech.glide:glide:5.0.0-rc01")
     implementation("androidx.fragment:fragment-ktx:1.8.6")
     implementation("androidx.activity:activity-compose:1.13.0")

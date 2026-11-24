@@ -49,7 +49,7 @@ suspend fun enrichSeries(anime: Anime): Anime = withContext(Dispatchers.IO) {
             }
         }
         anime.copy(imdbId = anime.imdbId ?: imdb, firstAired = text("premiered"), lastAired = text("ended"),
-            seriesStatus = when (text("status")) { "Running" -> "En cours"; "Ended" -> "Terminée"; "To Be Determined" -> "Suite à confirmer"; else -> null },
+            status = when (text("status")) { "Running" -> "En cours"; "Ended" -> "Terminée"; "To Be Determined" -> "Suite à confirmer"; else -> null },
             metadataUrl = text("url"), episodes = episodes)
     } catch (e: CancellationException) { throw e }
     catch (_: Exception) { anime }

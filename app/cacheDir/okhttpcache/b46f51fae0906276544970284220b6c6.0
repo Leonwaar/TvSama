@@ -1,0 +1,44 @@
+https://doramasflix.in/episodios/episode-1
+GET
+1
+Accept-Encoding: gzip
+HTTP/1.1 200 
+30
+date: Tue, 24 Nov 2026 15:04:54 GMT
+content-type: text/html; charset=utf-8
+server: cloudflare
+accept-ch: Sec-CH-UA-Mobile, Sec-CH-UA-Platform, Viewport-Width
+cache-control: public, max-age=0, must-revalidate, stale-while-revalidate=60
+content-security-policy: connect-src 'self' https://assets.seriesapi.co https://fcmregistrations.googleapis.com https://firebaseinstallations.googleapis.com https://i.postimg.cc https://image.tmdb.org https://translate-pa.googleapis.com https://translate.googleapis.com https://upload.wikimedia.org https://user-api.fluxcedene.net https://user-api.seriesapi.co wss://user-api.fluxcedene.net wss://user-api.seriesapi.co; report-uri /api/csp-report
+content-security-policy-report-only: frame-src 'self' https://embedshortener.co https://www.youtube.com; media-src 'self'; report-uri /api/csp-report
+early-hints: 2
+referrer-policy: strict-origin-when-cross-origin
+vary: rsc, next-router-state-tree, next-router-prefetch, next-router-segment-prefetch, Accept-Encoding
+x-dns-prefetch-control: on
+x-firefox-spdy: h2
+x-locale: es
+x-pathname: /episodios/episode-1
+x-viewport: desktop
+x-middleware-rewrite: /es/capitulos/episode-1
+link: </_next/static/media/latin-s.p.0qlou9fu5249r.woff2>; rel=preload; as="font"; crossorigin=""; type="font/woff2"
+x-nextjs-stale-time: 300
+x-nextjs-postponed: 1
+nel: {"report_to":"cf-nel","success_fraction":0.0,"max_age":604800}
+strict-transport-security: max-age=31536000; includeSubDomains; preload;
+x-frame-options: SAMEORIGIN
+x-content-type-options: nosniff
+cf-cache-status: DYNAMIC
+report-to: {"group":"cf-nel","max_age":604800,"endpoints":[{"url":"https://a.nel.cloudflare.com/report/v4?s=aofokNkCfsf3mQewtgT%2Fa7NPbZ3JBXFO00cFJaEymau%2FaUJ7BSF07rHrUvVNCIsO5qt4ux8gyURUR30h9q%2FKcT%2F5Yt62bJaH7bhAmg8dV86v9YouLMassJr650lzkZa7ng%3D%3D"}]}
+content-encoding: gzip
+cf-ray: a5f94f0b9e83647a-CDG
+alt-svc: h3=":443"; ma=86400
+OkHttp-Sent-Millis: 1795532694318
+OkHttp-Received-Millis: 1795532694508
+
+TLS_AES_128_GCM_SHA256
+3
+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
+0
+TLSv1.3

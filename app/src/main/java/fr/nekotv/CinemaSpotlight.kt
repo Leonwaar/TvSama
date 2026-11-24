@@ -45,7 +45,7 @@ class CinemaSpotlight(context: Context) {
                 if (found.isEmpty()) release.copy(provider = "AlloCiné", metadataUrl = release.id, references = emptyList(), episodes = emptyList()) else CatalogIdentity.merge(found).first().copy(
                     title = release.title, poster = release.poster.ifBlank { found.first().poster },
                     firstAired = release.firstAired, year = release.year, genres = (release.genres + found.flatMap { it.genres }).distinct(),
-                    description = found.first().description.ifBlank { release.description })
+                    description = SynopsisResolver.resolveOverview(found.first()).text.ifBlank { SynopsisResolver.resolveOverview(release).text })
             }
             val fallback = catalogue.filter { it.provider == "WarFlix" }.sortedByDescending { it.popularity }
             return CatalogIdentity.merge(fallback.take(6) + matched + fallback.drop(6)).map {

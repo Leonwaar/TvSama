@@ -25,6 +25,7 @@ internal object Recommendations {
     private val combiningMarks = Regex("\\p{M}")
     private val wordBoundaries = Regex("[^\\p{L}\\p{N}]+")
     private val themeWords by lazy { themes.mapValues { words(it.value) } }
+
     fun displayed(catalogue: List<Anime>, ranked: List<Anime>, previous: List<Anime> = emptyList(), loading: Boolean = false): List<Anime> {
         fun key(item: Anime) = "${item.provider}|${item.tag}|${item.id}"
         val available = catalogue.distinctBy(::key)
@@ -41,11 +42,122 @@ internal object Recommendations {
         }
         return CatalogIdentity.appendStable(retained, incoming)
     }
+
+
+    /** Damerau-Levenshtein distance normalized to a 0..1 similarity score. */
+    private fun damerauLevenshtein(a: String, b: String): Double {
+        if (a.isEmpty() || b.isEmpty()) return 0.0
+        val d = Array(a.length + 1) { IntArray(b.length + 1) }
+        for (i in 0..a.length) d[i][0] = i
+        for (j in 0..b.length) d[0][j] = j
+        for (i in 1..a.length) for (j in 1..b.length) {
+            val cost = if (a[i - 1] == b[j - 1]) 0 else 1
+            d[i][j] = minOf(d[i - 1][j] + 1, d[i][j - 1] + 1, d[i - 1][j - 1] + cost)
+            if (i > 1 && j > 1 && a[i - 1] == b[j - 2] && a[i - 2] == b[j - 1])
+                d[i][j] = minOf(d[i][j], d[i - 2][j - 2] + cost)
+        }
+        return 1.0 - d[a.length][b.length].toDouble() / maxOf(a.length, b.length)
+    }
+
+    /**
+     * Comprehensive search result ranking based on:
+     * 1. Text match (titles + aliases)
+     * 2. Popularity (log scale)
+     * 3. Bayesian rating
+     * 4. Freshness (recency)
+     * 5. Completeness of metadata
+     */
+    fun rankSearchResults(
+        items: List<Anime>,
+        query: String,
+        now: Long = System.currentTimeMillis()
+    ): List<Anime> {
+        val trimmedQuery = query.trim()
+        val sanitizedQuery = SearchSanitizer.sanitize(trimmedQuery) ?: return items.sortedByDescending { it.popularity }
+        val queryTokens = Normalize.tokens(sanitizedQuery)
+        if (queryTokens.isEmpty()) return items.sortedByDescending { it.popularity }
+
+        val currentYear = Instant.ofEpochMilli(now).atZone(ZoneOffset.UTC).year
+        
+        // Extract query indices
+        val queryYear = Regex("(?:19|20)\\d{2}").find(sanitizedQuery)?.value?.toIntOrNull()
+        val queryIsMovie = sanitizedQuery.contains("film", true) || sanitizedQuery.contains("movie", true)
+        val queryIsSeries = sanitizedQuery.contains("série", true) || sanitizedQuery.contains("serie", true) || sanitizedQuery.contains("season", true) || sanitizedQuery.contains("saison", true)
+
+        fun textScore(item: Anime): Double {
+            val allTitles = (listOf(item.title) + item.aliases).map { Normalize.normalizeTitle(it) }
+            val q = Normalize.normalizeTitle(sanitizedQuery)
+            
+            return allTitles.maxOf { title ->
+                when {
+                    title == q -> 1.0 // Exact match
+                    title.startsWith(q) -> 0.9
+                    title.contains(q) -> 0.7
+                    else -> {
+                        val titleTokens = Normalize.tokens(title)
+                        val shared = titleTokens.intersect(queryTokens).size
+                        if (shared > 0) (shared.toDouble() / queryTokens.size.coerceAtLeast(1)) * 0.5 else 0.0
+                        // Damerau-Levenshtein fuzzy match on the full normalized title
+                        .coerceAtLeast(damerauLevenshtein(q, title))
+                    }
+                }
+            }
+        }
+
+        fun popularityScore(item: Anime): Double {
+            val pop = item.popularity.takeIf { it.isFinite() }?.coerceAtLeast(0.0) ?: 0.0
+            return ln(1.0 + pop) / ln(1.0 + 10000.0)
+        }
+
+        fun qualityScore(item: Anime): Double {
+            val rating = item.rating.takeIf { it.isFinite() }?.coerceIn(0.0, 10.0) ?: 0.0
+            val votes = item.voteCount.coerceAtLeast(0)
+            return ((rating * votes + 6.0 * 50) / (votes + 50.0)) / 10.0
+        }
+
+        fun freshnessScore(item: Anime): Double {
+            val year = item.firstAired?.take(4)?.toIntOrNull() ?: item.year ?: return 0.2
+            if (year > currentYear) return 0.0
+            return exp(-(currentYear - year) / 10.0)
+        }
+
+        fun completenessScore(item: Anime): Double {
+            var score = 0.0
+            if (item.poster.isNotBlank()) score += 0.3
+            if (SynopsisResolver.resolveOverview(item).text.isNotBlank()) score += 0.3
+            if (item.genres.isNotEmpty()) score += 0.2
+            return score
+        }
+
+        return items.map { item ->
+            var score = (textScore(item) * 10.0) +
+                        (popularityScore(item) * 2.0) +
+                        (qualityScore(item) * 1.5) +
+                        (freshnessScore(item) * 1.0) +
+                        (completenessScore(item) * 0.5)
+
+            // Query index boosts
+            if (queryYear != null && CatalogIdentity.effectiveYear(item) == queryYear) score += 5.0
+            if (queryIsMovie && item.tag == "Film") score += 2.0
+            if (queryIsSeries && item.tag != "Film") score += 2.0
+
+            // Bonus si lisible sur mon service (has native playable source metadata)
+            if (item.episodes.any { it.sources.isNotEmpty() }) score += 1.5
+
+            // Boost léger si déjà vu/commencé (optionnel)
+            if (item.poster.isNotBlank() && item.id.isNotEmpty()) score += 0.8
+
+            // a match exact always wins over popularity: ensure a huge gap
+            if (textScore(item) >= 0.9) score += 100.0
+
+            item to score
+        }.sortedByDescending { it.second }.map { it.first }.take(SearchService.MAX_RESULTS)
+    }
     private fun words(value: String) = Normalizer.normalize(value, Normalizer.Form.NFD).replace(combiningMarks, "")
         .lowercase(Locale.ROOT).split(wordBoundaries)
         .filter { it.length > 2 && it !in stop }.toSet()
     private fun features(item: Anime): Set<String> {
-        val tokens = words((listOf(item.title, com.streamflixreborn.streamflix.providers.TvSamaAnimeProvider.cleanSynopsis(item.description)) + item.aliases + item.genres).joinToString(" "))
+        val tokens = words((listOf(item.title, SynopsisResolver.resolveOverview(item).text) + item.aliases + item.genres).joinToString(" "))
         val concepts = themeWords.filterValues { vocabulary -> vocabulary.any { it in tokens } }.keys
         return tokens + concepts.map { "theme:$it" } + item.genres.flatMap { words(it) }.map { "genre:$it" }
     }

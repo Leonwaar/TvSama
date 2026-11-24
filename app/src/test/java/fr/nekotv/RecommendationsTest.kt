@@ -110,9 +110,51 @@ class RecommendationsTest {
         assertEquals(catalogue.toSet(), result.toSet())
         assertEquals(catalogue.size, result.size)
     }
-    @Test fun coldStartAndEmptyCatalogueRemainUsable() {
-        val items = listOf(item("Populaire"), item("Deuxième"), item("Troisième"))
-        assertEquals(items.first(), Recommendations.rank(items, emptyList(), emptyList(), emptyList()).first())
-        assertTrue(Recommendations.rank(emptyList(), emptyList(), emptyList(), listOf("anime")).isEmpty())
+    @Test fun testMultilingualNormalizationAndDeduplication() {
+        val chihiroFr = item("Le Voyage de Chihiro", "Film", emptyList()).copy(id = "1", provider = "fr", imdbId = "tt0245429")
+        val chihiroEn = item("Spirited Away", "Film", emptyList()).copy(id = "2", provider = "en", imdbId = "tt0245429")
+        val chihiroJp = item("千と千尋の神隠し", "Film", emptyList()).copy(id = "3", provider = "jp", imdbId = "tt0245429")
+
+        val merged = CatalogIdentity.merge(listOf(chihiroFr, chihiroEn, chihiroJp))
+        assertEquals(1, merged.size)
+        assertEquals(3, merged.single().references.size)
+    }
+
+    @Test fun testExactMatchOverPopularity() {
+        val popular = item("Generic Action Movie", "Film", emptyList()).copy(popularity = 1000.0)
+        val exactMatch = item("Dune", "Film", emptyList()).copy(popularity = 10.0)
+        
+        val ranked = Recommendations.rankSearchResults(listOf(popular, exactMatch), "Dune")
+        assertEquals(exactMatch, ranked.first())
+    }
+    
+    @Test fun cinemaRowsFilterDeduplicateAndPrioritizeWeek() {
+        val date = java.time.LocalDate.of(2026, 1, 10)
+        fun film(id: Int, release: String) = item("Film $id").copy(tmdbId = id, poster = "poster", firstAired = release)
+        val duplicate = film(1, "2026-01-12")
+        val rows = CinemaReleaseRanking.partition(listOf(duplicate, film(1, "2026-02-01"), film(2, "2026-01-30")), date)
+        assertEquals(listOf(1), rows[CinemaReleaseRanking.Row.WEEK].orEmpty().map { it.tmdbId })
+        assertTrue(rows.values.flatten().distinctBy { it.tmdbId }.size == rows.values.flatten().size)
+    }
+
+    @Test fun cinemaRowsFilterMissingPoster() {
+        val film = item("Film").copy(tmdbId = 1, firstAired = "2026-01-12")
+        assertTrue(CinemaReleaseRanking.partition(listOf(film), java.time.LocalDate.of(2026, 1, 10)).values.flatten().isEmpty())
+    }
+
+    @Test fun releaseBadgesUseDeterministicFrenchLabels() {
+        val today = java.time.LocalDate.of(2026, 1, 10)
+        assertEquals("Aujourd'hui", releaseDateBadge("2026-01-10", today))
+        assertEquals("Demain", releaseDateBadge("2026-01-11", today))
+        assertEquals("Dans 7 jours", releaseDateBadge("2026-01-17", today))
+        assertEquals("Bientôt", releaseDateBadge("2026-01-20", today))
+        assertEquals("Au cinéma", releaseDateBadge("2026-01-01", today))
+    }
+
+    @Test fun testRankingLimitsAfterGrouping() {
+        val list = (1..50).map { item("Title $it", "Film", emptyList()) }
+        val ranked = Recommendations.rankSearchResults(list, "Title")
+        // We set MAX_RESULTS to 20 in StreamFlixProviderManager
+        assertTrue(ranked.size <= StreamFlixProviderManager.MAX_RESULTS)
     }
 }

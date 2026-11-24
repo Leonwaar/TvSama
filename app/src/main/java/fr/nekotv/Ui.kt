@@ -212,24 +212,18 @@ fun Artwork(url: String, title: String, modifier: Modifier = Modifier, crop: Boo
 }
 
 @Composable
-fun PosterCard(anime: Anime, modifier: Modifier = Modifier, onClick: () -> Unit) {
+fun PosterCard(anime: Anime, modifier: Modifier = Modifier, query: String = "", selected: Boolean = false, onClick: () -> Unit) {
     var focused by remember { mutableStateOf(false) }
     val motion = MotionEnabled.current
     val currentLanguage = LocalTitleLanguage.current
     val shown = remember(anime.id, anime.provider, currentLanguage) { anime.displayTitle(currentLanguage) }
+    val highlightedTitle = remember(shown, query) { SearchHighlighting.highlight(shown, query) }
+    val isPlayable = anime.provider.isNotBlank() && (managerIsProviderEnabled(anime.provider) || anime.references.any { managerIsProviderEnabled(it.provider) })
 
-    val scale by animateFloatAsState(if (focused && motion) 1.04f else 1f,
+    val scale by animateFloatAsState(if ((focused || selected) && motion) 1.04f else 1f,
         animationSpec = if (motion) spring(dampingRatio = 0.75f, stiffness = 350f) else snap(), label = "posterFocusScale")
-    val borderColor by animateColorAsState(if (focused) Accent else Color.Transparent,
+    val borderColor by animateColorAsState(if (focused || selected) Accent else Color.Transparent,
         animationSpec = if (motion) tween(150) else snap(), label = "posterBorderColor")
-
-    // Badge color by content type - removed for cleaner covers
-    // val badgeColor = when (anime.tag) {
-    //     "Film" -> Coral
-    //     "Série" -> Aqua
-    //     "Animation" -> Violet
-    //     else -> Color.Transparent
-    // }
 
     Column(modifier.graphicsLayer {
             scaleX = scale
@@ -238,17 +232,37 @@ fun PosterCard(anime: Anime, modifier: Modifier = Modifier, onClick: () -> Unit)
         .defaultMinSize(minHeight = 48.dp)
         .onFocusChanged { focused = it.isFocused }
         .clip(RoundedCornerShape(8.dp))
-        .border(if (focused) 3.dp else 0.dp, borderColor, RoundedCornerShape(8.dp))
+        .border(if (focused || selected) 3.dp else 0.dp, borderColor, RoundedCornerShape(8.dp))
         .clickable(onClick = onClick)
         .padding(6.dp)) {
         Box {
             Artwork(anime.poster, shown, Modifier.fillMaxWidth().aspectRatio(2f / 3f).clip(RoundedCornerShape(6.dp)))
+            if (!isPlayable) {
+                Box(Modifier.align(Alignment.BottomEnd).padding(4.dp).background(Color.Black.copy(alpha = .5f)).clip(RoundedCornerShape(4.dp))) {
+                    Text("Indisponible", color = Color.White, fontSize = 10.sp, fontWeight = FontWeight.SemiBold, maxLines = 1)
+                }
+            }
+            val badgeColor = when (anime.tag) {
+                "Film" -> Coral
+                "Série" -> Aqua
+                "Animation" -> Violet
+                else -> Color.Transparent
+            }
+            if (badgeColor != Color.Transparent) {
+                Box(Modifier.align(Alignment.TopStart).padding(4.dp).background(badgeColor).clip(RoundedCornerShape(4.dp))) {
+                    Text(anime.tag.take(1), color = if (anime.tag == "Film") Color.Black else Ink, fontSize = 10.sp, fontWeight = FontWeight.Bold, maxLines = 1)
+                }
+            }
         }
-        Text(shown, color = Color.White, fontSize = 15.sp, fontWeight = FontWeight.SemiBold, maxLines = 2,
+        Text(highlightedTitle, color = Color.White, fontSize = 15.sp, fontWeight = FontWeight.SemiBold, maxLines = 2,
             overflow = TextOverflow.Ellipsis, modifier = Modifier.padding(top = 12.dp).heightIn(min = 40.dp))
         Text(listOfNotNull(CatalogIdentity.effectiveYear(anime)?.toString()).joinToString(" · "), color = Muted, fontSize = 11.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
     }
 }
+
+/** Shared provider-enabled check so Ui.kt does not depend on StreamFlixProviderManager internals directly. */
+internal fun managerIsProviderEnabled(provider: String): Boolean =
+    StreamFlixProviderManager.getInstance().isProviderEnabled(provider)
 
 @Composable
 fun ResumeCard(entry: SavedPlayback, modifier: Modifier = Modifier.width(230.dp), onRemove: () -> Unit, onClick: () -> Unit) {

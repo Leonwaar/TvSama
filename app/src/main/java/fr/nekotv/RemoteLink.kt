@@ -84,7 +84,7 @@ internal object RemoteLink {
             requireNotNull(subtitle.label); requireNotNull(subtitle.mimeType)
         }
     }
-    private fun compact(anime: Anime) = anime.copy(description = anime.description.take(2000), episodes = anime.episodes.map {
+    private fun compact(anime: Anime) = anime.copy(description = SynopsisResolver.resolveOverview(anime).text.take(2000), episodes = anime.episodes.map {
         it.copy(description = "", sources = emptyList())
     })
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)

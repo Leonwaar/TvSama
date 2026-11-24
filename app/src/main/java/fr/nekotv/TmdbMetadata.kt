@@ -8,6 +8,7 @@ import org.json.JSONArray
 import org.json.JSONObject
 import java.net.HttpURLConnection
 import java.net.URL
+import java.time.LocalDate
 
 /** Optional TMDB enrichment. Missing or invalid credentials leave provider data unchanged. */
 suspend fun enrichWithTmdb(anime: Anime): Anime = withContext(Dispatchers.IO) {
@@ -39,13 +40,14 @@ suspend fun enrichWithTmdb(anime: Anime): Anime = withContext(Dispatchers.IO) {
             originalLanguage = details.optString("original_language").takeIf { it.matches(Regex("[a-z]{2}")) } ?: anime.originalLanguage,
             poster = anime.poster.ifBlank { image(details.optString("poster_path")) },
             banner = anime.banner.ifBlank { image(details.optString("backdrop_path")) },
-            description = anime.description.ifBlank { details.optString("overview") },
+            description = SynopsisResolver.resolveOverview(anime).text.ifBlank { details.optString("overview") },
             year = anime.year ?: firstAired?.take(4)?.toIntOrNull(),
             genres = if (anime.genres.isEmpty()) details.optJSONArray("genres")?.orEmptyStrings().orEmpty() else anime.genres,
             imdbId = anime.imdbId ?: (details.optJSONObject("external_ids")?.optString("imdb_id") ?: details.optString("imdb_id")).takeIf { it.startsWith("tt") },
             firstAired = anime.firstAired ?: firstAired,
             lastAired = anime.lastAired ?: lastAired,
-            seriesStatus = anime.seriesStatus ?: status(details.optString("status")),
+            endDate = anime.endDate ?: lastAired,
+            status = anime.status ?: normalizedStatus(details.optString("status")),
             metadataUrl = anime.metadataUrl ?: "https://www.themoviedb.org/$kind/$id"
             , localizedTitles = anime.localizedTitles.mergeTitles(localized)
             ,aliases = (anime.aliases + listOf("title", "name", "original_title", "original_name").map { details.optString(it) } +
@@ -86,14 +88,52 @@ private fun image(path: String): String = path.takeIf { it.startsWith("/") }?.le
     "https://image.tmdb.org/t/p/w780$it"
 }.orEmpty()
 
-private fun status(value: String): String? = when (value) {
+private fun seriesStatus(value: String): String? = when (value) {
     "Returning Series" -> "En cours"
     "Ended", "Canceled" -> "Terminée"
     "Planned", "In Production", "Pilot" -> "À venir"
     else -> null
 }
-private fun tmdbToken(): String = BuildConfig.TMDB_READ_TOKEN.trim().ifBlank {
+
+private fun normalizedStatus(value: String): String? = when (value) {
+    "Returning Series" -> "en_cours"
+    "Ended", "Canceled" -> "terminee"
+    "Planned", "In Production", "Pilot" -> "a_venir"
+    else -> "inconnu"
+}
+internal fun tmdbToken(): String = BuildConfig.TMDB_READ_TOKEN.trim().ifBlank {
     runCatching { com.streamflixreborn.streamflix.utils.UserPreferences.tmdbApiKey.orEmpty().trim() }.getOrDefault("")
+}
+
+/** Fetches movie release feeds without coupling the UI to a provider implementation. */
+internal suspend fun tmdbReleaseRows(region: String = "FR", language: String = "fr"): Map<String, List<Anime>> = withContext(Dispatchers.IO) {
+    val token = tmdbToken()
+    if (token.isBlank()) return@withContext emptyMap()
+    try {
+        val locale = "${language.lowercase()}-${region.uppercase()}"
+        val today = java.time.LocalDate.now()
+        val end = today.plusDays(7)
+        val raw = listOf("now_playing", "upcoming").flatMap { endpoint ->
+            val data = getJson("/3/movie/$endpoint?language=$locale&region=${region.uppercase()}&include_adult=false&page=1", token)
+            (0 until (data.optJSONArray("results")?.length() ?: 0)).mapNotNull { data.optJSONArray("results")?.optJSONObject(it) }
+        }.distinctBy { it.optInt("id") }
+        val items = raw.mapNotNull { item ->
+            val id = item.optInt("id").takeIf { it > 0 } ?: return@mapNotNull null
+            val date = item.optString("release_date").takeIf { it.matches(Regex("\\d{4}-\\d{2}-\\d{2}")) } ?: return@mapNotNull null
+            val title = item.optString("title").ifBlank { item.optString("original_title") }.trim()
+            val poster = item.optString("poster_path").takeIf { it.startsWith("/") }?.let { "https://image.tmdb.org/t/p/w500$it" } ?: return@mapNotNull null
+            if (title.isBlank() || item.optBoolean("adult", false)) return@mapNotNull null
+            Anime(title, "Film", emptyList(), "tmdb:$id", poster, year = date.take(4).toIntOrNull(),
+                firstAired = date, banner = item.optString("backdrop_path").takeIf { it.startsWith("/") }?.let { "https://image.tmdb.org/t/p/w780$it" }.orEmpty(),
+                rating = item.optDouble("vote_average", 0.0), voteCount = item.optInt("vote_count", 0), popularity = item.optDouble("popularity", 0.0),
+                provider = "TMDB", tmdbId = id, originalLanguage = item.optString("original_language").ifBlank { null },
+                localizedTitles = mapOf("$language" to title, "original" to item.optString("original_title").ifBlank { title }))
+        }
+        val rows = CinemaReleaseRanking.partition(items, today, CinemaReleasesManager.MAX_PER_ROW)
+        mapOf("week" to rows[CinemaReleaseRanking.Row.WEEK].orEmpty(),
+            "now" to rows[CinemaReleaseRanking.Row.NOW].orEmpty(),
+            "upcoming" to rows[CinemaReleaseRanking.Row.UPCOMING].orEmpty())
+    } catch (e: CancellationException) { throw e } catch (_: Exception) { emptyMap() }
 }
 
 internal suspend fun cataloguePopularity(query: String): Map<String, Double> = withContext(Dispatchers.IO) {

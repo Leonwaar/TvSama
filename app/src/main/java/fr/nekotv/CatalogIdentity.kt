@@ -224,3 +224,17 @@ object CatalogIdentity {
             references = group.flatMap { it.references + MediaReference(it.provider, it.id, it.tag) }.distinct())
     }
 }
+
+fun AdapterMatching.decide(fiche: Anime, candidate: AdapterMatching.Candidate): AdapterMatching.Decision =
+    decide(
+        com.streamflixreborn.streamflix.models.StreamflixAnime(
+            title = fiche.title,
+            tag = fiche.tag,
+            year = fiche.year,
+            aliases = fiche.aliases,
+            imdbId = fiche.imdbId,
+            episodes = emptyList()
+        ),
+        candidate
+    )
+

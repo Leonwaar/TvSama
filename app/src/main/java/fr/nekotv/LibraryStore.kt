@@ -145,7 +145,15 @@ class LibraryStore(context: Context) {
     fun searches() = readArray("searches").map { it.optString("query") }.filter { it.isNotBlank() }
     fun rememberSearch(query: String) {
         if (query.isBlank()) return
-        saveArray("searches", (listOf(query.trim()) + searches().filterNot { it.equals(query.trim(), true) }).take(12).map { JSONObject().put("query", it) })
+        val trimmed = query.trim()
+        val current = searches().filterNot { it.equals(trimmed, true) }
+        saveArray("searches", (listOf(trimmed) + current).take(12).map { JSONObject().put("query", it) })
+    }
+
+    fun removeSearch(query: String) {
+        if (query.isBlank()) return
+        val trimmed = query.trim()
+        saveArray("searches", searches().filterNot { it.equals(trimmed, true) }.map { JSONObject().put("query", it) })
     }
     fun saveAsync(anime: Anime, episode: Episode?, position: Long, duration: Long): java.util.concurrent.Future<*>? {
         if (position < 1000 || duration <= 0) return null
@@ -249,6 +257,7 @@ class LibraryStore(context: Context) {
         .put("isLive", a.isLive).put("tmdbId", a.tmdbId).put("originalLanguage", a.originalLanguage)
         .put("popularity", a.popularity).put("rating", a.rating).put("voteCount", a.voteCount).put("firstAired", a.firstAired)
         .put("poster", a.poster).put("description", a.description).put("year", a.year).put("provider", a.provider).put("banner", a.banner)
+        .put("status", a.status).put("endDate", a.endDate).put("overviewSource", a.overviewSource)
         .put("episodes", JSONArray().apply { a.episodes.forEach { put(JSONObject().put("id", it.id).put("title", it.title).put("season", it.seasonNumber).put("number", it.number).put("language", it.language)) } })
         .put("genres", JSONArray(a.genres)).put("aliases", JSONArray(a.aliases)).put("imdbId", a.imdbId).put("references", JSONArray().apply {
             a.references.forEach { put(JSONObject().put("provider", it.provider).put("id", it.id).put("tag", it.tag)) }
@@ -276,6 +285,7 @@ class LibraryStore(context: Context) {
             localizedTitles = o.optJSONObject("localizedTitles")?.let { titles ->
                 titles.keys().asSequence().associateWith { titles.optString(it) }.filterValues { it.isNotBlank() }
             }.orEmpty(),
-            imdbId = o.optString("imdbId").takeIf { it.startsWith("tt") }, popularity = o.optDouble("popularity", 0.0), rating = o.optDouble("rating", 0.0), voteCount = o.optInt("voteCount", 0), firstAired = o.optString("firstAired").takeIf { it.matches(Regex("\\d{4}-\\d{2}-\\d{2}")) })
+            imdbId = o.optString("imdbId").takeIf { it.startsWith("tt") }, popularity = o.optDouble("popularity", 0.0), rating = o.optDouble("rating", 0.0), voteCount = o.optInt("voteCount", 0), firstAired = o.optString("firstAired").takeIf { it.matches(Regex("\\d{4}-\\d{2}-\\d{2}")) },
+            status = o.optString("status").takeIf { it.isNotBlank() }, endDate = o.optString("endDate").takeIf { it.isNotBlank() }, overviewSource = o.optString("overviewSource").takeIf { it.isNotBlank() })
     }
 }

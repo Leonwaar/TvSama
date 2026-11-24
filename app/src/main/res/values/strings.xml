@@ -1,4 +1,6 @@
 <resources>
     <string name="app_name">TvSama</string>
     <string name="media_route_menu_title">Cast</string>
+    <string name="download_notification_title">Téléchargements</string>
+    <string name="download_notification_description">Gestionnaire de téléchargements</string>
 </resources>

@@ -79,6 +79,9 @@ class StreamFlixProviderManager private constructor() {
     companion object {
         private val singleton by lazy { StreamFlixProviderManager() }
         fun getInstance() = singleton
+        const val SEARCH_MIN_CHARS = 2
+        const val SEARCH_DEBOUNCE_MS = 250L
+        const val MAX_RESULTS = SearchService.MAX_RESULTS
     }
     suspend fun getProviders() = providers.toList()
     suspend fun getProviderNames() = providers.map { it.name } + externalSources.map { it.name }
@@ -182,6 +185,8 @@ class StreamFlixProviderManager private constructor() {
         statuses[name] = "${if (protected) "Validation requise" else "Indisponible"} • ${e.message?.take(70) ?: "erreur réseau"}"
         fallback
     }
+
+    suspend fun atomicSearch(query: String, category: String = "Séries", page: Int = 1) = searchAllProviders(query, category, page)
 
     suspend fun searchAllProviders(query: String, category: String, page: Int = 1, includePopularity: Boolean = true,
         onPartial: (suspend (List<Anime>) -> Unit)? = null): List<Anime> = withContext(Dispatchers.IO) {
@@ -1031,9 +1036,10 @@ private fun effectiveYearOf(card: Anime) = CatalogIdentity.effectiveYear(card)
 data class Anime(val title: String, val tag: String, val episodes: List<Episode>, val id: String = "", val poster: String = "",
     val description: String = "", val year: Int? = null, val genres: List<String> = emptyList(), val provider: String = "",
     val banner: String = "", val references: List<MediaReference> = emptyList(), val imdbId: String? = null,
-    val firstAired: String? = null, val lastAired: String? = null, val seriesStatus: String? = null, val metadataUrl: String? = null,
+    val firstAired: String? = null, val lastAired: String? = null, val status: String? = null, val seriesStatus: String? = null, val endDate: String? = null, val overviewSource: String? = null, val metadataUrl: String? = null,
     val aliases: List<String> = emptyList(), val popularity: Double = 0.0, val rating: Double = 0.0, val voteCount: Int = 0,
     val isLive: Boolean = false, val tmdbId: Int? = null, val originalLanguage: String? = null,
+    val descriptions: Map<String, String> = emptyMap(),
     /** Language-tagged titles from TMDB/AniList: "fr", "en", "ja", "original", "romaji". */
     val localizedTitles: Map<String, String> = emptyMap())
 data class Episode(val title: String, val description: String, val sources: List<VideoSource>, val id: String = "",
